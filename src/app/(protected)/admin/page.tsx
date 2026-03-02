@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Users, ShieldAlert, Shield, Search, Trash2, User as UserIcon, Loader2, Building2, UserPlus, UserMinus, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
+import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 import { ROLES } from "@/lib/roles"; // 💡 ロール定義をインポート
 
@@ -134,20 +135,12 @@ export default function AdminPage() {
 
     return (
         <div className="flex flex-col min-h-screen bg-background text-foreground pb-20">
-            <header className="bg-muted/30 border-b border-border p-4 sticky top-0 z-10 backdrop-blur-md">
-                <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted" asChild>
-                        <Link href="/dashboard"><ArrowLeft className="h-5 w-5" /></Link>
-                    </Button>
-                    <div>
-                        <h1 className="font-black text-xl tracking-tight flex items-center gap-2 text-primary">
-                            <ShieldAlert className="h-5 w-5" />
-                            システム管理 (Admin)
-                        </h1>
-                        <p className="text-xs text-muted-foreground font-medium">全ユーザーとチームの管理</p>
-                    </div>
-                </div>
-            </header>
+            <PageHeader 
+                href="/dashboard" 
+                icon={ShieldAlert} 
+                title="システム管理 (Admin)" 
+                subtitle="全ユーザーとチームの管理" 
+            />
 
             <main className="flex-1 p-4 max-w-4xl mx-auto w-full space-y-6 mt-2">
                 
