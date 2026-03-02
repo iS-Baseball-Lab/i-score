@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Maximize, Activity, ChevronRight, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// ... (Match や LineupPlayer などの interface はそのまま残す) ...
 interface Match {
     id: string; opponent: string; date: string;
     location: string | null; matchType: string; status: string; season: string;
@@ -14,20 +15,12 @@ interface LineupPlayer {
 }
 
 interface ScoreboardProps {
-    match: Match;
-    inning: number;
-    isTop: boolean;
-    guestInningScores: number[];
-    selfInningScores: number[];
-    guestScore: number;
-    selfScore: number;
-    currentPitcher: LineupPlayer | null;
-    selfPitchCount: number;
-    selfInningPitchCount: number;
-    currentBatter: LineupPlayer | null;
-    nextBatter: LineupPlayer | null;
-    onFinish: () => void;
-    onToggleFullScreen: () => void;
+    match: Match; inning: number; isTop: boolean;
+    guestInningScores: number[]; selfInningScores: number[];
+    guestScore: number; selfScore: number;
+    currentPitcher: LineupPlayer | null; selfPitchCount: number; selfInningPitchCount: number;
+    currentBatter: LineupPlayer | null; nextBatter: LineupPlayer | null;
+    onFinish: () => void; onToggleFullScreen: () => void;
 }
 
 export function Scoreboard({
@@ -36,7 +29,8 @@ export function Scoreboard({
     onFinish, onToggleFullScreen
 }: ScoreboardProps) {
     return (
-        <header className="bg-muted/10 border-b border-border p-4 pb-1 shrink-0 z-10">
+        // 💡 修正1: border-b を削除し、pb-1 を pb-0 に変更
+        <header className="bg-muted/10 p-4 pb-0 shrink-0 z-10">
             <div className="flex items-center justify-between mb-2">
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted -ml-2" asChild>
                     <Link href="/dashboard"><ArrowLeft className="h-5 w-5" /></Link>
@@ -57,7 +51,8 @@ export function Scoreboard({
                 </div>
             </div>
 
-            <div className="relative -mx-4 mb-4 mt-2">
+            {/* 💡 修正2: mb-4 を mb-2 に減らし、下の無駄な隙間をカット */}
+            <div className="relative -mx-4 mb-2 mt-2">
                 <div className="bg-background border-y border-border overflow-x-auto scrollbar-hide pb-3">
                     <div className="min-w-[360px] px-2 pt-2">
                         <table className="w-full text-center text-sm table-fixed">
