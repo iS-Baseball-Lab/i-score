@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Maximize, Activity, ChevronRight, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ... (Match や LineupPlayer などの interface はそのまま残す) ...
 interface Match {
     id: string; opponent: string; date: string;
     location: string | null; matchType: string; status: string; season: string;
@@ -29,7 +28,6 @@ export function Scoreboard({
     onFinish, onToggleFullScreen
 }: ScoreboardProps) {
     return (
-        // 💡 修正1: border-b を削除し、pb-1 を pb-0 に変更
         <header className="bg-muted/10 p-4 pb-0 shrink-0 z-10">
             <div className="flex items-center justify-between mb-2">
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted -ml-2" asChild>
@@ -51,42 +49,53 @@ export function Scoreboard({
                 </div>
             </div>
 
-            {/* 💡 修正2: mb-4 を mb-2 に減らし、下の無駄な隙間をカット */}
             <div className="relative -mx-4 mb-2 mt-2">
                 <div className="bg-background border-y border-border overflow-x-auto scrollbar-hide pb-3">
-                    <div className="min-w-[360px] px-2 pt-2">
+                    {/* 💡 修正1: テーブル全体の最小幅を 360px -> 420px に拡大 */}
+                    <div className="min-w-[420px] px-2 pt-2">
                         <table className="w-full text-center text-sm table-fixed">
                             <thead>
-                                <tr className="text-muted-foreground border-b border-border text-[10px] sm:text-xs">
-                                    <th className="text-left font-medium pb-1 pl-3 w-16 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(255,255,255,0.05)]">TEAM</th>
+                                {/* 💡 修正2: ヘッダーの文字サイズを text-[10px] -> text-xs に拡大 */}
+                                <tr className="text-muted-foreground border-b border-border text-xs sm:text-sm">
+                                    {/* 💡 修正3: TEAM列の幅を w-16 -> w-24 (96px) に大幅拡大 */}
+                                    <th className="text-left font-bold pb-1 pl-3 w-24 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(255,255,255,0.05)]">TEAM</th>
+
+                                    {/* 💡 修正4: イニング列の幅を w-7 -> w-8 に拡大 */}
                                     {[...Array(9)].map((_, i) => (
-                                        <th key={i} className={cn("font-medium pb-1 w-7", inning === i + 1 ? "text-primary font-black" : "")}>{i + 1}</th>
+                                        <th key={i} className={cn("font-bold pb-1 w-8", inning === i + 1 ? "text-primary font-black" : "")}>{i + 1}</th>
                                     ))}
-                                    <th className="font-black pb-1 w-8 text-primary sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_5px_-2px_rgba(255,255,255,0.05)]">R</th>
+
+                                    {/* 💡 修正5: 合計(R)列の幅を w-8 -> w-10 に拡大 */}
+                                    <th className="font-black pb-1 w-10 text-primary sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_5px_-2px_rgba(255,255,255,0.05)]">R</th>
                                 </tr>
                             </thead>
-                            <tbody className="font-bold text-xs sm:text-sm">
+
+                            {/* 💡 修正6: 点数の文字サイズを text-xs -> text-sm（PCならtext-base）に拡大し、font-black（極太）に変更 */}
+                            <tbody className="font-black text-sm sm:text-base">
                                 <tr className="border-b border-border/50">
                                     <td className="text-left py-2 pl-3 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(255,255,255,0.05)]">
-                                        <span className="truncate max-w-[55px] inline-block align-middle">{match.opponent}</span>
+                                        {/* 💡 修正7: チーム名の最大表示幅を max-w-[55px] -> max-w-[85px] に大幅拡大 */}
+                                        <span className="truncate max-w-[85px] inline-block align-middle">{match.opponent}</span>
                                     </td>
                                     {[...Array(9)].map((_, i) => (
                                         <td key={i} className={cn("py-2", inning === i + 1 && isTop ? "bg-primary/10 text-primary rounded-sm" : "text-muted-foreground")}>
                                             {guestInningScores[i] !== null ? guestInningScores[i] : '-'}
                                         </td>
                                     ))}
-                                    <td className="py-2 text-sm text-foreground sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_5px_-2px_rgba(255,255,255,0.05)]">{guestScore}</td>
+                                    {/* 💡 修正8: 合計点数(R)の文字をさらに大きく（text-base sm:text-lg） */}
+                                    <td className="py-2 text-base sm:text-lg text-foreground sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_5px_-2px_rgba(255,255,255,0.05)]">{guestScore}</td>
                                 </tr>
                                 <tr>
                                     <td className="text-left py-2 pl-3 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(255,255,255,0.05)]">
-                                        <span className="truncate max-w-[55px] inline-block align-middle text-primary">Self</span>
+                                        {/* 💡 修正9: 自分のチーム名表示エリアも拡大 */}
+                                        <span className="truncate max-w-[85px] inline-block align-middle text-primary">Self</span>
                                     </td>
                                     {[...Array(9)].map((_, i) => (
                                         <td key={i} className={cn("py-2", inning === i + 1 && !isTop ? "bg-primary/10 text-primary rounded-sm" : "text-muted-foreground")}>
                                             {selfInningScores[i] !== null ? selfInningScores[i] : '-'}
                                         </td>
                                     ))}
-                                    <td className="py-2 text-sm text-primary sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_5px_-2px_rgba(255,255,255,0.05)]">{selfScore}</td>
+                                    <td className="py-2 text-base sm:text-lg text-primary sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_5px_-2px_rgba(255,255,255,0.05)]">{selfScore}</td>
                                 </tr>
                             </tbody>
                         </table>
