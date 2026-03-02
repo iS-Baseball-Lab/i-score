@@ -5,8 +5,9 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Loader2, Trophy, Users } from "lucide-react";
+import { ArrowLeft, Calendar, CalendarPlus, Loader2, Trophy, Users } from "lucide-react";
 
 function NewMatchForm() {
   const router = useRouter();
@@ -77,15 +78,12 @@ function NewMatchForm() {
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-8 animate-in fade-in duration-500">
-      <div className="mb-6 flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard"><ArrowLeft className="h-5 w-5" /></Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">新しい試合を記録</h1>
-          <p className="text-sm text-muted-foreground font-medium">対戦相手と試合情報を入力してください。</p>
-        </div>
-      </div>
+      <PageHeader
+        href="/dashboard" 
+        icon={CalendarPlus} 
+        title="新規試合の作成" 
+        subtitle="試合情報の入力と設定" 
+      />
 
       <Card className="border-border/50 shadow-sm">
         <CardContent className="pt-6">
