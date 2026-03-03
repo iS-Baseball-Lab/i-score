@@ -88,12 +88,12 @@ function PlayerDetailContent() {
                 href={`/teams/roster?id=${teamId}`}
                 icon={User}
                 title="選手詳細データ"
-                subtitle="Player Personal Stats"
+                subtitle="選手の試合での成績が確認できます。"
             />
 
             <main className="flex-1 p-4 max-w-4xl mx-auto w-full space-y-6 mt-4 animate-in fade-in duration-500">
 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-card p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-card p-6 sm:p-8 rounded-2xl border border-border shadow-xs">
                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-muted/50 border border-border flex flex-col items-center justify-center shrink-0 overflow-hidden text-muted-foreground/40 group relative">
                         <User className="h-10 w-10 mb-1" />
                         <span className="text-[10px] font-bold">No Photo</span>
@@ -236,3 +236,4 @@ export default function PlayerDetailPage() {
     );
 
 }
+
