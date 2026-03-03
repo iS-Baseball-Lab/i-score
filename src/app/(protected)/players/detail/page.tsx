@@ -5,7 +5,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, User, BarChart3, Activity, Map, Camera } from "lucide-react"; // 💡 Cameraアイコンを追加
+import { Loader2, User, BarChart3, Activity, Map, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PlayerStats {
@@ -93,10 +93,7 @@ function PlayerDetailContent() {
 
             <main className="flex-1 p-4 max-w-4xl mx-auto w-full space-y-6 mt-4 animate-in fade-in duration-500">
 
-                {/* 💡 修正：プロフィールヘッダーを落ち着いたデザインに変更し、写真枠を新設 */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-card p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
-
-                    {/* 将来写真が入る枠（ホバーでカメラアイコンが出る仕掛け） */}
                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-muted/50 border border-border flex flex-col items-center justify-center shrink-0 overflow-hidden text-muted-foreground/40 group relative">
                         <User className="h-10 w-10 mb-1" />
                         <span className="text-[10px] font-bold">No Photo</span>
@@ -117,10 +114,8 @@ function PlayerDetailContent() {
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
-                    {/* 左カラム：打撃・投手成績 */}
                     <div className="space-y-6">
 
-                        {/* 💡 修正：カードの背景やヘッダーをダッシュボードと同じ落ち着いた色に統一 */}
                         <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden">
                             <div className="bg-muted/30 p-4 border-b border-border/50">
                                 <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
@@ -150,7 +145,6 @@ function PlayerDetailContent() {
                             </CardContent>
                         </Card>
 
-                        {/* 投手成績 */}
                         <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden">
                             <div className="bg-muted/30 p-4 border-b border-border/50">
                                 <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
@@ -177,7 +171,6 @@ function PlayerDetailContent() {
                         </Card>
                     </div>
 
-                    {/* 右カラム：スプレーチャート */}
                     <div>
                         <Card className="rounded-2xl border-border bg-background shadow-sm h-full flex flex-col">
                             <div className="bg-muted/30 p-4 border-b border-border/50">
@@ -191,7 +184,6 @@ function PlayerDetailContent() {
                                 ) : (
                                     <>
                                         <div className="relative w-full max-w-[320px] aspect-square mx-auto drop-shadow-md">
-                                            {/* SVG グラウンド背景 */}
                                             <svg viewBox="0 0 100 100" className="w-full h-full rounded-2xl overflow-hidden bg-muted/10">
                                                 <path d="M 50 90 L 15 20 Q 50 5 85 20 Z" fill="#15803d" stroke="#4ade80" strokeWidth="0.5" />
                                                 <path d="M 50 90 L 68 54 Q 50 35 32 54 Z" fill="#a16207" />
@@ -203,7 +195,6 @@ function PlayerDetailContent() {
                                                 <polygon points="37,66 39,68 37,70 35,68" fill="white" />
                                             </svg>
 
-                                            {/* プロット */}
                                             {sprayData.map((hit, i) => {
                                                 const isOut = hit.result.includes('out') || hit.result.includes('double_play');
                                                 const isHomeRun = hit.result === 'home_run';
