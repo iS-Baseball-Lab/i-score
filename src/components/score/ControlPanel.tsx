@@ -11,11 +11,12 @@ interface ControlPanelProps {
     initiateHit: (bases: 1 | 2 | 3 | 4) => void;
     handleWalk: () => void;
     initiateInPlayOut: (outType: 'groundout' | 'flyout' | 'double_play') => void;
+    initiateAdvance: () => void; // 💡 追加
 }
 
 export function ControlPanel({
     handleBall, handleStrike, handleManualOut, handleUndo, canUndo,
-    initiateHit, handleWalk, initiateInPlayOut
+    initiateHit, handleWalk, initiateInPlayOut, initiateAdvance // 💡 追加
 }: ControlPanelProps) {
     return (
         <footer className="bg-muted/20 border-t border-border p-3 sm:p-5 pb-6 shrink-0 space-y-2 z-10 relative">
@@ -35,8 +36,10 @@ export function ControlPanel({
             </div>
             <div className="grid grid-cols-3 gap-2">
                 <Button onClick={handleWalk} variant="outline" className="h-10 sm:h-12 rounded-lg border-border bg-background font-bold active:scale-95 text-xs sm:text-sm">四死球</Button>
-                <Button variant="outline" className="h-10 sm:h-12 rounded-lg border-border bg-background font-bold active:scale-95 text-xs sm:text-sm">バント</Button>
-                <Button variant="outline" className="h-10 sm:h-12 rounded-lg border-border bg-background font-bold active:scale-95 text-xs sm:text-sm">盗塁/進塁</Button>
+                <Button variant="outline" className="h-10 sm:h-12 rounded-lg border-border bg-background font-bold active:scale-95 text-xs sm:text-sm text-muted-foreground line-through">バント(未実装)</Button>
+
+                {/* 💡 ここに initiateAdvance を紐付けます */}
+                <Button onClick={initiateAdvance} variant="outline" className="h-10 sm:h-12 rounded-lg border-primary/50 text-primary bg-primary/5 font-black hover:bg-primary hover:text-primary-foreground active:scale-95 text-xs sm:text-sm shadow-sm">盗塁 / 進塁</Button>
             </div>
             <div className="grid grid-cols-3 gap-2">
                 <Button onClick={() => initiateInPlayOut('groundout')} variant="outline" className="h-10 sm:h-12 rounded-lg border-red-900/30 text-red-500 font-bold hover:bg-red-900/20 active:scale-95 text-xs sm:text-sm">ゴロアウト</Button>

@@ -12,6 +12,7 @@ import { PlayArea } from "@/components/score/PlayArea";
 import { ControlPanel } from "@/components/score/ControlPanel";
 import { FieldModal } from "@/components/score/FieldModal";
 import { PlayLog } from "@/components/score/PlayLog";
+import { AdvanceModal } from "@/components/score/AdvanceModal";
 
 interface Match {
     id: string; opponent: string; date: string;
@@ -77,6 +78,29 @@ function MatchScoreContent() {
 
     const [showFieldModal, setShowFieldModal] = useState(false);
     const [pendingPlay, setPendingPlay] = useState<{ type: 'hit' | 'out', bases?: 1 | 2 | 3 | 4, outType?: 'groundout' | 'flyout' | 'double_play' } | null>(null);
+
+    const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+
+    const handleAdvance = async (fromBase: 1 | 2 | 3, toBase: 2 | 3 | 4, isOut: boolean, logText: string) => {
+        saveStateToHistory(); // Undoのために履歴を保存
+        addPlayLog(logText);  // ログに「二盗成功」などを表示
+
+        // 元いた塁からランナーを消す
+        if (fromBase === 1) setFirstBase(false);
+        if (fromBase === 2) setSecondBase(false);
+        if (fromBase === 3) setThirdBase(false);
+
+        if (isOut) {
+            // アウトになった場合
+            processOuts(1);
+        } else {
+            // セーフの場合、次の塁を埋める（ホームなら1点）
+            if (toBase === 2) setSecondBase(true);
+            if (toBase === 3) setThirdBase(true);
+            if (toBase === 4) addScore(1);
+        }
+        setShowAdvanceModal(false);
+    };
 
     const toggleFullScreen = () => {
         if (!document.fullscreenElement) {
@@ -362,12 +386,22 @@ function MatchScoreContent() {
                 handleBall={handleBall} handleStrike={handleStrike} handleManualOut={handleManualOut}
                 handleUndo={handleUndo} canUndo={history.length > 0} initiateHit={initiateHit}
                 handleWalk={handleWalk} initiateInPlayOut={initiateInPlayOut}
+                initiateAdvance={() => setShowAdvanceModal(true)}
             />
 
             <FieldModal
                 show={showFieldModal}
                 onClose={() => { setShowFieldModal(false); setPendingPlay(null); }}
                 onFinalize={finalizePlayOnField}
+            />
+
+            <AdvanceModal
+                show={showAdvanceModal}
+                onClose={() => setShowAdvanceModal(false)}
+                firstBase={firstBase}
+                secondBase={secondBase}
+                thirdBase={thirdBase}
+                onAdvance={handleAdvance}
             />
         </div>
     );
