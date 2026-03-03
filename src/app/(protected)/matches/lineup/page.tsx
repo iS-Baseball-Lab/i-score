@@ -3,11 +3,11 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { PageHeader } from "@/components/PageHeader";
-import { ClipboardList, Save, Users } from "lucide-react";
+// 💡 Loader2 を追加インポート
+import { ClipboardList, Save, Users, Loader2 } from "lucide-react";
 
 const POSITIONS = [
     { value: "1", label: "1 (投)" }, { value: "2", label: "2 (捕)" },
@@ -71,7 +71,7 @@ function LineupContent() {
                 body: JSON.stringify(validLineup),
             });
             if (res.ok) {
-                alert("スタメンを保存しました！");
+                // アラートは消して、スムーズに遷移させてもUI的に綺麗です
                 router.push(`/matches/score?id=${matchId}`);
             }
         } catch (error) { console.error(error); }
@@ -109,15 +109,29 @@ function LineupContent() {
                         </div>
                     </div>
                 ))}
+
+                {/* 💡 追加：保存ボタンを9番バッターの下に設置 */}
+                <div className="pt-6 pb-8">
+                    <Button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="w-full h-14 text-base font-bold rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                        {isSaving ? (
+                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> 保存中...</>
+                        ) : (
+                            <><Save className="mr-2 h-5 w-5" /> スタメンを保存してスコア入力へ</>
+                        )}
+                    </Button>
+                </div>
             </main>
         </div>
     );
 }
 
-// 💡 こちらも Suspense でラップ
 export default function MatchLineupPage() {
     return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center bg-background text-foreground">読み込み中...</div>}>
+        <Suspense fallback={<div className="flex h-screen items-center justify-center bg-background text-foreground"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
             <LineupContent />
         </Suspense>
     );
