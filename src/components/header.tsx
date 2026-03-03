@@ -18,7 +18,7 @@ import {
   X,
   Home,
   ClipboardList,
-  Users // 💡 メンバー管理用のアイコンを追加
+  ShieldAlert
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -68,10 +68,10 @@ function HeaderContent() {
 
   // 💡 セッション状態や権限に応じて動的にメニューを生成するように変更
   const navItems = [
-    { name: "ホーム", href: "/", icon: Home, show: true },
+    { name: "ホーム", href: "/", icon: Home, show: false },
     { name: "ダッシュボード", href: "/dashboard", icon: ClipboardList, show: !!session },
     // 💡 管理者・監督のみ表示されるメニュー
-    { name: "メンバー管理", href: "/admin", icon: Users, show: !!session && isManager },
+    { name: "システム管理", href: "/admin", icon: ShieldAlert, show: !!session && isManager },
   ];
 
   const handleLogout = async () => {

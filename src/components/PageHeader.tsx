@@ -18,7 +18,7 @@ export function PageHeader({ href, icon: Icon, title, subtitle }: PageHeaderProp
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground border-none transition-all group shrink-0"
+                    className="h-10 w-10 rounded-full bg-primary-foreground/30 hover:bg-primary-foreground/20 text-primary-foreground border-none transition-all group shrink-0"
                     asChild
                 >
                     <Link href={href}>

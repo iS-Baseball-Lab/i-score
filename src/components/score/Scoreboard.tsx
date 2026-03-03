@@ -42,7 +42,7 @@ export function Scoreboard({
                     </Link>
                 </Button>
 
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-left">
                     {/* 💡 修正3: サブタイトルも半透明の白に変更し、タイトル文字を大きく */}
                     <span className="text-[10px] font-bold text-primary-foreground/80 uppercase tracking-widest mb-0.5">
                         {match.season} {match.matchType === 'practice' ? 'Practice' : 'Official'}
@@ -52,6 +52,9 @@ export function Scoreboard({
 
                 <div className="flex items-center gap-1.5">
                     {/* 💡 修正4: 全画面ボタンも半透明の白に変更 */}
+                    <Button onClick={onFinish} size="sm" className="bg-red-500 hover:bg-red-600 text-white font-bold rounded-full px-3 sm:px-4 shadow-sm text-xs h-10 border-none">
+                        試合終了
+                    </Button>
                     <Button
                         variant="ghost"
                         size="icon"
@@ -59,9 +62,6 @@ export function Scoreboard({
                         onClick={onToggleFullScreen}
                     >
                         <Maximize className="h-5 w-5" />
-                    </Button>
-                    <Button onClick={onFinish} size="sm" className="bg-red-500 hover:bg-red-600 text-white font-bold rounded-full px-3 sm:px-4 shadow-sm text-xs h-10 border-none">
-                        試合終了
                     </Button>
                 </div>
             </div>
