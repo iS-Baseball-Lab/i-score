@@ -215,8 +215,12 @@ function RosterContent() {
                                             <div className="w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary transition-colors">
                                                 <span className="text-lg font-black text-primary group-hover:text-primary-foreground">{player.uniformNumber}</span>
                                             </div>
-                                            <h3 className="font-bold text-base truncate flex-1">{player.name}</h3>
-
+                                            {/* 💡 選手名をクリック可能にして詳細画面へ飛ばす */}
+                                            <div className="flex-1 min-w-0">
+                                                <Link href={`/players/detail?teamId=${teamId}&playerName=${encodeURIComponent(player.name)}&uniformNumber=${player.uniformNumber}`}>
+                                                    <h3 className="font-bold text-base truncate hover:text-primary hover:underline cursor-pointer transition-colors">{player.name}</h3>
+                                                </Link>
+                                            </div>
                                             {/* 💡 編集・削除ボタン (スマホでは常に薄く表示、PCではホバー時表示) */}
                                             <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                                 <Button size="icon-sm" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary rounded-lg" onClick={() => startEdit(player)}>
