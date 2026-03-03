@@ -13,14 +13,22 @@ import { ControlPanel } from "@/components/score/ControlPanel";
 import { FieldModal } from "@/components/score/FieldModal";
 import { PlayLog } from "@/components/score/PlayLog";
 import { AdvanceModal } from "@/components/score/AdvanceModal";
+import { SubstitutionModal } from "@/components/score/SubstitutionModal"; // 💡 追加
 
+// 💡 チームIDを含める
 interface Match {
     id: string; opponent: string; date: string;
     location: string | null; matchType: string; status: string; season: string;
+    teamId: string;
+}
+
+// 💡 選手情報とスタメン情報の型を整備
+interface Player {
+    id: string; name: string; uniformNumber: string;
 }
 
 interface LineupPlayer {
-    batting_order: number; playerName: string; uniformNumber: string; position: string;
+    player_id: string; batting_order: number; playerName: string; uniformNumber: string; position: string;
 }
 
 interface GameStateSnapshot {
@@ -44,6 +52,7 @@ function MatchScoreContent() {
     const router = useRouter();
 
     const [match, setMatch] = useState<Match | null>(null);
+    const [roster, setRoster] = useState<Player[]>([]); // 💡 チーム全体の選手リスト
     const [isLoading, setIsLoading] = useState(true);
 
     const [selfScore, setSelfScore] = useState(0);
@@ -80,21 +89,46 @@ function MatchScoreContent() {
     const [pendingPlay, setPendingPlay] = useState<{ type: 'hit' | 'out', bases?: 1 | 2 | 3 | 4, outType?: 'groundout' | 'flyout' | 'double_play' } | null>(null);
 
     const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+    const [showSubModal, setShowSubModal] = useState(false); // 💡 追加
+
+    // 💡 選手交代処理
+    const handleSubstitute = async (outPlayerId: string, inPlayerId: string, logText: string) => {
+        // スタメン配列を更新
+        const newLineup = myLineup.map(p => {
+            if (p.player_id === outPlayerId) {
+                const newP = roster.find(r => r.id === inPlayerId);
+                return newP ? { ...p, player_id: inPlayerId, playerName: newP.name, uniformNumber: newP.uniformNumber } : p;
+            }
+            return p;
+        });
+        setMyLineup(newLineup);
+
+        // APIに更新後のスタメンを保存（途中で画面を閉じても交代が維持されるように）
+        try {
+            await fetch(`/api/matches/${matchId}/lineup`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newLineup.map(p => ({
+                    playerId: p.player_id, battingOrder: p.batting_order, position: p.position
+                })))
+            });
+        } catch (e) { console.error(e); }
+
+        addPlayLog(logText); // ログに「選手交代」を追加
+        setShowSubModal(false);
+    };
 
     const handleAdvance = async (fromBase: 1 | 2 | 3, toBase: 2 | 3 | 4, isOut: boolean, logText: string) => {
-        saveStateToHistory(); // Undoのために履歴を保存
-        addPlayLog(logText);  // ログに「二盗成功」などを表示
+        saveStateToHistory();
+        addPlayLog(logText);
 
-        // 元いた塁からランナーを消す
         if (fromBase === 1) setFirstBase(false);
         if (fromBase === 2) setSecondBase(false);
         if (fromBase === 3) setThirdBase(false);
 
         if (isOut) {
-            // アウトになった場合
             processOuts(1);
         } else {
-            // セーフの場合、次の塁を埋める（ホームなら1点）
             if (toBase === 2) setSecondBase(true);
             if (toBase === 3) setThirdBase(true);
             if (toBase === 4) addScore(1);
@@ -220,8 +254,8 @@ function MatchScoreContent() {
                 body: JSON.stringify({
                     myScore: selfScore,
                     opponentScore: guestScore,
-                    selfInningScores: selfInningScores, // 追加
-                    guestInningScores: guestInningScores // 追加
+                    selfInningScores: selfInningScores,
+                    guestInningScores: guestInningScores
                 })
             });
             if (res.ok) router.push('/dashboard');
@@ -279,13 +313,12 @@ function MatchScoreContent() {
         setShowFieldModal(true);
     };
 
-    // 💡 エラーになっていた打球方向判定関数（ここに確実に配置！）
     const getHitDirection = (x: number, y: number) => {
-        if (y > 0.6) { // 内野（手前側）
+        if (y > 0.6) {
             if (x < 0.4) return "サード";
             if (x > 0.6) return "ファースト";
             return x < 0.5 ? "ショート" : "セカンド";
-        } else { // 外野（奥側）
+        } else {
             if (x < 0.35) return "レフト";
             if (x > 0.65) return "ライト";
             return "センター";
@@ -298,9 +331,7 @@ function MatchScoreContent() {
         const fieldX = (e.clientX - rect.left) / rect.width;
         const fieldY = (e.clientY - rect.top) / rect.height;
 
-        // 💡 ここで関数を呼び出す
         const direction = getHitDirection(fieldX, fieldY);
-
         saveStateToHistory();
 
         if (pendingPlay.type === 'hit') {
@@ -350,11 +381,22 @@ function MatchScoreContent() {
         if (!matchId) return;
         const fetchData = async () => {
             try {
+                let matchData: Match | null = null;
                 const matchRes = await fetch(`/api/matches/${matchId}`);
-                if (matchRes.ok) setMatch(await matchRes.json());
+                if (matchRes.ok) {
+                    matchData = await matchRes.json() as Match;
+                    setMatch(matchData);
+                }
 
                 const lineupRes = await fetch(`/api/matches/${matchId}/lineup`);
-                if (lineupRes.ok) setMyLineup(await lineupRes.json());
+                if (lineupRes.ok) setMyLineup(await lineupRes.json() as LineupPlayer[]);
+
+                // 💡 チーム全体の選手リスト（ベンチメンバー候補）を取得
+                if (matchData && matchData.teamId) {
+                    const rosterRes = await fetch(`/api/teams/${matchData.teamId}/players`);
+                    if (rosterRes.ok) setRoster(await rosterRes.json() as Player[]);
+                }
+
             } catch (e) { console.error(e); }
             finally { setIsLoading(false); }
         };
@@ -388,6 +430,7 @@ function MatchScoreContent() {
                 handleUndo={handleUndo} canUndo={history.length > 0} initiateHit={initiateHit}
                 handleWalk={handleWalk} initiateInPlayOut={initiateInPlayOut}
                 initiateAdvance={() => setShowAdvanceModal(true)}
+                initiateSubstitution={() => setShowSubModal(true)} // 💡 追加
             />
 
             <FieldModal
@@ -403,6 +446,15 @@ function MatchScoreContent() {
                 secondBase={secondBase}
                 thirdBase={thirdBase}
                 onAdvance={handleAdvance}
+            />
+
+            {/* 💡 選手交代モーダルを配置 */}
+            <SubstitutionModal
+                show={showSubModal}
+                onClose={() => setShowSubModal(false)}
+                roster={roster}
+                currentLineup={myLineup}
+                onSubstitute={handleSubstitute}
             />
         </div>
     );
