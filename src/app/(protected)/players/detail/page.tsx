@@ -117,9 +117,9 @@ function PlayerDetailContent() {
                     <div className="space-y-6">
 
                         <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden p-0 gap-0">
-                            <div className="bg-muted/30 p-4 border-b border-border/50">
-                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-                                    <BarChart3 className="h-5 w-5 text-primary" /> 打撃成績
+                            <div className="bg-primary/5 p-4 border-b border-primary/10">
+                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2 text-primary">
+                                    <BarChart3 className="h-5 w-5" /> 打撃成績
                                 </h2>
                             </div>
                             <CardContent className="p-0">
@@ -146,9 +146,9 @@ function PlayerDetailContent() {
                         </Card>
 
                         <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden p-0 gap-0">
-                            <div className="bg-muted/30 p-4 border-b border-border/50">
-                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-                                    <Activity className="h-5 w-5 text-blue-600" /> 投手成績
+                            <div className="bg-primary/5 p-4 border-b border-primary/10">
+                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2 text-primary">
+                                    <Activity className="h-5 w-5" /> 投手成績
                                 </h2>
                             </div>
                             <CardContent className="p-0">
@@ -173,9 +173,9 @@ function PlayerDetailContent() {
 
                     <div>
                         <Card className="rounded-2xl border-border bg-background shadow-sm h-full flex flex-col p-0 gap-0">
-                            <div className="bg-muted/30 p-4 border-b border-border/50">
-                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-                                    <Map className="h-5 w-5 text-green-600" /> スプレーチャート
+                            <div className="bg-primary/5 p-4 border-b border-primary/10">
+                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2 text-primary">
+                                    <Map className="h-5 w-5" /> スプレーチャート
                                 </h2>
                             </div>
                             <CardContent className="p-6 flex-1 flex flex-col justify-center">
