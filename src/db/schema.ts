@@ -109,6 +109,8 @@ export const atBats = sqliteTable("at_bats", {
     isTop: integer("is_top", { mode: "boolean" }).notNull(),
     //
     batterName: text("batter_name"), // 打者の名前（将来的に選手マスタと紐づけることも可能）
+    // 投手名
+    pitcherName: text("pitcher_name"),
     // 打席の結果（打席が完了した時に記録）
     // 例: 'strikeout', 'walk', 'single', 'ground_out' など
     result: text("result"),

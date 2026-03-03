@@ -292,9 +292,16 @@ app.post('/api/matches/:id/pitches', async (c) => {
             // 💡 修正：フロントエンドから送られてきた batterName を保存する
             await db.insert(atBats).values({
                 id: atBatId, matchId, inning: body.inning, isTop: body.isTop,
-                batterName: body.batterName || null
+                batterName: body.batterName || null,
+                pitcherName: body.pitcherName || null
             })
-            currentAtBat = { id: atBatId, matchId, inning: body.inning, isTop: body.isTop, batterName: body.batterName || null, result: null, createdAt: new Date() }
+            currentAtBat = {
+                id: atBatId, matchId, inning: body.inning, isTop: body.isTop,
+                batterName: body.batterName || null,
+                pitcherName: body.pitcherName || null,
+                result: null,
+                createdAt: new Date()
+            }
         } else if (body.batterName && !currentAtBat.batterName) {
             // 💡 もし既に打席が作られていて名前が空だった場合、名前を更新
             await db.update(atBats).set({ batterName: body.batterName }).where(eq(atBats.id, currentAtBat.id));
@@ -641,6 +648,32 @@ app.get('/api/matches/:id/boxscore', async (c) => {
     } catch (e) {
         console.error("ボックススコア取得エラー:", e);
         return c.json({ error: '取得に失敗しました' }, 500);
+    }
+});
+
+// 💡 チームの投手成績（スタッツ）を集計するAPI
+app.get('/api/teams/:id/pitcher-stats', async (c) => {
+    const teamId = c.req.param('id');
+    try {
+        const { results } = await c.env.DB.prepare(`
+            SELECT 
+                pitcher_name as playerName,
+                COUNT(result) as battersFaced,
+                SUM(CASE WHEN result = 'strikeout' THEN 1 ELSE 0 END) as strikeouts,
+                SUM(CASE WHEN result = 'walk' THEN 1 ELSE 0 END) as walks,
+                SUM(CASE WHEN result IN ('single', 'double', 'triple', 'home_run') THEN 1 ELSE 0 END) as hitsAllowed,
+                SUM(CASE WHEN result IN ('groundout', 'flyout', 'strikeout') THEN 1 WHEN result = 'double_play' THEN 2 ELSE 0 END) as outs
+            FROM at_bats
+            JOIN matches ON at_bats.match_id = matches.id
+            WHERE matches.team_id = ? AND matches.status = 'completed' AND pitcher_name IS NOT NULL
+            GROUP BY pitcher_name
+            ORDER BY outs DESC, strikeouts DESC
+        `).bind(teamId).all();
+
+        return c.json(results);
+    } catch (e) {
+        console.error("投手スタッツ集計エラー:", e);
+        return c.json({ error: '成績の取得に失敗しました' }, 500);
     }
 });
 

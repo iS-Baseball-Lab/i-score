@@ -175,7 +175,8 @@ function MatchScoreContent() {
                     inning, isTop, pitchNumber: balls + strikes + 1,
                     result: pitchResult, ballsBefore: balls, strikesBefore: strikes, atBatResult,
                     zoneX: pitchX, zoneY: pitchY, hitX, hitY,
-                    batterName: currentBatter?.playerName || null
+                    batterName: currentBatter?.playerName || null,
+                    pitcherName: currentPitcher?.playerName || null
                 }),
             });
         } catch (e) { console.error(e); }

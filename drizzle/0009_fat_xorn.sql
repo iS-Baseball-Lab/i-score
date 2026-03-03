@@ -1,0 +1,1 @@
+ALTER TABLE `at_bats` ADD `pitcher_name` text;

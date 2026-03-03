@@ -8,7 +8,7 @@ import { canEditScore, canManageTeam, ROLES } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plus, History, Trophy, Calendar, ChevronRight, Loader2, Users, CheckCircle2, ClipboardList, Edit2, Trash2, Check, X, BarChart3 } from "lucide-react";
+import { Plus, History, Trophy, Calendar, ChevronRight, Loader2, Users, CheckCircle2, ClipboardList, Edit2, Trash2, Check, X, BarChart3, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Match {
@@ -21,11 +21,15 @@ interface Team {
   id: string; name: string; myRole: string; isFounder: boolean;
 }
 
-// 💡 取得するスタッツの型定義
 interface PlayerStats {
   playerName: string; plateAppearances: number; atBats: number; hits: number;
   singles: number; doubles: number; triples: number; homeRuns: number;
   walks: number; strikeouts: number;
+}
+
+// 💡 投手用スタッツの型
+interface PitcherStats {
+  playerName: string; battersFaced: number; strikeouts: number; walks: number; hitsAllowed: number; outs: number;
 }
 
 export default function DashboardPage() {
@@ -36,18 +40,18 @@ export default function DashboardPage() {
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [matches, setMatches] = useState<Match[]>([]);
 
-  // 💡 スタッツ用のState
-  const [stats, setStats] = useState<PlayerStats[]>([]);
-  const [activeTab, setActiveTab] = useState<"matches" | "stats">("matches");
+  const [batterStats, setBatterStats] = useState<PlayerStats[]>([]);
+  const [pitcherStats, setPitcherStats] = useState<PitcherStats[]>([]); // 💡 追加
+
+  // 💡 タブの種類を3つに変更
+  const [activeTab, setActiveTab] = useState<"matches" | "batterStats" | "pitcherStats">("matches");
 
   const [isLoadingTeams, setIsLoadingTeams] = useState(true);
-  const [isLoadingMatches, setIsLoadingMatches] = useState(false);
-  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const [isCreating, setIsCreating] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamRole, setNewTeamRole] = useState<string>(ROLES.SCORER);
-
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [editTeamName, setEditTeamName] = useState("");
 
@@ -66,25 +70,24 @@ export default function DashboardPage() {
 
   useEffect(() => { fetchTeams(); }, []);
 
-  // 試合一覧とスタッツの取得
   useEffect(() => {
     if (!selectedTeamId) return;
 
     const fetchMatchesAndStats = async () => {
-      setIsLoadingMatches(true);
-      setIsLoadingStats(true);
+      setIsLoadingData(true);
       try {
-        const [matchesRes, statsRes] = await Promise.all([
+        const [matchesRes, bStatsRes, pStatsRes] = await Promise.all([
           fetch(`/api/matches?teamId=${selectedTeamId}`),
-          fetch(`/api/teams/${selectedTeamId}/stats`) // 💡 スタッツ取得APIを呼ぶ
+          fetch(`/api/teams/${selectedTeamId}/stats`),
+          fetch(`/api/teams/${selectedTeamId}/pitcher-stats`) // 💡 追加
         ]);
 
         if (matchesRes.ok) setMatches(await matchesRes.json());
-        if (statsRes.ok) setStats(await statsRes.json());
+        if (bStatsRes.ok) setBatterStats(await bStatsRes.json());
+        if (pStatsRes.ok) setPitcherStats(await pStatsRes.json());
       } catch (e) { console.error(e); }
       finally {
-        setIsLoadingMatches(false);
-        setIsLoadingStats(false);
+        setIsLoadingData(false);
       }
     };
     fetchMatchesAndStats();
@@ -106,7 +109,6 @@ export default function DashboardPage() {
   };
 
   const startEditTeam = (team: Team) => { setEditingTeamId(team.id); setEditTeamName(team.name); };
-
   const handleUpdateTeam = async () => {
     if (!editTeamName.trim() || !editingTeamId) return;
     try {
@@ -139,8 +141,16 @@ export default function DashboardPage() {
   const draws = completedMatches.filter(m => m.myScore === m.opponentScore).length;
   const winRate = completedMatches.length > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
 
+  // 💡 投球回（イニング）を計算するヘルパー関数
+  const formatInnings = (outs: number) => {
+    const fullInnings = Math.floor(outs / 3);
+    const remainingOuts = outs % 3;
+    return remainingOuts > 0 ? `${fullInnings} ${remainingOuts}/3` : `${fullInnings}`;
+  };
+
   if (teams.length === 0) {
     return (
+      // 省略（変更なし）
       <div className="container mx-auto max-w-xl px-4 py-12 animate-in fade-in duration-500">
         <div className="text-center mb-8">
           <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -258,23 +268,26 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* 💡 タブ切り替えUI（試合一覧 vs 成績表） */}
-      <div className="flex bg-muted/30 p-1.5 rounded-xl border border-border shadow-inner max-w-sm">
+      {/* 💡 タブ切り替えUI（3種類に拡張） */}
+      <div className="flex bg-muted/30 p-1.5 rounded-xl border border-border shadow-inner max-w-lg">
         <button onClick={() => setActiveTab("matches")} className={cn("flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "matches" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
           <History className="h-4 w-4" /> 試合結果
         </button>
-        <button onClick={() => setActiveTab("stats")} className={cn("flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "stats" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
-          <BarChart3 className="h-4 w-4" /> 個人成績
+        <button onClick={() => setActiveTab("batterStats")} className={cn("flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "batterStats" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+          <BarChart3 className="h-4 w-4" /> 打撃成績
+        </button>
+        <button onClick={() => setActiveTab("pitcherStats")} className={cn("flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "pitcherStats" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+          <Activity className="h-4 w-4" /> 投手成績
         </button>
       </div>
 
       <div className="space-y-6">
-        {activeTab === "matches" ? (
+        {activeTab === "matches" && (
           <>
             <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight">
               <History className="h-5 w-5 text-primary" /> 最近の試合
             </h2>
-            {isLoadingMatches ? (
+            {isLoadingData ? (
               <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : matches.length === 0 ? (
               <div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed border-border"><p className="text-muted-foreground font-medium mb-4">まだ試合の記録がありません。</p></div>
@@ -302,13 +315,11 @@ export default function DashboardPage() {
                         <div className="text-base font-bold text-muted-foreground w-1/3 text-center truncate">{match.opponent}</div>
                       </div>
                       <div className="flex gap-2 mt-4 pt-4 border-t border-border/50 justify-end">
-                        {/* 進行中の場合のみスタメンボタンを表示 */}
                         {match.status !== 'completed' && (
                           <Button asChild variant="outline" size="sm" className="rounded-lg font-bold shadow-sm">
                             <Link href={`/matches/lineup?id=${match.id}&teamId=${currentTeam?.id}`}><ClipboardList className="h-4 w-4 mr-1.5" />スタメン</Link>
                           </Button>
                         )}
-                        {/* 💡 ステータスによってボタンの色とリンク先を変える */}
                         {match.status === 'completed' ? (
                           <Button asChild size="sm" className="rounded-lg font-bold bg-slate-800 hover:bg-slate-700 text-white shadow-sm border-none">
                             <Link href={`/matches/result?id=${match.id}`}>試合結果（BoxScore）</Link>
@@ -325,8 +336,9 @@ export default function DashboardPage() {
               </div>
             )}
           </>
-        ) : (
-          /* 💡 ここからが新機能：成績テーブルの表示 */
+        )}
+
+        {activeTab === "batterStats" && (
           <div className="animate-in fade-in duration-300">
             <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight mb-4">
               <BarChart3 className="h-5 w-5 text-primary" /> 個人打撃成績
@@ -336,7 +348,7 @@ export default function DashboardPage() {
                 <table className="w-full text-sm text-left whitespace-nowrap">
                   <thead className="bg-muted/30 text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
                     <tr>
-                      <th className="px-4 py-3 sticky left-0 bg-muted/90 backdrop-blur-sm z-10 shadow-[1px_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_rgba(255,255,255,0.1)]">選手名</th>
+                      <th className="px-4 py-3 sticky left-0 bg-muted/90 backdrop-blur-sm z-10 shadow-[1px_0_0_rgba(0,0,0,0.1)]">選手名</th>
                       <th className="px-4 py-3 text-center text-primary font-black">打率(AVG)</th>
                       <th className="px-4 py-3 text-center">出塁率(OBP)</th>
                       <th className="px-4 py-3 text-center">OPS</th>
@@ -349,22 +361,21 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
-                    {isLoadingStats ? (
+                    {isLoadingData ? (
                       <tr><td colSpan={10} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></td></tr>
-                    ) : stats.length === 0 ? (
+                    ) : batterStats.length === 0 ? (
                       <tr><td colSpan={10} className="text-center py-8 text-muted-foreground">完了した試合のデータがありません</td></tr>
                     ) : (
-                      stats.map((s, i) => {
-                        // 💡 打率、出塁率、長打率、OPSの計算
+                      batterStats.map((s, i) => {
                         const avg = s.atBats > 0 ? s.hits / s.atBats : 0;
                         const obp = s.plateAppearances > 0 ? (s.hits + s.walks) / s.plateAppearances : 0;
-                        const tb = s.singles + (s.doubles * 2) + (s.triples * 3) + (s.homeRuns * 4); // 塁打数
-                        const slg = s.atBats > 0 ? tb / s.atBats : 0; // 長打率
+                        const tb = s.singles + (s.doubles * 2) + (s.triples * 3) + (s.homeRuns * 4);
+                        const slg = s.atBats > 0 ? tb / s.atBats : 0;
                         const ops = obp + slg;
 
                         return (
                           <tr key={i} className="hover:bg-muted/20 transition-colors">
-                            <td className="px-4 py-3 font-bold sticky left-0 bg-background z-10 shadow-[1px_0_0_rgba(0,0,0,0.05)] dark:shadow-[1px_0_0_rgba(255,255,255,0.05)]">{s.playerName}</td>
+                            <td className="px-4 py-3 font-bold sticky left-0 bg-background z-10 shadow-[1px_0_0_rgba(0,0,0,0.05)]">{s.playerName}</td>
                             <td className="px-4 py-3 text-center font-black text-primary">{avg.toFixed(3).replace(/^0/, '')}</td>
                             <td className="px-4 py-3 text-center text-muted-foreground font-medium">{obp.toFixed(3).replace(/^0/, '')}</td>
                             <td className="px-4 py-3 text-center font-bold">{ops.toFixed(3).replace(/^0/, '')}</td>
@@ -377,6 +388,49 @@ export default function DashboardPage() {
                           </tr>
                         );
                       })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* 💡 投手成績タブの表示 */}
+        {activeTab === "pitcherStats" && (
+          <div className="animate-in fade-in duration-300">
+            <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight mb-4">
+              <Activity className="h-5 w-5 text-blue-600" /> 個人投手成績
+            </h2>
+            <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left whitespace-nowrap">
+                  <thead className="bg-muted/30 text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3 sticky left-0 bg-muted/90 backdrop-blur-sm z-10 shadow-[1px_0_0_rgba(0,0,0,0.1)]">選手名</th>
+                      <th className="px-4 py-3 text-center text-blue-600 font-black">投球回</th>
+                      <th className="px-4 py-3 text-center">奪三振</th>
+                      <th className="px-4 py-3 text-center">与四死球</th>
+                      <th className="px-4 py-3 text-center">被安打</th>
+                      <th className="px-4 py-3 text-center">対打者</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {isLoadingData ? (
+                      <tr><td colSpan={6} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></td></tr>
+                    ) : pitcherStats.length === 0 ? (
+                      <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">完了した試合のデータがありません</td></tr>
+                    ) : (
+                      pitcherStats.map((s, i) => (
+                        <tr key={i} className="hover:bg-muted/20 transition-colors">
+                          <td className="px-4 py-3 font-bold sticky left-0 bg-background z-10 shadow-[1px_0_0_rgba(0,0,0,0.05)]">{s.playerName}</td>
+                          <td className="px-4 py-3 text-center font-black text-blue-600">{formatInnings(s.outs)}</td>
+                          <td className="px-4 py-3 text-center font-bold text-red-500">{s.strikeouts}</td>
+                          <td className="px-4 py-3 text-center text-muted-foreground">{s.walks}</td>
+                          <td className="px-4 py-3 text-center text-muted-foreground">{s.hitsAllowed}</td>
+                          <td className="px-4 py-3 text-center text-muted-foreground">{s.battersFaced}</td>
+                        </tr>
+                      ))
                     )}
                   </tbody>
                 </table>
