@@ -117,7 +117,7 @@ function PlayerDetailContent() {
                     <div className="space-y-6">
 
                         <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden">
-                            <div className="bg-muted/30 p-4 border-b border-border/50">
+                            <div className="bg-muted/30 px-4 py-2.5 border-b border-border/50">
                                 <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
                                     <BarChart3 className="h-5 w-5 text-primary" /> 打撃成績
                                 </h2>
@@ -146,7 +146,7 @@ function PlayerDetailContent() {
                         </Card>
 
                         <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden">
-                            <div className="bg-muted/30 p-4 border-b border-border/50">
+                            <div className="bg-muted/30 px-4 py-2.5 border-b border-border/50">
                                 <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
                                     <Activity className="h-5 w-5 text-blue-600" /> 投手成績
                                 </h2>
@@ -173,7 +173,7 @@ function PlayerDetailContent() {
 
                     <div>
                         <Card className="rounded-2xl border-border bg-background shadow-sm h-full flex flex-col">
-                            <div className="bg-muted/30 p-4 border-b border-border/50">
+                            <div className="bg-muted/30 px-4 py-2.5 border-b border-border/50">
                                 <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
                                     <Map className="h-5 w-5 text-green-600" /> スプレーチャート
                                 </h2>
