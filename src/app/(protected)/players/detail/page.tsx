@@ -5,7 +5,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, User, BarChart3, Activity, Map } from "lucide-react";
+import { Loader2, User, BarChart3, Activity, Map, Camera } from "lucide-react"; // 💡 Cameraアイコンを追加
 import { cn } from "@/lib/utils";
 
 interface PlayerStats {
@@ -73,7 +73,6 @@ function PlayerDetailContent() {
     if (isLoading) return <div className="flex h-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
     if (!playerName) return <div className="flex h-screen items-center justify-center">選手情報が指定されていません</div>;
 
-    // 打撃成績の計算
     let avg = 0, obp = 0, slg = 0, ops = 0;
     if (batterStat) {
         avg = batterStat.atBats > 0 ? batterStat.hits / batterStat.atBats : 0;
@@ -94,43 +93,57 @@ function PlayerDetailContent() {
 
             <main className="flex-1 p-4 max-w-4xl mx-auto w-full space-y-6 mt-4 animate-in fade-in duration-500">
 
-                {/* プロフィールヘッダー */}
-                <div className="flex items-center gap-4 bg-muted/30 p-6 rounded-3xl border border-border shadow-sm">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white shadow-lg shrink-0">
-                        <span className="text-3xl sm:text-4xl font-black">{uniformNumber}</span>
+                {/* 💡 修正：プロフィールヘッダーを落ち着いたデザインに変更し、写真枠を新設 */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-card p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
+
+                    {/* 将来写真が入る枠（ホバーでカメラアイコンが出る仕掛け） */}
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-muted/50 border border-border flex flex-col items-center justify-center shrink-0 overflow-hidden text-muted-foreground/40 group relative">
+                        <User className="h-10 w-10 mb-1" />
+                        <span className="text-[10px] font-bold">No Photo</span>
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                            <Camera className="h-6 w-6 text-white" />
+                        </div>
                     </div>
-                    <div>
-                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">2026 Season Stats</div>
-                        <h1 className="text-2xl sm:text-4xl font-black tracking-tight">{playerName}</h1>
+
+                    <div className="space-y-2">
+                        <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-extrabold bg-primary/10 text-primary uppercase tracking-wider">
+                            2026 Season
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl font-black tracking-tight flex items-baseline gap-3">
+                            {playerName}
+                            <span className="text-xl sm:text-2xl font-bold text-muted-foreground">#{uniformNumber}</span>
+                        </h1>
                     </div>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
-                    {/* 左カラム：打撃成績 */}
+                    {/* 左カラム：打撃・投手成績 */}
                     <div className="space-y-6">
+
+                        {/* 💡 修正：カードの背景やヘッダーをダッシュボードと同じ落ち着いた色に統一 */}
                         <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden">
-                            <div className="bg-primary/5 p-4 border-b border-primary/10">
-                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2 text-primary">
-                                    <BarChart3 className="h-5 w-5" /> 打撃成績
+                            <div className="bg-muted/30 p-4 border-b border-border/50">
+                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
+                                    <BarChart3 className="h-5 w-5 text-primary" /> 打撃成績
                                 </h2>
                             </div>
                             <CardContent className="p-0">
                                 {!batterStat ? (
                                     <div className="p-8 text-center text-muted-foreground font-medium">打撃記録がありません</div>
                                 ) : (
-                                    <div className="divide-y divide-border">
-                                        <div className="grid grid-cols-3 p-4 bg-muted/10 text-center gap-2">
-                                            <div className="bg-background rounded-xl p-3 border border-border shadow-sm"><div className="text-xs text-muted-foreground font-bold mb-1">打率 (AVG)</div><div className="text-2xl font-black text-primary">{avg.toFixed(3).replace(/^0/, '')}</div></div>
-                                            <div className="bg-background rounded-xl p-3 border border-border shadow-sm"><div className="text-xs text-muted-foreground font-bold mb-1">出塁率 (OBP)</div><div className="text-2xl font-black">{obp.toFixed(3).replace(/^0/, '')}</div></div>
-                                            <div className="bg-background rounded-xl p-3 border border-border shadow-sm"><div className="text-xs text-muted-foreground font-bold mb-1">OPS</div><div className="text-2xl font-black">{ops.toFixed(3).replace(/^0/, '')}</div></div>
+                                    <div className="divide-y divide-border/50">
+                                        <div className="grid grid-cols-3 p-4 bg-muted/5 text-center gap-4">
+                                            <div><div className="text-[11px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">AVG</div><div className="text-3xl font-black text-primary">{avg.toFixed(3).replace(/^0/, '')}</div></div>
+                                            <div><div className="text-[11px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">OBP</div><div className="text-3xl font-black">{obp.toFixed(3).replace(/^0/, '')}</div></div>
+                                            <div><div className="text-[11px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">OPS</div><div className="text-3xl font-black">{ops.toFixed(3).replace(/^0/, '')}</div></div>
                                         </div>
-                                        <div className="grid grid-cols-2 text-sm">
-                                            <div className="p-3 px-5 flex justify-between border-r border-border"><span className="text-muted-foreground">試合(打席)</span><span className="font-bold">{batterStat.plateAppearances}</span></div>
+                                        <div className="grid grid-cols-2 text-sm font-medium">
+                                            <div className="p-3 px-5 flex justify-between border-r border-border/50"><span className="text-muted-foreground">試合(打席)</span><span className="font-bold">{batterStat.plateAppearances}</span></div>
                                             <div className="p-3 px-5 flex justify-between"><span className="text-muted-foreground">打数</span><span className="font-bold">{batterStat.atBats}</span></div>
-                                            <div className="p-3 px-5 flex justify-between border-r border-border bg-muted/5"><span className="text-muted-foreground">安打</span><span className="font-bold text-primary">{batterStat.hits}</span></div>
-                                            <div className="p-3 px-5 flex justify-between bg-muted/5"><span className="text-muted-foreground">本塁打</span><span className="font-bold text-orange-500">{batterStat.homeRuns}</span></div>
-                                            <div className="p-3 px-5 flex justify-between border-r border-border"><span className="text-muted-foreground">四死球</span><span className="font-bold text-green-600">{batterStat.walks}</span></div>
-                                            <div className="p-3 px-5 flex justify-between"><span className="text-muted-foreground">三振</span><span className="font-bold text-red-500">{batterStat.strikeouts}</span></div>
+                                            <div className="p-3 px-5 flex justify-between border-r border-border/50"><span className="text-muted-foreground">安打</span><span className="font-bold">{batterStat.hits}</span></div>
+                                            <div className="p-3 px-5 flex justify-between"><span className="text-muted-foreground">本塁打</span><span className="font-bold">{batterStat.homeRuns}</span></div>
+                                            <div className="p-3 px-5 flex justify-between border-r border-border/50"><span className="text-muted-foreground">四死球</span><span className="font-bold">{batterStat.walks}</span></div>
+                                            <div className="p-3 px-5 flex justify-between"><span className="text-muted-foreground">三振</span><span className="font-bold">{batterStat.strikeouts}</span></div>
                                         </div>
                                     </div>
                                 )}
@@ -139,25 +152,24 @@ function PlayerDetailContent() {
 
                         {/* 投手成績 */}
                         <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden">
-                            <div className="bg-blue-500/5 p-4 border-b border-blue-500/10 dark:bg-blue-900/20">
-                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                                    <Activity className="h-5 w-5" /> 投手成績
+                            <div className="bg-muted/30 p-4 border-b border-border/50">
+                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
+                                    <Activity className="h-5 w-5 text-blue-600" /> 投手成績
                                 </h2>
                             </div>
                             <CardContent className="p-0">
                                 {!pitcherStat ? (
                                     <div className="p-8 text-center text-muted-foreground font-medium">登板記録がありません</div>
                                 ) : (
-                                    <div className="divide-y divide-border">
-                                        <div className="p-6 bg-muted/10 flex justify-center items-center gap-8">
-                                            <div className="text-center"><div className="text-sm text-muted-foreground font-bold mb-1">投球回 (IP)</div><div className="text-4xl font-black text-blue-600">{formatInnings(pitcherStat.outs)}</div></div>
-                                            <div className="w-px h-12 bg-border"></div>
-                                            <div className="text-center"><div className="text-sm text-muted-foreground font-bold mb-1">奪三振 (K)</div><div className="text-4xl font-black text-red-500">{pitcherStat.strikeouts}</div></div>
+                                    <div className="divide-y divide-border/50">
+                                        <div className="grid grid-cols-2 p-4 bg-muted/5 text-center gap-4">
+                                            <div><div className="text-[11px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Innings</div><div className="text-3xl font-black text-blue-600">{formatInnings(pitcherStat.outs)}</div></div>
+                                            <div><div className="text-[11px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Strikeouts</div><div className="text-3xl font-black text-red-500">{pitcherStat.strikeouts}</div></div>
                                         </div>
-                                        <div className="grid grid-cols-2 text-sm">
-                                            <div className="p-3 px-5 flex justify-between border-r border-border"><span className="text-muted-foreground">与四死球</span><span className="font-bold">{pitcherStat.walks}</span></div>
+                                        <div className="grid grid-cols-2 text-sm font-medium">
+                                            <div className="p-3 px-5 flex justify-between border-r border-border/50"><span className="text-muted-foreground">与四死球</span><span className="font-bold">{pitcherStat.walks}</span></div>
                                             <div className="p-3 px-5 flex justify-between"><span className="text-muted-foreground">被安打</span><span className="font-bold">{pitcherStat.hitsAllowed}</span></div>
-                                            <div className="p-3 px-5 flex justify-between border-r border-border bg-muted/5 col-span-2"><span className="text-muted-foreground">対打者数</span><span className="font-bold">{pitcherStat.battersFaced}</span></div>
+                                            <div className="p-3 px-5 flex justify-between border-r border-border/50 col-span-2"><span className="text-muted-foreground">対打者数</span><span className="font-bold">{pitcherStat.battersFaced}</span></div>
                                         </div>
                                     </div>
                                 )}
@@ -168,9 +180,9 @@ function PlayerDetailContent() {
                     {/* 右カラム：スプレーチャート */}
                     <div>
                         <Card className="rounded-2xl border-border bg-background shadow-sm h-full flex flex-col">
-                            <div className="bg-green-500/5 p-4 border-b border-green-500/10 dark:bg-green-900/20">
-                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2 text-green-600 dark:text-green-500">
-                                    <Map className="h-5 w-5" /> スプレーチャート (打球方向)
+                            <div className="bg-muted/30 p-4 border-b border-border/50">
+                                <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
+                                    <Map className="h-5 w-5 text-green-600" /> スプレーチャート
                                 </h2>
                             </div>
                             <CardContent className="p-6 flex-1 flex flex-col justify-center">
@@ -180,7 +192,7 @@ function PlayerDetailContent() {
                                     <>
                                         <div className="relative w-full max-w-[320px] aspect-square mx-auto drop-shadow-md">
                                             {/* SVG グラウンド背景 */}
-                                            <svg viewBox="0 0 100 100" className="w-full h-full rounded-2xl overflow-hidden bg-muted/20">
+                                            <svg viewBox="0 0 100 100" className="w-full h-full rounded-2xl overflow-hidden bg-muted/10">
                                                 <path d="M 50 90 L 15 20 Q 50 5 85 20 Z" fill="#15803d" stroke="#4ade80" strokeWidth="0.5" />
                                                 <path d="M 50 90 L 68 54 Q 50 35 32 54 Z" fill="#a16207" />
                                                 <line x1="50" y1="90" x2="15" y2="20" stroke="white" strokeWidth="0.5" />
@@ -211,7 +223,7 @@ function PlayerDetailContent() {
                                         </div>
                                         <div className="flex items-center justify-center gap-4 mt-6 text-xs font-bold text-muted-foreground bg-muted/20 py-2 rounded-xl">
                                             <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-blue-500 border border-white"></div>ヒット</div>
-                                            <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-500 border border-white"></div>ホームラン</div>
+                                            <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-500 border border-white"></div>本塁打</div>
                                             <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500/90 border border-white"></div>アウト</div>
                                         </div>
                                     </>
