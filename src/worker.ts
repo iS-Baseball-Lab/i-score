@@ -317,6 +317,8 @@ app.post('/api/matches/:id/pitches', async (c) => {
             strikesBefore: body.strikesBefore,
             zoneX: body.zoneX ?? null,
             zoneY: body.zoneY ?? null,
+            hitX: body.hitX ?? null,
+            hitY: body.hitY ?? null,
         })
 
         if (body.atBatResult) {
@@ -674,6 +676,25 @@ app.get('/api/teams/:id/pitcher-stats', async (c) => {
     } catch (e) {
         console.error("投手スタッツ集計エラー:", e);
         return c.json({ error: '成績の取得に失敗しました' }, 500);
+    }
+});
+
+// 💡 スプレーチャート（打球方向）用のデータを取得するAPI
+app.get('/api/teams/:id/spray-chart', async (c) => {
+    const teamId = c.req.param('id');
+    try {
+        const { results } = await c.env.DB.prepare(`
+            SELECT p.hit_x as hitX, p.hit_y as hitY, p.result, ab.batter_name as batterName
+            FROM pitches p
+            JOIN at_bats ab ON p.at_bat_id = ab.id
+            JOIN matches m ON ab.match_id = m.id
+            WHERE m.team_id = ? AND m.status = 'completed' AND p.hit_x IS NOT NULL AND p.hit_y IS NOT NULL AND ab.batter_name IS NOT NULL
+        `).bind(teamId).all();
+
+        return c.json(results);
+    } catch (e) {
+        console.error("スプレーチャート取得エラー:", e);
+        return c.json({ error: 'データの取得に失敗しました' }, 500);
     }
 });
 

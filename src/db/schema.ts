@@ -139,6 +139,9 @@ export const pitches = sqliteTable("pitches", {
     // 💡 ここから下の2行を追加！ (ストライクゾーンに対する相対座標 0.0〜1.0)
     zoneX: real("zone_x"),
     zoneY: real("zone_y"),
+    // 💡 グラウンド上の打球位置（0.0〜1.0）
+    hitX: real("hit_x"),
+    hitY: real("hit_y"),
     // 作成日時
     createdAt: integer("created_at", { mode: "timestamp" })
         .notNull()

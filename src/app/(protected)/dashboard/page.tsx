@@ -8,7 +8,7 @@ import { canEditScore, canManageTeam, ROLES } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plus, History, Trophy, Calendar, ChevronRight, Loader2, Users, CheckCircle2, ClipboardList, Edit2, Trash2, Check, X, BarChart3, Activity } from "lucide-react";
+import { Plus, History, Trophy, Calendar, ChevronRight, Loader2, Users, CheckCircle2, ClipboardList, Edit2, Trash2, Check, X, BarChart3, Activity, Map } from "lucide-react"; // 💡 Mapアイコンを追加
 import { cn } from "@/lib/utils";
 
 interface Match {
@@ -27,9 +27,13 @@ interface PlayerStats {
   walks: number; strikeouts: number;
 }
 
-// 💡 投手用スタッツの型
 interface PitcherStats {
   playerName: string; battersFaced: number; strikeouts: number; walks: number; hitsAllowed: number; outs: number;
+}
+
+// 💡 スプレーチャート用の型
+interface SprayData {
+  hitX: number; hitY: number; result: string; batterName: string;
 }
 
 export default function DashboardPage() {
@@ -41,10 +45,13 @@ export default function DashboardPage() {
   const [matches, setMatches] = useState<Match[]>([]);
 
   const [batterStats, setBatterStats] = useState<PlayerStats[]>([]);
-  const [pitcherStats, setPitcherStats] = useState<PitcherStats[]>([]); // 💡 追加
+  const [pitcherStats, setPitcherStats] = useState<PitcherStats[]>([]);
+  const [sprayData, setSprayData] = useState<SprayData[]>([]); // 💡 追加
 
-  // 💡 タブの種類を3つに変更
-  const [activeTab, setActiveTab] = useState<"matches" | "batterStats" | "pitcherStats">("matches");
+  // 💡 タブの種類を4つに拡張
+  const [activeTab, setActiveTab] = useState<"matches" | "batterStats" | "pitcherStats" | "sprayChart">("matches");
+  // 💡 スプレーチャートで表示する選手（デフォルトは全員）
+  const [selectedBatter, setSelectedBatter] = useState<string>("all");
 
   const [isLoadingTeams, setIsLoadingTeams] = useState(true);
   const [isLoadingData, setIsLoadingData] = useState(false);
@@ -76,15 +83,17 @@ export default function DashboardPage() {
     const fetchMatchesAndStats = async () => {
       setIsLoadingData(true);
       try {
-        const [matchesRes, bStatsRes, pStatsRes] = await Promise.all([
+        const [matchesRes, bStatsRes, pStatsRes, sprayRes] = await Promise.all([
           fetch(`/api/matches?teamId=${selectedTeamId}`),
           fetch(`/api/teams/${selectedTeamId}/stats`),
-          fetch(`/api/teams/${selectedTeamId}/pitcher-stats`) // 💡 追加
+          fetch(`/api/teams/${selectedTeamId}/pitcher-stats`),
+          fetch(`/api/teams/${selectedTeamId}/spray-chart`) // 💡 追加
         ]);
 
         if (matchesRes.ok) setMatches(await matchesRes.json());
         if (bStatsRes.ok) setBatterStats(await bStatsRes.json());
         if (pStatsRes.ok) setPitcherStats(await pStatsRes.json());
+        if (sprayRes.ok) setSprayData(await sprayRes.json()); // 💡 追加
       } catch (e) { console.error(e); }
       finally {
         setIsLoadingData(false);
@@ -141,7 +150,6 @@ export default function DashboardPage() {
   const draws = completedMatches.filter(m => m.myScore === m.opponentScore).length;
   const winRate = completedMatches.length > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
 
-  // 💡 投球回（イニング）を計算するヘルパー関数
   const formatInnings = (outs: number) => {
     const fullInnings = Math.floor(outs / 3);
     const remainingOuts = outs % 3;
@@ -150,8 +158,8 @@ export default function DashboardPage() {
 
   if (teams.length === 0) {
     return (
-      // 省略（変更なし）
       <div className="container mx-auto max-w-xl px-4 py-12 animate-in fade-in duration-500">
+        {/* 新規作成画面（変更なしのため省略せずにそのまま） */}
         <div className="text-center mb-8">
           <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Users className="h-10 w-10 text-primary" />
@@ -204,6 +212,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* サマリーカード */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {canEdit && (
           <Link href={`/matches/new?teamId=${selectedTeamId}`} className="block outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl">
@@ -268,20 +277,24 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* 💡 タブ切り替えUI（3種類に拡張） */}
-      <div className="flex bg-muted/30 p-1.5 rounded-xl border border-border shadow-inner max-w-lg">
-        <button onClick={() => setActiveTab("matches")} className={cn("flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "matches" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+      {/* 💡 タブ切り替えUI */}
+      <div className="flex bg-muted/30 p-1.5 rounded-xl border border-border shadow-inner max-w-2xl overflow-x-auto scrollbar-hide">
+        <button onClick={() => setActiveTab("matches")} className={cn("flex-1 min-w-[100px] py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "matches" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
           <History className="h-4 w-4" /> 試合結果
         </button>
-        <button onClick={() => setActiveTab("batterStats")} className={cn("flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "batterStats" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+        <button onClick={() => setActiveTab("batterStats")} className={cn("flex-1 min-w-[100px] py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "batterStats" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
           <BarChart3 className="h-4 w-4" /> 打撃成績
         </button>
-        <button onClick={() => setActiveTab("pitcherStats")} className={cn("flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "pitcherStats" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+        <button onClick={() => setActiveTab("pitcherStats")} className={cn("flex-1 min-w-[100px] py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "pitcherStats" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
           <Activity className="h-4 w-4" /> 投手成績
+        </button>
+        <button onClick={() => setActiveTab("sprayChart")} className={cn("flex-1 min-w-[120px] py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "sprayChart" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+          <Map className="h-4 w-4" /> スプレーチャート
         </button>
       </div>
 
       <div className="space-y-6">
+        {/* 試合結果タブ */}
         {activeTab === "matches" && (
           <>
             <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight">
@@ -338,6 +351,7 @@ export default function DashboardPage() {
           </>
         )}
 
+        {/* 打撃成績タブ */}
         {activeTab === "batterStats" && (
           <div className="animate-in fade-in duration-300">
             <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight mb-4">
@@ -396,7 +410,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 💡 投手成績タブの表示 */}
+        {/* 投手成績タブ */}
         {activeTab === "pitcherStats" && (
           <div className="animate-in fade-in duration-300">
             <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight mb-4">
@@ -435,6 +449,73 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               </div>
+            </Card>
+          </div>
+        )}
+
+        {/* 💡 スプレーチャート（打球方向分析）タブ */}
+        {activeTab === "sprayChart" && (
+          <div className="animate-in fade-in duration-300">
+            <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight mb-4">
+              <Map className="h-5 w-5 text-green-600" /> スプレーチャート (打球方向)
+            </h2>
+            <Card className="rounded-2xl border-border bg-background shadow-sm p-4 sm:p-6">
+
+              {/* 選手絞り込み */}
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                <span className="text-sm font-bold text-muted-foreground">選手を選択:</span>
+                <Select value={selectedBatter} onChange={(e) => setSelectedBatter(e.target.value)} className="w-full sm:w-64 h-10 shadow-sm">
+                  <option value="all">チーム全体</option>
+                  {Array.from(new Set(sprayData.map(d => d.batterName))).map(name => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </Select>
+              </div>
+
+              {/* グラウンドとプロット描画エリア */}
+              <div className="relative w-full max-w-[400px] aspect-square mx-auto mt-6 drop-shadow-md">
+                {/* SVG グラウンド背景 */}
+                <svg viewBox="0 0 100 100" className="w-full h-full rounded-2xl overflow-hidden bg-muted/20">
+                  <path d="M 50 90 L 15 20 Q 50 5 85 20 Z" fill="#15803d" stroke="#4ade80" strokeWidth="0.5" />
+                  <path d="M 50 90 L 68 54 Q 50 35 32 54 Z" fill="#a16207" />
+                  <line x1="50" y1="90" x2="15" y2="20" stroke="white" strokeWidth="0.5" />
+                  <line x1="50" y1="90" x2="85" y2="20" stroke="white" strokeWidth="0.5" />
+                  <polygon points="50,88 52,90 50,92 48,90" fill="white" />
+                  <polygon points="63,66 65,68 63,70 61,68" fill="white" />
+                  <polygon points="50,44 52,46 50,48 48,46" fill="white" />
+                  <polygon points="37,66 39,68 37,70 35,68" fill="white" />
+                </svg>
+
+                {/* 💡 取得した座標データに基づいて点を打つ */}
+                {sprayData
+                  .filter(d => selectedBatter === "all" || d.batterName === selectedBatter)
+                  .map((hit, i) => {
+                    const isOut = hit.result.includes('out') || hit.result.includes('double_play');
+                    const isHomeRun = hit.result === 'home_run';
+                    return (
+                      <div
+                        key={i}
+                        className={cn(
+                          "absolute w-3 h-3 -ml-1.5 -mt-1.5 rounded-full border border-white shadow-sm transition-transform hover:scale-150 z-10 cursor-pointer",
+                          isHomeRun ? "bg-orange-500 w-4 h-4 -ml-2 -mt-2 animate-pulse" :
+                            isOut ? "bg-red-500/80" : "bg-blue-500"
+                        )}
+                        // 左からのパーセンテージと上からのパーセンテージで位置を決定
+                        style={{ left: `${hit.hitX * 100}%`, top: `${hit.hitY * 100}%` }}
+                        title={`${hit.batterName} - ${hit.result}`}
+                      />
+                    );
+                  })
+                }
+              </div>
+
+              {/* 凡例 */}
+              <div className="flex items-center justify-center gap-4 mt-6 text-xs font-bold text-muted-foreground">
+                <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-blue-500 border border-white"></div>ヒット</div>
+                <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-500 border border-white"></div>ホームラン</div>
+                <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500/80 border border-white"></div>アウト</div>
+              </div>
+
             </Card>
           </div>
         )}
