@@ -90,7 +90,7 @@ app.patch('/api/teams/:id', async (c) => {
     try {
         const member = await db.select().from(teamMembers)
             .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, session.user.id))).get()
-        
+
         // 💡 修正：システム管理者(admin) または チーム管理者なら許可
         if (userRole !== 'admin' && (!member || !canManageTeam(member.role))) {
             return c.json({ error: '権限がありません' }, 403)
@@ -119,7 +119,7 @@ app.delete('/api/teams/:id', async (c) => {
     try {
         const member = await db.select().from(teamMembers)
             .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, session.user.id))).get()
-        
+
         // 💡 修正：システム管理者(admin) または チーム管理者なら許可
         if (userRole !== 'admin' && (!member || !canManageTeam(member.role))) {
             return c.json({ error: '権限がありません' }, 403)
@@ -289,8 +289,15 @@ app.post('/api/matches/:id/pitches', async (c) => {
 
         if (!currentAtBat) {
             const atBatId = crypto.randomUUID()
-            await db.insert(atBats).values({ id: atBatId, matchId, inning: body.inning, isTop: body.isTop })
-            currentAtBat = { id: atBatId, matchId, inning: body.inning, isTop: body.isTop, batterName: null, result: null, createdAt: new Date() }
+            // 💡 修正：フロントエンドから送られてきた batterName を保存する
+            await db.insert(atBats).values({
+                id: atBatId, matchId, inning: body.inning, isTop: body.isTop,
+                batterName: body.batterName || null
+            })
+            currentAtBat = { id: atBatId, matchId, inning: body.inning, isTop: body.isTop, batterName: body.batterName || null, result: null, createdAt: new Date() }
+        } else if (body.batterName && !currentAtBat.batterName) {
+            // 💡 もし既に打席が作られていて名前が空だった場合、名前を更新
+            await db.update(atBats).set({ batterName: body.batterName }).where(eq(atBats.id, currentAtBat.id));
         }
 
         const pitchId = crypto.randomUUID()
@@ -311,6 +318,7 @@ app.post('/api/matches/:id/pitches', async (c) => {
 
         return c.json({ success: true, pitchId, atBatId: currentAtBat.id })
     } catch (e) {
+        console.error(e)
         return c.json({ success: false, error: 'Failed to record pitch' }, 500)
     }
 })
@@ -445,10 +453,10 @@ app.patch('/api/users/:id/role', async (c) => {
     const auth = getAuth(c.env.DB, c.env)
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if ((session?.user as any)?.role !== 'admin') return c.json({ error: '権限がありません' }, 403)
-        
+
     const userId = c.req.param('id')
     const { role } = await c.req.json()
-    
+
     try {
         await c.env.DB.prepare(`UPDATE user SET role = ? WHERE id = ?`).bind(role, userId).run()
         return c.json({ success: true })
@@ -463,9 +471,9 @@ app.delete('/api/users/:id', async (c) => {
     const auth = getAuth(c.env.DB, c.env)
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if ((session?.user as any)?.role !== 'admin') return c.json({ error: '権限がありません' }, 403)
-        
+
     const userId = c.req.param('id')
-    
+
     try {
         // ユーザー本体と、関連付けられたチームメンバー情報を削除
         await c.env.DB.prepare(`DELETE FROM team_members WHERE user_id = ?`).bind(userId).run()
@@ -530,10 +538,10 @@ app.post('/api/admin/teams/:id/members', async (c) => {
 
     const teamId = c.req.param('id')
     const { userId, role } = await c.req.json()
-    
+
     // 💡 生SQLをやめ、他のAPIと同じく安全な Drizzle を使用します
     const db = drizzle(c.env.DB)
-    
+
     try {
         // 既に所属しているかチェック
         const existing = await db.select().from(teamMembers)
@@ -570,7 +578,7 @@ app.delete('/api/admin/teams/:id/members/:userId', async (c) => {
 
     const teamId = c.req.param('id')
     const userId = c.req.param('userId')
-    
+
     try {
         await c.env.DB.prepare(`DELETE FROM team_members WHERE team_id = ? AND user_id = ?`).bind(teamId, userId).run()
         return c.json({ success: true })
@@ -579,6 +587,37 @@ app.delete('/api/admin/teams/:id/members/:userId', async (c) => {
         return c.json({ error: 'メンバーの解除に失敗しました' }, 500)
     }
 })
+
+// 💡 チームの個人成績（スタッツ）を集計するAPI
+app.get('/api/teams/:id/stats', async (c) => {
+    const teamId = c.req.param('id');
+    try {
+        // 生のSQLを使って、安打数や四死球を自動集計します
+        const { results } = await c.env.DB.prepare(`
+            SELECT 
+                batter_name as playerName,
+                COUNT(result) as plateAppearances,
+                SUM(CASE WHEN result IN ('single', 'double', 'triple', 'home_run', 'groundout', 'flyout', 'double_play', 'strikeout') THEN 1 ELSE 0 END) as atBats,
+                SUM(CASE WHEN result IN ('single', 'double', 'triple', 'home_run') THEN 1 ELSE 0 END) as hits,
+                SUM(CASE WHEN result = 'single' THEN 1 ELSE 0 END) as singles,
+                SUM(CASE WHEN result = 'double' THEN 1 ELSE 0 END) as doubles,
+                SUM(CASE WHEN result = 'triple' THEN 1 ELSE 0 END) as triples,
+                SUM(CASE WHEN result = 'home_run' THEN 1 ELSE 0 END) as homeRuns,
+                SUM(CASE WHEN result = 'walk' THEN 1 ELSE 0 END) as walks,
+                SUM(CASE WHEN result = 'strikeout' THEN 1 ELSE 0 END) as strikeouts
+            FROM at_bats
+            JOIN matches ON at_bats.match_id = matches.id
+            WHERE matches.team_id = ? AND matches.status = 'completed' AND batter_name IS NOT NULL
+            GROUP BY batter_name
+            ORDER BY hits DESC, plateAppearances DESC
+        `).bind(teamId).all();
+
+        return c.json(results);
+    } catch (e) {
+        console.error("スタッツ集計エラー:", e);
+        return c.json({ error: '成績の取得に失敗しました' }, 500);
+    }
+});
 
 export default {
     async fetch(request: Request, env: any, ctx: ExecutionContext) {

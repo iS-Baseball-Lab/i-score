@@ -150,7 +150,8 @@ function MatchScoreContent() {
                 body: JSON.stringify({
                     inning, isTop, pitchNumber: balls + strikes + 1,
                     result: pitchResult, ballsBefore: balls, strikesBefore: strikes, atBatResult,
-                    zoneX: pitchX, zoneY: pitchY, hitX, hitY
+                    zoneX: pitchX, zoneY: pitchY, hitX, hitY,
+                    batterName: currentBatter?.playerName || null
                 }),
             });
         } catch (e) { console.error(e); }
