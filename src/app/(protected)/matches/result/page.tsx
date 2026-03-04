@@ -6,15 +6,15 @@ import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Newspaper, Trophy, Download, Share2 } from "lucide-react";
+import { Loader2, Newspaper, Trophy, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas"; // 💡 復活！
 
 interface Match {
     id: string; opponent: string; date: string; season: string; status: string;
     myScore: number; opponentScore: number;
     myInningScores: string; opponentInningScores: string;
-    innings?: number; // 💡 追加
+    innings?: number;
 }
 
 interface AtBat {
@@ -41,6 +41,8 @@ function MatchResultContent() {
     const [match, setMatch] = useState<Match | null>(null);
     const [atBats, setAtBats] = useState<AtBat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // 💡 画像ダウンロード用の状態とRefを追加
     const [isDownloading, setIsDownloading] = useState(false);
     const captureRef = useRef<HTMLDivElement>(null);
 
@@ -59,15 +61,19 @@ function MatchResultContent() {
         fetchData();
     }, [matchId]);
 
+    // 💡 画像化処理
     const handleDownloadImage = async () => {
         if (!captureRef.current || !match) return;
         setIsDownloading(true);
         try {
+            // 背景色を明示的に指定して高画質（scale: 2）でキャプチャ
             const canvas = await html2canvas(captureRef.current, {
                 backgroundColor: document.documentElement.classList.contains('dark') ? '#020817' : '#ffffff',
                 scale: 2,
                 useCORS: true,
             });
+
+            // 画像データ（PNG）に変換してダウンロード
             const image = canvas.toDataURL("image/png");
             const link = document.createElement("a");
             link.href = image;
@@ -98,7 +104,7 @@ function MatchResultContent() {
     const guestScores: (number | null)[] = match.opponentInningScores ? JSON.parse(match.opponentInningScores) : [];
     const selfScores: (number | null)[] = match.myInningScores ? JSON.parse(match.myInningScores) : [];
 
-    // 💡 修正：保存された配列の長さではなく、規定イニングか実際の入力データの最大値で判定する
+    // 💡 先ほどの修正：規定イニングと実際のスコアから表示枠数を決定
     let maxInning = match.innings || 9;
     guestScores.forEach((s, i) => { if (s !== null) maxInning = Math.max(maxInning, i + 1); });
     selfScores.forEach((s, i) => { if (s !== null) maxInning = Math.max(maxInning, i + 1); });
@@ -108,20 +114,19 @@ function MatchResultContent() {
 
     return (
         <div className="flex flex-col min-h-screen bg-background text-foreground pb-20">
-            <PageHeader
-                href="/dashboard"
-                icon={Newspaper}
-                title={`試合結果 vs ${match.opponent}`}
-                subtitle={`${new Date(match.date).toLocaleDateString('ja-JP')} • ${match.season}`}
-            />
+            <PageHeader href="/dashboard" icon={Newspaper} title={`試合結果 vs ${match.opponent}`} subtitle={`${new Date(match.date).toLocaleDateString('ja-JP')} • ${match.season}`} />
 
             <div className="max-w-5xl mx-auto w-full px-4 mt-6 flex justify-end">
+                {/* 💡 ボタンを「画像で保存」に変更 */}
                 <Button onClick={handleDownloadImage} disabled={isDownloading} className="rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all active:scale-95">
                     {isDownloading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> 画像を生成中...</> : <><Download className="mr-2 h-5 w-5" /> 結果を画像で保存 (シェア)</>}
                 </Button>
             </div>
 
+            {/* 💡 ここから下の領域（ref={captureRef}）が画像として切り取られます */}
             <div ref={captureRef} className="bg-background p-4 sm:p-6 max-w-5xl mx-auto w-full mt-2 rounded-2xl">
+
+                {/* 画像化されたときに見えるタイトル部分 */}
                 <div className="text-center mb-6 pb-4 border-b border-border/50">
                     <div className="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold bg-primary/10 text-primary uppercase tracking-wider mb-2">
                         {match.season}
@@ -143,7 +148,7 @@ function MatchResultContent() {
                                 <table className="w-full text-center text-sm table-fixed">
                                     <thead>
                                         <tr className="text-muted-foreground border-b border-border text-xs">
-                                            {/* 💡 修正：左の余白を pl-1 にし、幅を w-20（スマホ）〜 w-24（PC）に固定 */}
+                                            {/* 先ほどのコンパクト化の修正も保持 */}
                                             <th className="text-left font-bold pb-2 pl-1 w-20 sm:w-24 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">TEAM</th>
                                             {[...Array(inningsCount)].map((_, i) => (
                                                 <th key={i} className="font-bold pb-2 w-8 sm:w-10">{i + 1}</th>
@@ -153,7 +158,6 @@ function MatchResultContent() {
                                     </thead>
                                     <tbody className="font-black text-base">
                                         <tr className="border-b border-border/50">
-                                            {/* 💡 修正：余白を削り、文字がはみ出さないように max-w を設定 */}
                                             <td className="text-left py-3 pl-1 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                                                 <span className="truncate max-w-[70px] sm:max-w-[85px] inline-block align-middle">{match.opponent}</span>
                                             </td>
@@ -191,7 +195,6 @@ function MatchResultContent() {
                             <table className="w-full text-sm text-left whitespace-nowrap">
                                 <thead className="bg-muted/10 text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
                                     <tr>
-                                        {/* 💡 修正：打者名の列も少しコンパクトに */}
                                         <th className="px-3 py-3 sticky left-0 bg-muted/90 backdrop-blur-sm z-10 shadow-[1px_0_0_rgba(0,0,0,0.1)]">打者名</th>
                                         {[...Array(Math.max(maxAtBatsCount, 3))].map((_, i) => (
                                             <th key={i} className="px-4 py-3 text-center">第{i + 1}打席</th>
@@ -228,6 +231,7 @@ function MatchResultContent() {
                     </Card>
                 </div>
 
+                {/* 💡 宣伝フッター */}
                 <div className="mt-8 pt-4 border-t border-border/30 text-center text-xs font-bold text-muted-foreground opacity-50 flex items-center justify-center gap-2">
                     <Trophy className="h-3 w-3" /> Powered by i-Score
                 </div>

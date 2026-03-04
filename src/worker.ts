@@ -264,6 +264,7 @@ app.post('/api/matches', async (c) => {
             location: body.location || null,
             matchType: body.matchType,
             battingOrder: body.battingOrder,
+            innings: body.innings || 9,
             status: "scheduled",
         })
         return c.json({ success: true, matchId })

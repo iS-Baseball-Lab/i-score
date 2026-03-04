@@ -15,36 +15,23 @@ import { PlayLog } from "@/components/score/PlayLog";
 import { AdvanceModal } from "@/components/score/AdvanceModal";
 import { SubstitutionModal } from "@/components/score/SubstitutionModal";
 
-// 💡 チームIDを含める
 interface Match {
     id: string; opponent: string; date: string;
     location: string | null; matchType: string; status: string; season: string;
     teamId: string;
     innings?: number;
+    battingOrder: string; // 💡 追加：先攻・後攻の判定用
 }
 
-// 💡 選手情報とスタメン情報の型を整備
-interface Player {
-    id: string; name: string; uniformNumber: string;
-}
-
-interface LineupPlayer {
-    player_id: string; batting_order: number; playerName: string; uniformNumber: string; position: string;
-}
-
+interface Player { id: string; name: string; uniformNumber: string; }
+interface LineupPlayer { player_id: string; batting_order: number; playerName: string; uniformNumber: string; position: string; }
 interface GameStateSnapshot {
-    selfScore: number; guestScore: number;
-    inning: number; isTop: boolean;
+    selfScore: number; guestScore: number; inning: number; isTop: boolean;
     balls: number; strikes: number; outs: number;
-    firstBase: boolean; secondBase: boolean; thirdBase: boolean;
-    myBatterIndex: number;
-    selfInningScores: number[];
-    guestInningScores: number[];
-    selfPitchCount: number;
-    guestPitchCount: number;
-    selfInningPitchCount: number;
-    guestInningPitchCount: number;
-    playLogs: string[];
+    firstBase: boolean; secondBase: boolean; thirdBase: boolean; myBatterIndex: number;
+    selfInningScores: number[]; guestInningScores: number[];
+    selfPitchCount: number; guestPitchCount: number;
+    selfInningPitchCount: number; guestInningPitchCount: number; playLogs: string[];
 }
 
 function MatchScoreContent() {
@@ -53,7 +40,7 @@ function MatchScoreContent() {
     const router = useRouter();
 
     const [match, setMatch] = useState<Match | null>(null);
-    const [roster, setRoster] = useState<Player[]>([]); // 💡 チーム全体の選手リスト
+    const [roster, setRoster] = useState<Player[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const [selfScore, setSelfScore] = useState(0);
@@ -90,11 +77,66 @@ function MatchScoreContent() {
     const [pendingPlay, setPendingPlay] = useState<{ type: 'hit' | 'out', bases?: 1 | 2 | 3 | 4, outType?: 'groundout' | 'flyout' | 'double_play' } | null>(null);
 
     const [showAdvanceModal, setShowAdvanceModal] = useState(false);
-    const [showSubModal, setShowSubModal] = useState(false); // 💡 追加
+    const [showSubModal, setShowSubModal] = useState(false);
 
-    // 💡 選手交代処理
+    // 💡 攻守の判定（自チームが攻撃中かどうか）
+    const isMyAttack = match?.battingOrder === 'first' ? isTop : !isTop;
+
+    const currentBatter = myLineup.length > 0 ? myLineup[myBatterIndex] : null;
+    const nextBatter = myLineup.length > 0 ? myLineup[(myBatterIndex + 1) % myLineup.length] : null;
+    const currentPitcher = myLineup.find(p => p.position === '1' || p.position === '投手' || p.position.toUpperCase() === 'P') || myLineup[0];
+
+    const addPlayLog = (actionText: string) => {
+        const currentInningText = `${inning}回${isTop ? '表' : '裏'}`;
+        const batterText = isMyAttack ? (currentBatter ? `${currentBatter.batting_order}番 ${currentBatter.playerName}` : '打者未設定') : '相手打者';
+        setPlayLogs(prev => [...prev, `${currentInningText} ${batterText} - ${actionText}`]);
+    };
+
+    const saveStateToHistory = () => {
+        setHistory(prev => [...prev, {
+            selfScore, guestScore, inning, isTop, balls, strikes, outs,
+            firstBase, secondBase, thirdBase, myBatterIndex,
+            selfInningScores: [...selfInningScores], guestInningScores: [...guestInningScores],
+            selfPitchCount, guestPitchCount, selfInningPitchCount, guestInningPitchCount, playLogs: [...playLogs]
+        }]);
+    };
+
+    // 💡 ボタン連打対応：APIの返却を待たずに（awaitせずに）通信する関数
+    const recordPitchAPI = (
+        pitchResult: string,
+        atBatResult: string | null = null,
+        hitX: number | null = null,
+        hitY: number | null = null,
+        currentBalls: number,    // 連打してもズレないよう現在の値を渡す
+        currentStrikes: number
+    ) => {
+        if (!matchId) return;
+
+        if (isTop) {
+            setSelfPitchCount(prev => prev + 1); setSelfInningPitchCount(prev => prev + 1);
+        } else {
+            setGuestPitchCount(prev => prev + 1); setGuestInningPitchCount(prev => prev + 1);
+        }
+
+        // 相手の攻撃・守備時は null を送信して成績から除外する
+        const activeBatterName = isMyAttack ? currentBatter?.playerName : null;
+        const activePitcherName = !isMyAttack ? currentPitcher?.playerName : null;
+
+        fetch(`/api/matches/${matchId}/pitches`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                inning, isTop, pitchNumber: currentBalls + currentStrikes + 1,
+                result: pitchResult, ballsBefore: currentBalls, strikesBefore: currentStrikes, atBatResult,
+                zoneX: pitchX, zoneY: pitchY, hitX, hitY,
+                batterName: activeBatterName,
+                pitcherName: activePitcherName
+            }),
+        }).catch(e => console.error(e));
+
+        setPitchX(null); setPitchY(null);
+    };
+
     const handleSubstitute = async (outPlayerId: string, inPlayerId: string, logText: string) => {
-        // スタメン配列を更新
         const newLineup = myLineup.map(p => {
             if (p.player_id === outPlayerId) {
                 const newP = roster.find(r => r.id === inPlayerId);
@@ -103,124 +145,25 @@ function MatchScoreContent() {
             return p;
         });
         setMyLineup(newLineup);
-
-        // APIに更新後のスタメンを保存（途中で画面を閉じても交代が維持されるように）
         try {
             await fetch(`/api/matches/${matchId}/lineup`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newLineup.map(p => ({
-                    playerId: p.player_id, battingOrder: p.batting_order, position: p.position
-                })))
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newLineup.map(p => ({ playerId: p.player_id, battingOrder: p.batting_order, position: p.position })))
             });
         } catch (e) { console.error(e); }
-
-        addPlayLog(logText); // ログに「選手交代」を追加
-        setShowSubModal(false);
+        addPlayLog(logText); setShowSubModal(false);
     };
 
-    const handleAdvance = async (fromBase: 1 | 2 | 3, toBase: 2 | 3 | 4, isOut: boolean, logText: string) => {
-        saveStateToHistory();
-        addPlayLog(logText);
-
-        if (fromBase === 1) setFirstBase(false);
-        if (fromBase === 2) setSecondBase(false);
-        if (fromBase === 3) setThirdBase(false);
-
-        if (isOut) {
-            processOuts(1);
-        } else {
-            if (toBase === 2) setSecondBase(true);
-            if (toBase === 3) setThirdBase(true);
-            if (toBase === 4) addScore(1);
+    const handleAdvance = (fromBase: 1 | 2 | 3, toBase: 2 | 3 | 4, isOut: boolean, logText: string) => {
+        saveStateToHistory(); addPlayLog(logText);
+        if (fromBase === 1) setFirstBase(false); if (fromBase === 2) setSecondBase(false); if (fromBase === 3) setThirdBase(false);
+        if (isOut) { processOuts(1); } else {
+            if (toBase === 2) setSecondBase(true); if (toBase === 3) setThirdBase(true); if (toBase === 4) addScore(1);
         }
         setShowAdvanceModal(false);
     };
 
-    const toggleFullScreen = () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => console.log(err));
-        } else {
-            if (document.exitFullscreen) document.exitFullscreen();
-        }
-    };
-
-    const currentBatter = myLineup.length > 0 ? myLineup[myBatterIndex] : null;
-    const nextBatter = myLineup.length > 0 ? myLineup[(myBatterIndex + 1) % myLineup.length] : null;
-    const currentPitcher = myLineup.find(p => p.position === '1' || p.position === '投手' || p.position.toUpperCase() === 'P') || myLineup[0];
-
-    const addPlayLog = (actionText: string) => {
-        const currentInningText = `${inning}回${isTop ? '表' : '裏'}`;
-        const batterText = currentBatter ? `${currentBatter.batting_order}番 ${currentBatter.playerName}` : '打者未設定';
-        setPlayLogs(prev => [...prev, `${currentInningText} ${batterText} - ${actionText}`]);
-    };
-
-    const saveStateToHistory = () => {
-        setHistory(prev => [...prev, {
-            selfScore, guestScore, inning, isTop,
-            balls, strikes, outs,
-            firstBase, secondBase, thirdBase, myBatterIndex,
-            selfInningScores: [...selfInningScores],
-            guestInningScores: [...guestInningScores],
-            selfPitchCount, guestPitchCount,
-            selfInningPitchCount, guestInningPitchCount,
-            playLogs: [...playLogs]
-        }]);
-    };
-
-    const handleUndo = async () => {
-        if (history.length === 0) return;
-        const prev = history[history.length - 1];
-        setSelfScore(prev.selfScore); setGuestScore(prev.guestScore);
-        setInning(prev.inning); setIsTop(prev.isTop);
-        setBalls(prev.balls); setStrikes(prev.strikes); setOuts(prev.outs);
-        setFirstBase(prev.firstBase); setSecondBase(prev.secondBase); setThirdBase(prev.thirdBase);
-        setMyBatterIndex(prev.myBatterIndex);
-        setSelfInningScores(prev.selfInningScores);
-        setGuestInningScores(prev.guestInningScores);
-        setSelfPitchCount(prev.selfPitchCount);
-        setGuestPitchCount(prev.guestPitchCount);
-        setSelfInningPitchCount(prev.selfInningPitchCount);
-        setGuestInningPitchCount(prev.guestInningPitchCount);
-        setPlayLogs(prev.playLogs);
-        setPitchX(null); setPitchY(null);
-
-        setHistory(h => h.slice(0, -1));
-
-        if (matchId) {
-            try { await fetch(`/api/matches/${matchId}/pitches/last`, { method: 'DELETE' }); }
-            catch (e) { console.error(e); }
-        }
-    };
-
-    const recordPitchAPI = async (pitchResult: string, atBatResult: string | null = null, hitX: number | null = null, hitY: number | null = null) => {
-        if (!matchId) return;
-        try {
-            if (isTop) {
-                setSelfPitchCount(prev => prev + 1);
-                setSelfInningPitchCount(prev => prev + 1);
-            } else {
-                setGuestPitchCount(prev => prev + 1);
-                setGuestInningPitchCount(prev => prev + 1);
-            }
-            await fetch(`/api/matches/${matchId}/pitches`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    inning, isTop, pitchNumber: balls + strikes + 1,
-                    result: pitchResult, ballsBefore: balls, strikesBefore: strikes, atBatResult,
-                    zoneX: pitchX, zoneY: pitchY, hitX, hitY,
-                    batterName: currentBatter?.playerName || null,
-                    pitcherName: currentPitcher?.playerName || null
-                }),
-            });
-        } catch (e) { console.error(e); }
-        setPitchX(null); setPitchY(null);
-    };
-
-    const advanceBatter = () => {
-        if (!isTop && myLineup.length > 0) setMyBatterIndex(prev => (prev + 1) % myLineup.length);
-    };
+    const advanceBatter = () => { if (isMyAttack && myLineup.length > 0) setMyBatterIndex(prev => (prev + 1) % myLineup.length); };
 
     const addScore = (runs: number) => {
         if (runs <= 0) return;
@@ -252,41 +195,45 @@ function MatchScoreContent() {
         try {
             const res = await fetch(`/api/matches/${matchId}/finish`, {
                 method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    myScore: selfScore,
-                    opponentScore: guestScore,
-                    selfInningScores: selfInningScores,
-                    guestInningScores: guestInningScores
-                })
+                body: JSON.stringify({ myScore: selfScore, opponentScore: guestScore, selfInningScores, guestInningScores })
             });
             if (res.ok) router.push('/dashboard');
         } catch (e) { console.error(e); }
     };
 
-    const handleManualOut = () => {
-        saveStateToHistory();
-        addPlayLog("アウト");
-        processOuts(1);
-        advanceBatter();
+    const handleUndo = async () => {
+        if (history.length === 0) return;
+        const prev = history[history.length - 1];
+        setSelfScore(prev.selfScore); setGuestScore(prev.guestScore); setInning(prev.inning); setIsTop(prev.isTop);
+        setBalls(prev.balls); setStrikes(prev.strikes); setOuts(prev.outs);
+        setFirstBase(prev.firstBase); setSecondBase(prev.secondBase); setThirdBase(prev.thirdBase);
+        setMyBatterIndex(prev.myBatterIndex); setSelfInningScores(prev.selfInningScores); setGuestInningScores(prev.guestInningScores);
+        setSelfPitchCount(prev.selfPitchCount); setGuestPitchCount(prev.guestPitchCount);
+        setSelfInningPitchCount(prev.selfInningPitchCount); setGuestInningPitchCount(prev.guestInningPitchCount);
+        setPlayLogs(prev.playLogs); setPitchX(null); setPitchY(null);
+        setHistory(h => h.slice(0, -1));
+        if (matchId) { fetch(`/api/matches/${matchId}/pitches/last`, { method: 'DELETE' }).catch(e => console.error(e)); }
     };
 
-    const handleStrike = async () => {
+    const handleManualOut = () => { saveStateToHistory(); addPlayLog("アウト"); processOuts(1); advanceBatter(); };
+
+    // 💡 async を外し、すぐにStateを更新
+    const handleStrike = () => {
         saveStateToHistory();
         if (strikes === 2) {
-            await recordPitchAPI('strike', 'strikeout');
+            recordPitchAPI('strike', 'strikeout', null, null, balls, strikes);
             addPlayLog("三振");
             setBalls(0); setStrikes(0); processOuts(1); advanceBatter();
-        }
-        else {
-            await recordPitchAPI('strike');
+        } else {
+            recordPitchAPI('strike', null, null, null, balls, strikes);
             addPlayLog("ストライク");
             setStrikes(s => s + 1);
         }
     };
 
-    const handleWalk = async () => {
+    const handleWalk = () => {
         saveStateToHistory();
-        await recordPitchAPI('ball', 'walk');
+        recordPitchAPI('ball', 'walk', null, null, balls, strikes);
         addPlayLog("四死球");
         let runs = 0; let newFirst = true; let newSecond = secondBase; let newThird = thirdBase;
         if (firstBase) { newSecond = true; if (secondBase) { newThird = true; if (thirdBase) runs++; } }
@@ -294,39 +241,25 @@ function MatchScoreContent() {
         addScore(runs); setBalls(0); setStrikes(0); advanceBatter();
     };
 
-    const handleBall = async () => {
-        if (balls === 3) await handleWalk();
+    const handleBall = () => {
+        if (balls === 3) handleWalk();
         else {
             saveStateToHistory();
-            await recordPitchAPI('ball');
+            recordPitchAPI('ball', null, null, null, balls, strikes);
             addPlayLog("ボール");
             setBalls(b => b + 1);
         }
     };
 
-    const initiateHit = (bases: 1 | 2 | 3 | 4) => {
-        setPendingPlay({ type: 'hit', bases });
-        setShowFieldModal(true);
-    };
-
-    const initiateInPlayOut = (outType: 'groundout' | 'flyout' | 'double_play') => {
-        setPendingPlay({ type: 'out', outType });
-        setShowFieldModal(true);
-    };
+    const initiateHit = (bases: 1 | 2 | 3 | 4) => { setPendingPlay({ type: 'hit', bases }); setShowFieldModal(true); };
+    const initiateInPlayOut = (outType: 'groundout' | 'flyout' | 'double_play') => { setPendingPlay({ type: 'out', outType }); setShowFieldModal(true); };
 
     const getHitDirection = (x: number, y: number) => {
-        if (y > 0.6) {
-            if (x < 0.4) return "サード";
-            if (x > 0.6) return "ファースト";
-            return x < 0.5 ? "ショート" : "セカンド";
-        } else {
-            if (x < 0.35) return "レフト";
-            if (x > 0.65) return "ライト";
-            return "センター";
-        }
+        if (y > 0.6) { if (x < 0.4) return "サード"; if (x > 0.6) return "ファースト"; return x < 0.5 ? "ショート" : "セカンド"; }
+        else { if (x < 0.35) return "レフト"; if (x > 0.65) return "ライト"; return "センター"; }
     };
 
-    const finalizePlayOnField = async (e: React.MouseEvent<HTMLDivElement>) => {
+    const finalizePlayOnField = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!pendingPlay) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const fieldX = (e.clientX - rect.left) / rect.width;
@@ -337,8 +270,7 @@ function MatchScoreContent() {
 
         if (pendingPlay.type === 'hit') {
             const hitTypes = { 1: '前ヒット', 2: '方向の二塁打', 3: '方向の三塁打', 4: '方向の本塁打' };
-            await recordPitchAPI('in_play', 'hit', fieldX, fieldY);
-
+            recordPitchAPI('in_play', 'hit', fieldX, fieldY, balls, strikes);
             addPlayLog(`${direction}${hitTypes[pendingPlay.bases!]}`);
 
             let runs = 0; let newFirst = false; let newSecond = false; let newThird = false;
@@ -353,8 +285,7 @@ function MatchScoreContent() {
         } else {
             const outType = pendingPlay.outType!;
             const outNames = { 'groundout': 'ゴロ', 'flyout': 'フライ', 'double_play': 'への併殺打' };
-            await recordPitchAPI('in_play', outType, fieldX, fieldY);
-
+            recordPitchAPI('in_play', outType, fieldX, fieldY, balls, strikes);
             addPlayLog(`${direction}${outNames[outType as keyof typeof outNames]}`);
 
             let addedOuts = 1;
@@ -366,9 +297,7 @@ function MatchScoreContent() {
             }
             setBalls(0); setStrikes(0); processOuts(addedOuts); advanceBatter();
         }
-
-        setShowFieldModal(false);
-        setPendingPlay(null);
+        setShowFieldModal(false); setPendingPlay(null);
     };
 
     const handleZoneClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -376,6 +305,11 @@ function MatchScoreContent() {
         const x = (e.clientX - rect.left) / rect.width;
         const y = (e.clientY - rect.top) / rect.height;
         setPitchX(x); setPitchY(y);
+    };
+
+    const toggleFullScreen = () => {
+        if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => console.log(err)); }
+        else { if (document.exitFullscreen) document.exitFullscreen(); }
     };
 
     useEffect(() => {
@@ -392,12 +326,10 @@ function MatchScoreContent() {
                 const lineupRes = await fetch(`/api/matches/${matchId}/lineup`);
                 if (lineupRes.ok) setMyLineup(await lineupRes.json() as LineupPlayer[]);
 
-                // 💡 チーム全体の選手リスト（ベンチメンバー候補）を取得
                 if (matchData && matchData.teamId) {
                     const rosterRes = await fetch(`/api/teams/${matchData.teamId}/players`);
                     if (rosterRes.ok) setRoster(await rosterRes.json() as Player[]);
                 }
-
             } catch (e) { console.error(e); }
             finally { setIsLoading(false); }
         };
@@ -410,17 +342,15 @@ function MatchScoreContent() {
     return (
         <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden relative">
             <Scoreboard
-                match={match} inning={inning} isTop={isTop}
-                guestInningScores={guestInningScores} selfInningScores={selfInningScores}
-                guestScore={guestScore} selfScore={selfScore}
-                currentPitcher={currentPitcher} selfPitchCount={selfPitchCount} selfInningPitchCount={selfInningPitchCount}
-                currentBatter={currentBatter} nextBatter={nextBatter}
+                match={match} inning={inning} isTop={isTop} guestInningScores={guestInningScores} selfInningScores={selfInningScores}
+                guestScore={guestScore} selfScore={selfScore} currentPitcher={isMyAttack ? null : currentPitcher}
+                selfPitchCount={selfPitchCount} selfInningPitchCount={selfInningPitchCount}
+                currentBatter={isMyAttack ? currentBatter : null} nextBatter={isMyAttack ? nextBatter : null}
                 onFinish={handleFinishMatch} onToggleFullScreen={toggleFullScreen}
             />
 
             <PlayArea
-                balls={balls} strikes={strikes} outs={outs}
-                firstBase={firstBase} secondBase={secondBase} thirdBase={thirdBase}
+                balls={balls} strikes={strikes} outs={outs} firstBase={firstBase} secondBase={secondBase} thirdBase={thirdBase}
                 pitchX={pitchX} pitchY={pitchY} onZoneClick={handleZoneClick}
             />
 
@@ -430,33 +360,12 @@ function MatchScoreContent() {
                 handleBall={handleBall} handleStrike={handleStrike} handleManualOut={handleManualOut}
                 handleUndo={handleUndo} canUndo={history.length > 0} initiateHit={initiateHit}
                 handleWalk={handleWalk} initiateInPlayOut={initiateInPlayOut}
-                initiateAdvance={() => setShowAdvanceModal(true)}
-                initiateSubstitution={() => setShowSubModal(true)} // 💡 追加
+                initiateAdvance={() => setShowAdvanceModal(true)} initiateSubstitution={() => setShowSubModal(true)}
             />
 
-            <FieldModal
-                show={showFieldModal}
-                onClose={() => { setShowFieldModal(false); setPendingPlay(null); }}
-                onFinalize={finalizePlayOnField}
-            />
-
-            <AdvanceModal
-                show={showAdvanceModal}
-                onClose={() => setShowAdvanceModal(false)}
-                firstBase={firstBase}
-                secondBase={secondBase}
-                thirdBase={thirdBase}
-                onAdvance={handleAdvance}
-            />
-
-            {/* 💡 選手交代モーダルを配置 */}
-            <SubstitutionModal
-                show={showSubModal}
-                onClose={() => setShowSubModal(false)}
-                roster={roster}
-                currentLineup={myLineup}
-                onSubstitute={handleSubstitute}
-            />
+            <FieldModal show={showFieldModal} onClose={() => { setShowFieldModal(false); setPendingPlay(null); }} onFinalize={finalizePlayOnField} />
+            <AdvanceModal show={showAdvanceModal} onClose={() => setShowAdvanceModal(false)} firstBase={firstBase} secondBase={secondBase} thirdBase={thirdBase} onAdvance={handleAdvance} />
+            <SubstitutionModal show={showSubModal} onClose={() => setShowSubModal(false)} roster={roster} currentLineup={myLineup} onSubstitute={handleSubstitute} />
         </div>
     );
 }
