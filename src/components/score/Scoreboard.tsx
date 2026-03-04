@@ -28,29 +28,24 @@ export function Scoreboard({
     currentPitcher, selfPitchCount, selfInningPitchCount, currentBatter, nextBatter,
     onFinish, onToggleFullScreen
 }: ScoreboardProps) {
-    
+
     const displayInnings = Math.max(match.innings || 9, inning);
 
     return (
-        // 💡 修正：pt-3 -> pt-2
         <header className="bg-primary text-primary-foreground pt-2 px-4 pb-0 shrink-0 z-10 shadow-md transition-colors duration-300">
-            {/* 💡 修正：mb-3 -> mb-2 */}
             <div className="flex items-center justify-between mb-2">
-                {/* 💡 修正：ボタンを小さく(h-8 w-8) */}
                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-primary-foreground/20 hover:bg-primary-foreground/20 text-primary-foreground border-none transition-all group shrink-0" asChild>
                     <Link href="/dashboard"><ChevronLeft className="h-5 w-5 pr-0.5" /></Link>
                 </Button>
-                
+
                 <div className="flex flex-col items-center">
                     <span className="text-[9px] font-bold text-primary-foreground/80 uppercase tracking-widest mb-0 leading-tight">
                         {match.season} {match.matchType === 'practice' ? 'Practice' : 'Official'}
                     </span>
-                    {/* 💡 修正：タイトル文字を少し小さく */}
                     <h1 className="font-black text-base sm:text-lg tracking-tight truncate max-w-[200px]">VS {match.opponent}</h1>
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                    {/* 💡 修正：試合終了ボタンも少し小さく */}
                     <Button onClick={onFinish} size="sm" className="bg-red-500 hover:bg-red-600 text-white font-bold rounded-full px-3 shadow-sm text-[10px] h-7 border-none">試合終了</Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-primary-foreground/20 hover:bg-primary-foreground/20 text-primary-foreground border-none transition-all" onClick={onToggleFullScreen}>
                         <Maximize className="h-4 w-4" />
@@ -58,14 +53,14 @@ export function Scoreboard({
                 </div>
             </div>
 
-            {/* 💡 修正：上下マージンとパディングを圧縮 */}
             <div className="relative -mx-4 mb-1 mt-1">
                 <div className="bg-background text-foreground border-b border-border overflow-x-auto scrollbar-hide pb-2 shadow-inner">
                     <div className="min-w-[400px] px-2 pt-1">
                         <table className="w-full text-center text-sm table-fixed">
                             <thead>
                                 <tr className="text-muted-foreground border-b border-border text-xs">
-                                    <th className="text-left font-bold pb-1 pl-3 w-28 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">TEAM</th>
+                                    {/* 💡 修正：左余白を極限まで削り(pl-1)、幅を固定化 */}
+                                    <th className="text-left font-bold pb-1 pl-1 w-20 sm:w-24 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">TEAM</th>
                                     {[...Array(displayInnings)].map((_, i) => (
                                         <th key={i} className={cn("font-bold pb-1 w-8", inning === i + 1 ? "text-primary font-black text-sm" : "")}>{i + 1}</th>
                                     ))}
@@ -74,11 +69,11 @@ export function Scoreboard({
                             </thead>
                             <tbody className="font-black text-sm sm:text-base">
                                 <tr className="border-b border-border/50">
-                                    <td className="text-left py-1.5 pl-3 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                                        <span className="truncate max-w-[105px] inline-block align-middle">{match.opponent}</span>
+                                    <td className="text-left py-1.5 pl-1 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                        {/* 💡 修正：文字がはみ出さないように max-w を指定 */}
+                                        <span className="truncate max-w-[70px] sm:max-w-[85px] inline-block align-middle">{match.opponent}</span>
                                     </td>
                                     {[...Array(displayInnings)].map((_, i) => (
-                                        // 💡 修正：セルの高さを py-3 -> py-1.5 に半減
                                         <td key={i} className={cn("py-1.5", inning === i + 1 && isTop ? "bg-primary/10 text-primary rounded-sm" : "text-muted-foreground")}>
                                             {guestInningScores[i] ?? '-'}
                                         </td>
@@ -86,8 +81,8 @@ export function Scoreboard({
                                     <td className="py-1.5 text-lg sm:text-xl text-foreground sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">{guestScore}</td>
                                 </tr>
                                 <tr>
-                                    <td className="text-left py-1.5 pl-3 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                                        <span className="truncate max-w-[105px] inline-block align-middle text-primary">Self</span>
+                                    <td className="text-left py-1.5 pl-1 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                        <span className="truncate max-w-[70px] sm:max-w-[85px] inline-block align-middle text-primary">Self</span>
                                     </td>
                                     {[...Array(displayInnings)].map((_, i) => (
                                         <td key={i} className={cn("py-1.5", inning === i + 1 && !isTop ? "bg-primary/10 text-primary rounded-sm" : "text-muted-foreground")}>
@@ -101,7 +96,6 @@ export function Scoreboard({
                     </div>
                 </div>
 
-                {/* 💡 修正：下部の「P:山田」「NEXT:佐藤」などのチップも一回り小さく */}
                 <div className="absolute -bottom-3 left-0 right-0 flex justify-center items-end gap-2 px-2 z-20 pointer-events-none">
                     {isTop ? (
                         currentPitcher && (

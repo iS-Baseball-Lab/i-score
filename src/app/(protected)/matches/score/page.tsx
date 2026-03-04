@@ -13,13 +13,14 @@ import { ControlPanel } from "@/components/score/ControlPanel";
 import { FieldModal } from "@/components/score/FieldModal";
 import { PlayLog } from "@/components/score/PlayLog";
 import { AdvanceModal } from "@/components/score/AdvanceModal";
-import { SubstitutionModal } from "@/components/score/SubstitutionModal"; // 💡 追加
+import { SubstitutionModal } from "@/components/score/SubstitutionModal";
 
 // 💡 チームIDを含める
 interface Match {
     id: string; opponent: string; date: string;
     location: string | null; matchType: string; status: string; season: string;
     teamId: string;
+    innings?: number;
 }
 
 // 💡 選手情報とスタメン情報の型を整備

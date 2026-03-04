@@ -1,17 +1,20 @@
 // src/app/(protected)/matches/result/page.tsx
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Newspaper, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Newspaper, Trophy, Download, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import html2canvas from "html2canvas";
 
 interface Match {
     id: string; opponent: string; date: string; season: string; status: string;
     myScore: number; opponentScore: number;
-    myInningScores: string; opponentInningScores: string; // JSON文字列として取得
+    myInningScores: string; opponentInningScores: string;
+    innings?: number; // 💡 追加
 }
 
 interface AtBat {
@@ -38,6 +41,8 @@ function MatchResultContent() {
     const [match, setMatch] = useState<Match | null>(null);
     const [atBats, setAtBats] = useState<AtBat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const captureRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!matchId) return;
@@ -54,10 +59,31 @@ function MatchResultContent() {
         fetchData();
     }, [matchId]);
 
+    const handleDownloadImage = async () => {
+        if (!captureRef.current || !match) return;
+        setIsDownloading(true);
+        try {
+            const canvas = await html2canvas(captureRef.current, {
+                backgroundColor: document.documentElement.classList.contains('dark') ? '#020817' : '#ffffff',
+                scale: 2,
+                useCORS: true,
+            });
+            const image = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.href = image;
+            link.download = `試合結果_${match.opponent}戦_${match.date}.png`;
+            link.click();
+        } catch (error) {
+            console.error("画像化エラー:", error);
+            alert("画像の保存に失敗しました");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
     if (!match) return <div className="flex h-screen items-center justify-center">試合が見つかりません</div>;
 
-    // 打者ごとに打席をまとめる処理
     const battersMap = new Map<string, AtBat[]>();
     let maxAtBatsCount = 0;
     atBats.forEach(ab => {
@@ -69,10 +95,15 @@ function MatchResultContent() {
     });
     const batters = Array.from(battersMap.entries());
 
-    // 💡 イニングスコアの復元
     const guestScores: (number | null)[] = match.opponentInningScores ? JSON.parse(match.opponentInningScores) : [];
     const selfScores: (number | null)[] = match.myInningScores ? JSON.parse(match.myInningScores) : [];
-    const inningsCount = Math.max(9, guestScores.length, selfScores.length);
+
+    // 💡 修正：保存された配列の長さではなく、規定イニングか実際の入力データの最大値で判定する
+    let maxInning = match.innings || 9;
+    guestScores.forEach((s, i) => { if (s !== null) maxInning = Math.max(maxInning, i + 1); });
+    selfScores.forEach((s, i) => { if (s !== null) maxInning = Math.max(maxInning, i + 1); });
+    const inningsCount = maxInning;
+
     const isWin = match.myScore > match.opponentScore;
 
     return (
@@ -84,105 +115,123 @@ function MatchResultContent() {
                 subtitle={`${new Date(match.date).toLocaleDateString('ja-JP')} • ${match.season}`}
             />
 
-            <main className="flex-1 p-4 max-w-5xl mx-auto w-full space-y-8 mt-4">
+            <div className="max-w-5xl mx-auto w-full px-4 mt-6 flex justify-end">
+                <Button onClick={handleDownloadImage} disabled={isDownloading} className="rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all active:scale-95">
+                    {isDownloading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> 画像を生成中...</> : <><Download className="mr-2 h-5 w-5" /> 結果を画像で保存 (シェア)</>}
+                </Button>
+            </div>
 
-                {/* 💡 1. ランニングスコア（得点表） */}
-                <Card className="rounded-2xl border-border bg-background shadow-xs overflow-hidden animate-in slide-in-from-bottom-4 duration-500 p-0 gap-0">
-                    <div className="bg-muted/30 p-4 border-b border-border/50 flex items-center justify-between">
-                        <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-                            <Trophy className={cn("h-5 w-5", isWin ? "text-yellow-500" : "text-muted-foreground")} />
-                            ランニングスコア
-                        </h2>
+            <div ref={captureRef} className="bg-background p-4 sm:p-6 max-w-5xl mx-auto w-full mt-2 rounded-2xl">
+                <div className="text-center mb-6 pb-4 border-b border-border/50">
+                    <div className="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold bg-primary/10 text-primary uppercase tracking-wider mb-2">
+                        {match.season}
                     </div>
-                    <div className="overflow-x-auto scrollbar-hide pb-2">
-                        <div className="min-w-[500px] px-4 pt-4 pb-2">
-                            <table className="w-full text-center text-base table-fixed">
-                                <thead>
-                                    <tr className="text-muted-foreground border-b border-border text-sm">
-                                        <th className="text-left font-bold pb-2 pl-3 w-32 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">TEAM</th>
-                                        {[...Array(inningsCount)].map((_, i) => (
-                                            <th key={i} className="font-bold pb-2 w-10">{i + 1}</th>
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-1">vs {match.opponent}</h1>
+                    <p className="text-sm text-muted-foreground font-bold">{new Date(match.date).toLocaleDateString('ja-JP')}</p>
+                </div>
+
+                <div className="space-y-8">
+                    <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden p-0 gap-0">
+                        <div className="bg-muted/30 p-4 border-b border-border/50 flex items-center justify-between">
+                            <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
+                                <Trophy className={cn("h-5 w-5", isWin ? "text-yellow-500" : "text-muted-foreground")} />
+                                ランニングスコア
+                            </h2>
+                        </div>
+                        <div className="overflow-x-auto scrollbar-hide pb-2">
+                            <div className="min-w-[400px] px-2 pt-4 pb-2">
+                                <table className="w-full text-center text-sm table-fixed">
+                                    <thead>
+                                        <tr className="text-muted-foreground border-b border-border text-xs">
+                                            {/* 💡 修正：左の余白を pl-1 にし、幅を w-20（スマホ）〜 w-24（PC）に固定 */}
+                                            <th className="text-left font-bold pb-2 pl-1 w-20 sm:w-24 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">TEAM</th>
+                                            {[...Array(inningsCount)].map((_, i) => (
+                                                <th key={i} className="font-bold pb-2 w-8 sm:w-10">{i + 1}</th>
+                                            ))}
+                                            <th className="font-black pb-2 w-10 text-primary sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">R</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="font-black text-base">
+                                        <tr className="border-b border-border/50">
+                                            {/* 💡 修正：余白を削り、文字がはみ出さないように max-w を設定 */}
+                                            <td className="text-left py-3 pl-1 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                                <span className="truncate max-w-[70px] sm:max-w-[85px] inline-block align-middle">{match.opponent}</span>
+                                            </td>
+                                            {[...Array(inningsCount)].map((_, i) => (
+                                                <td key={i} className="py-3 text-muted-foreground">
+                                                    {guestScores[i] !== null && guestScores[i] !== undefined ? guestScores[i] : '-'}
+                                                </td>
+                                            ))}
+                                            <td className="py-3 text-xl sm:text-2xl text-foreground sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">{match.opponentScore}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="text-left py-3 pl-1 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                                <span className="truncate max-w-[70px] sm:max-w-[85px] inline-block align-middle text-primary">Self</span>
+                                            </td>
+                                            {[...Array(inningsCount)].map((_, i) => (
+                                                <td key={i} className="py-3 text-muted-foreground">
+                                                    {selfScores[i] !== null && selfScores[i] !== undefined ? selfScores[i] : '-'}
+                                                </td>
+                                            ))}
+                                            <td className="py-3 text-xl sm:text-2xl text-primary sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">{match.myScore}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden p-0 gap-0">
+                        <div className="bg-muted/30 p-4 border-b border-border/50">
+                            <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
+                                <Newspaper className="h-5 w-5 text-primary" /> ボックススコア
+                            </h2>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left whitespace-nowrap">
+                                <thead className="bg-muted/10 text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
+                                    <tr>
+                                        {/* 💡 修正：打者名の列も少しコンパクトに */}
+                                        <th className="px-3 py-3 sticky left-0 bg-muted/90 backdrop-blur-sm z-10 shadow-[1px_0_0_rgba(0,0,0,0.1)]">打者名</th>
+                                        {[...Array(Math.max(maxAtBatsCount, 3))].map((_, i) => (
+                                            <th key={i} className="px-4 py-3 text-center">第{i + 1}打席</th>
                                         ))}
-                                        <th className="font-black pb-2 w-12 text-primary sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">R</th>
                                     </tr>
                                 </thead>
-                                <tbody className="font-black text-base sm:text-lg">
-                                    {/* 相手チーム */}
-                                    <tr className="border-b border-border/50">
-                                        <td className="text-left py-3 pl-3 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                                            <span className="truncate max-w-[120px] inline-block align-middle">{match.opponent}</span>
-                                        </td>
-                                        {[...Array(inningsCount)].map((_, i) => (
-                                            <td key={i} className="py-3 text-muted-foreground">
-                                                {guestScores[i] !== null && guestScores[i] !== undefined ? guestScores[i] : '-'}
-                                            </td>
-                                        ))}
-                                        <td className="py-3 text-xl sm:text-2xl text-foreground sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">{match.opponentScore}</td>
-                                    </tr>
-                                    {/* 自チーム */}
-                                    <tr>
-                                        <td className="text-left py-3 pl-3 sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                                            <span className="truncate max-w-[120px] inline-block align-middle text-primary">Self Team</span>
-                                        </td>
-                                        {[...Array(inningsCount)].map((_, i) => (
-                                            <td key={i} className="py-3 text-muted-foreground">
-                                                {selfScores[i] !== null && selfScores[i] !== undefined ? selfScores[i] : '-'}
-                                            </td>
-                                        ))}
-                                        <td className="py-3 text-xl sm:text-2xl text-primary sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">{match.myScore}</td>
-                                    </tr>
+                                <tbody className="divide-y divide-border/50">
+                                    {batters.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={maxAtBatsCount + 1} className="text-center py-8 text-muted-foreground">打席データがありません</td>
+                                        </tr>
+                                    ) : (
+                                        batters.map(([name, abs], idx) => (
+                                            <tr key={idx} className="hover:bg-muted/10 transition-colors">
+                                                <td className="px-3 py-3 font-bold sticky left-0 bg-background z-10 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
+                                                    {name}
+                                                </td>
+                                                {[...Array(Math.max(maxAtBatsCount, 3))].map((_, i) => {
+                                                    const ab = abs[i];
+                                                    const resultText = ab?.result ? resultLabels[ab.result] || ab.result : '-';
+                                                    return (
+                                                        <td key={i} className="px-4 py-3 text-center">
+                                                            {ab && <div className="text-[9px] text-muted-foreground mb-0.5">{ab.inning}回{ab.isTop ? '表' : '裏'}</div>}
+                                                            <span className={getResultColor(ab?.result || null)}>{resultText}</span>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </Card>
+                    </Card>
+                </div>
 
-                {/* 2. ボックススコア（打席一覧） */}
-                <Card className="rounded-2xl border-border bg-background shadow-xs overflow-hidden animate-in slide-in-from-bottom-8 duration-500 delay-150 p-0 gap-0">
-                    <div className="bg-muted/30 p-4 border-b border-border/50">
-                        <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-                            <Newspaper className="h-5 w-5 text-primary" /> ボックススコア（打席結果）
-                        </h2>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left whitespace-nowrap">
-                            <thead className="bg-muted/10 text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
-                                <tr>
-                                    <th className="px-4 py-3 sticky left-0 bg-muted/90 backdrop-blur-sm z-10 shadow-[1px_0_0_rgba(0,0,0,0.1)]">打者名</th>
-                                    {[...Array(Math.max(maxAtBatsCount, 3))].map((_, i) => (
-                                        <th key={i} className="px-4 py-3 text-center">第{i + 1}打席</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border/50">
-                                {batters.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={maxAtBatsCount + 1} className="text-center py-8 text-muted-foreground">打席データがありません</td>
-                                    </tr>
-                                ) : (
-                                    batters.map(([name, abs], idx) => (
-                                        <tr key={idx} className="hover:bg-muted/10 transition-colors">
-                                            <td className="px-4 py-3 font-bold sticky left-0 bg-background z-10 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
-                                                {name}
-                                            </td>
-                                            {[...Array(Math.max(maxAtBatsCount, 3))].map((_, i) => {
-                                                const ab = abs[i];
-                                                const resultText = ab?.result ? resultLabels[ab.result] || ab.result : '-';
-                                                return (
-                                                    <td key={i} className="px-4 py-3 text-center">
-                                                        {ab && <div className="text-[9px] text-muted-foreground mb-0.5">{ab.inning}回{ab.isTop ? '表' : '裏'}</div>}
-                                                        <span className={getResultColor(ab?.result || null)}>{resultText}</span>
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </Card>
-            </main>
+                <div className="mt-8 pt-4 border-t border-border/30 text-center text-xs font-bold text-muted-foreground opacity-50 flex items-center justify-center gap-2">
+                    <Trophy className="h-3 w-3" /> Powered by i-Score
+                </div>
+            </div>
         </div>
     );
 }
@@ -193,5 +242,4 @@ export default function MatchResultPage() {
             <MatchResultContent />
         </Suspense>
     );
-
 }
