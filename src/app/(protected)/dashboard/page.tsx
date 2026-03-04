@@ -8,7 +8,7 @@ import { canEditScore, canManageTeam, ROLES } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plus, History, Trophy, Calendar, ChevronRight, Loader2, Users, CheckCircle2, ClipboardList, Edit2, Trash2, Check, X, BarChart3, Activity, Map } from "lucide-react"; // 💡 Mapアイコンを追加
+import { Plus, History, Trophy, Calendar, ChevronRight, Loader2, Users, CheckCircle2, ClipboardList, Edit2, Trash2, Check, X, BarChart3, Activity, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Match {
@@ -31,7 +31,6 @@ interface PitcherStats {
   playerName: string; battersFaced: number; strikeouts: number; walks: number; hitsAllowed: number; outs: number;
 }
 
-// 💡 スプレーチャート用の型
 interface SprayData {
   hitX: number; hitY: number; result: string; batterName: string;
 }
@@ -60,7 +59,6 @@ export default function DashboardPage() {
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [editTeamName, setEditTeamName] = useState("");
 
-  // 💡 追加：チーム選択を変更した時にLocalStorageにも保存する関数
   const handleTeamChange = (newTeamId: string) => {
     setSelectedTeamId(newTeamId);
     localStorage.setItem("iScore_selectedTeamId", newTeamId);
@@ -74,7 +72,6 @@ export default function DashboardPage() {
         const data = await res.json() as Team[];
         setTeams(data);
 
-        // 💡 修正：前回選択したチームがLocalStorageにあれば復元、なければ先頭のチームにする
         const savedTeamId = localStorage.getItem("iScore_selectedTeamId");
         const isValidSavedTeam = data.some(t => t.id === savedTeamId);
 
@@ -89,32 +86,45 @@ export default function DashboardPage() {
     finally { setIsLoadingTeams(false); }
   };
 
+  // 💡 修正：データを再取得する処理を外に出して、削除後にも呼べるようにする
+  const fetchMatchesAndStats = async () => {
+    if (!selectedTeamId) return;
+    setIsLoadingData(true);
+    try {
+      const [matchesRes, bStatsRes, pStatsRes, sprayRes] = await Promise.all([
+        fetch(`/api/matches?teamId=${selectedTeamId}`),
+        fetch(`/api/teams/${selectedTeamId}/stats`),
+        fetch(`/api/teams/${selectedTeamId}/pitcher-stats`),
+        fetch(`/api/teams/${selectedTeamId}/spray-chart`)
+      ]);
+
+      if (matchesRes.ok) setMatches(await matchesRes.json());
+      if (bStatsRes.ok) setBatterStats(await bStatsRes.json());
+      if (pStatsRes.ok) setPitcherStats(await pStatsRes.json());
+      if (sprayRes.ok) setSprayData(await sprayRes.json());
+    } catch (e) { console.error(e); }
+    finally { setIsLoadingData(false); }
+  };
+
   useEffect(() => { fetchTeams(); }, []);
 
   useEffect(() => {
-    if (!selectedTeamId) return;
-
-    const fetchMatchesAndStats = async () => {
-      setIsLoadingData(true);
-      try {
-        const [matchesRes, bStatsRes, pStatsRes, sprayRes] = await Promise.all([
-          fetch(`/api/matches?teamId=${selectedTeamId}`),
-          fetch(`/api/teams/${selectedTeamId}/stats`),
-          fetch(`/api/teams/${selectedTeamId}/pitcher-stats`),
-          fetch(`/api/teams/${selectedTeamId}/spray-chart`) // 💡 追加
-        ]);
-
-        if (matchesRes.ok) setMatches(await matchesRes.json());
-        if (bStatsRes.ok) setBatterStats(await bStatsRes.json());
-        if (pStatsRes.ok) setPitcherStats(await pStatsRes.json());
-        if (sprayRes.ok) setSprayData(await sprayRes.json()); // 💡 追加
-      } catch (e) { console.error(e); }
-      finally {
-        setIsLoadingData(false);
-      }
-    };
     fetchMatchesAndStats();
   }, [selectedTeamId]);
+
+  // 💡 追加：試合の削除処理
+  const handleDeleteMatch = async (matchId: string) => {
+    if (!confirm('⚠️ 本当にこの試合を削除しますか？\n（入力したスコアや個人の成績データもすべて完全に消去され、元に戻せません！）')) return;
+    
+    try {
+      const res = await fetch(`/api/matches/${matchId}`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchMatchesAndStats(); // 💡 成功したらデータを再取得して表示を更新（成績の集計もやり直される）
+      } else {
+        alert('試合の削除に失敗しました');
+      }
+    } catch (e) { console.error(e); }
+  };
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,7 +183,6 @@ export default function DashboardPage() {
   if (teams.length === 0) {
     return (
       <div className="container mx-auto max-w-xl px-4 py-12 animate-in fade-in duration-500">
-        {/* 新規作成画面（変更なしのため省略せずにそのまま） */}
         <div className="text-center mb-8">
           <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Users className="h-10 w-10 text-primary" />
@@ -226,7 +235,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* サマリーカード */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {canEdit && (
           <Link href={`/matches/new?teamId=${selectedTeamId}`} className="block outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl">
@@ -291,7 +299,6 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* 💡 タブ切り替えUI */}
       <div className="flex bg-muted/30 p-1.5 rounded-xl border border-border shadow-inner max-w-2xl overflow-x-auto scrollbar-hide">
         <button onClick={() => setActiveTab("matches")} className={cn("flex-1 min-w-[100px] py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "matches" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
           <History className="h-4 w-4" /> 試合結果
@@ -308,7 +315,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="space-y-6">
-        {/* 試合結果タブ */}
         {activeTab === "matches" && (
           <>
             <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight">
@@ -324,14 +330,31 @@ export default function DashboardPage() {
                   <Card key={match.id} className="rounded-2xl border-border bg-background shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 overflow-hidden relative">
                     <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${match.status === 'scheduled' ? 'bg-slate-300' : 'bg-blue-500'}`} />
                     <CardContent className="p-5 sm:p-6 pl-6 sm:pl-8">
+                      
+                      {/* 💡 修正：右上に削除ボタン（ゴミ箱アイコン）を追加 */}
                       <div className="flex justify-between items-start mb-6">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground font-bold">
                           <Calendar className="h-3.5 w-3.5" />{new Date(match.date).toLocaleDateString('ja-JP')}
                         </div>
-                        <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-extrabold ring-1 ring-inset bg-blue-50 text-blue-700 ring-blue-600/20">
-                          {match.status === 'completed' ? '試合終了' : '進行中'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-extrabold ring-1 ring-inset bg-blue-50 text-blue-700 ring-blue-600/20">
+                            {match.status === 'completed' ? '試合終了' : '進行中'}
+                          </span>
+                          {/* ゴミ箱ボタン */}
+                          {canEdit && (
+                            <Button 
+                              size="icon-sm" 
+                              variant="ghost" 
+                              className="h-7 w-7 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" 
+                              onClick={() => handleDeleteMatch(match.id)}
+                              title="この試合を削除する"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
+
                       <div className="flex items-center justify-between bg-muted/30 rounded-xl p-4">
                         <div className="text-base font-extrabold w-1/3 text-center truncate">{currentTeam?.name}</div>
                         <div className="flex items-center justify-center gap-4 w-1/3">
@@ -365,7 +388,7 @@ export default function DashboardPage() {
           </>
         )}
 
-        {/* 打撃成績タブ */}
+        {/* --- これより下のタブ（打撃成績、投手成績、スプレーチャート）は変更なしのため省略せずにそのまま --- */}
         {activeTab === "batterStats" && (
           <div className="animate-in fade-in duration-300">
             <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight mb-4">
@@ -424,7 +447,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 投手成績タブ */}
         {activeTab === "pitcherStats" && (
           <div className="animate-in fade-in duration-300">
             <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight mb-4">
@@ -467,15 +489,12 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 💡 スプレーチャート（打球方向分析）タブ */}
         {activeTab === "sprayChart" && (
           <div className="animate-in fade-in duration-300">
             <h2 className="text-xl font-extrabold flex items-center gap-2 tracking-tight mb-4">
               <Map className="h-5 w-5 text-green-600" /> スプレーチャート (打球方向)
             </h2>
             <Card className="rounded-2xl border-border bg-background shadow-sm p-4 sm:p-6">
-
-              {/* 選手絞り込み */}
               <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
                 <span className="text-sm font-bold text-muted-foreground">選手を選択:</span>
                 <Select value={selectedBatter} onChange={(e) => setSelectedBatter(e.target.value)} className="w-full sm:w-64 h-10 shadow-sm">
@@ -486,9 +505,7 @@ export default function DashboardPage() {
                 </Select>
               </div>
 
-              {/* グラウンドとプロット描画エリア */}
               <div className="relative w-full max-w-[400px] aspect-square mx-auto mt-6 drop-shadow-md">
-                {/* SVG グラウンド背景 */}
                 <svg viewBox="0 0 100 100" className="w-full h-full rounded-2xl overflow-hidden bg-muted/20">
                   <path d="M 50 90 L 15 20 Q 50 5 85 20 Z" fill="#15803d" stroke="#4ade80" strokeWidth="0.5" />
                   <path d="M 50 90 L 68 54 Q 50 35 32 54 Z" fill="#a16207" />
@@ -500,7 +517,6 @@ export default function DashboardPage() {
                   <polygon points="37,66 39,68 37,70 35,68" fill="white" />
                 </svg>
 
-                {/* 💡 取得した座標データに基づいて点を打つ */}
                 {sprayData
                   .filter(d => selectedBatter === "all" || d.batterName === selectedBatter)
                   .map((hit, i) => {
@@ -514,7 +530,6 @@ export default function DashboardPage() {
                           isHomeRun ? "bg-orange-500 w-4 h-4 -ml-2 -mt-2 animate-pulse" :
                             isOut ? "bg-red-500/80" : "bg-blue-500"
                         )}
-                        // 左からのパーセンテージと上からのパーセンテージで位置を決定
                         style={{ left: `${hit.hitX * 100}%`, top: `${hit.hitY * 100}%` }}
                         title={`${hit.batterName} - ${hit.result}`}
                       />
@@ -523,13 +538,11 @@ export default function DashboardPage() {
                 }
               </div>
 
-              {/* 凡例 */}
               <div className="flex items-center justify-center gap-4 mt-6 text-xs font-bold text-muted-foreground">
                 <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-blue-500 border border-white"></div>ヒット</div>
                 <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-500 border border-white"></div>ホームラン</div>
                 <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500/80 border border-white"></div>アウト</div>
               </div>
-
             </Card>
           </div>
         )}
