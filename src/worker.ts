@@ -363,6 +363,31 @@ app.patch('/api/matches/:id/finish', async (c) => {
     }
 })
 
+// 💡 試合と関連データ（スタメン・打席・投球）をすべて削除するAPI
+app.delete('/api/matches/:id', async (c) => {
+    const auth = getAuth(c.env.DB, c.env)
+    const session = await auth.api.getSession({ headers: c.req.raw.headers })
+    const userRole = (session?.user as unknown as { role?: string })?.role
+
+    if (!session || !canEditScore(userRole)) return c.json({ error: '権限がありません' }, 403)
+
+    const matchId = c.req.param('id')
+
+    try {
+        // 💡 試合に紐づくすべてのデータを奥底から順番に削除していく
+        await c.env.DB.prepare(`DELETE FROM match_lineups WHERE match_id = ?`).bind(matchId).run()
+        await c.env.DB.prepare(`DELETE FROM pitches WHERE at_bat_id IN (SELECT id FROM at_bats WHERE match_id = ?)`).bind(matchId).run()
+        await c.env.DB.prepare(`DELETE FROM at_bats WHERE match_id = ?`).bind(matchId).run()
+        await c.env.DB.prepare(`DELETE FROM matches WHERE id = ?`).bind(matchId).run()
+
+        return c.json({ success: true })
+    } catch (e) {
+        console.error("試合削除エラー:", e)
+        return c.json({ success: false, error: '試合の削除に失敗しました' }, 500)
+    }
+})
+
+
 // 💡 Undo（1球戻る）のための、最後の投球削除API
 app.delete('/api/matches/:id/pitches/last', async (c) => {
     const auth = getAuth(c.env.DB, c.env)
@@ -706,6 +731,7 @@ export default {
     }
 
 }
+
 
 
 
