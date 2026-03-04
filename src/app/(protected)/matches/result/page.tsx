@@ -87,7 +87,7 @@ function MatchResultContent() {
             <main className="flex-1 p-4 max-w-5xl mx-auto w-full space-y-8 mt-4">
 
                 {/* 💡 1. ランニングスコア（得点表） */}
-                <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+                <Card className="rounded-2xl border-border bg-background shadow-xs overflow-hidden animate-in slide-in-from-bottom-4 duration-500 p-0 gap-0">
                     <div className="bg-muted/30 p-4 border-b border-border/50 flex items-center justify-between">
                         <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
                             <Trophy className={cn("h-5 w-5", isWin ? "text-yellow-500" : "text-muted-foreground")} />
@@ -138,7 +138,7 @@ function MatchResultContent() {
                 </Card>
 
                 {/* 2. ボックススコア（打席一覧） */}
-                <Card className="rounded-2xl border-border bg-background shadow-sm overflow-hidden animate-in slide-in-from-bottom-8 duration-500 delay-150">
+                <Card className="rounded-2xl border-border bg-background shadow-xs overflow-hidden animate-in slide-in-from-bottom-8 duration-500 delay-150 p-0 gap-0">
                     <div className="bg-muted/30 p-4 border-b border-border/50">
                         <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
                             <Newspaper className="h-5 w-5 text-primary" /> ボックススコア（打席結果）
@@ -193,4 +193,5 @@ export default function MatchResultPage() {
             <MatchResultContent />
         </Suspense>
     );
+
 }
