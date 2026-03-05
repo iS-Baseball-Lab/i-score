@@ -66,22 +66,27 @@ function MatchResultContent() {
         if (!captureRef.current || !match) return;
         setIsDownloading(true);
         try {
-            // 背景色を明示的に指定して高画質（scale: 2）でキャプチャ
+            // 💡 修正 1：スマホのメモリ制限（キャンバス上限）を回避するため scale を 1.5 に下げる
+            // 💡 修正 2：useCORS は外部画像がない場合はエラーの元になることがあるため削除
             const canvas = await html2canvas(captureRef.current, {
                 backgroundColor: document.documentElement.classList.contains('dark') ? '#020817' : '#ffffff',
-                scale: 2,
-                useCORS: true,
+                scale: 1.5,
             });
 
-            // 画像データ（PNG）に変換してダウンロード
             const image = canvas.toDataURL("image/png");
+
+            // 💡 修正 3：ブラウザにブロックされないよう、一度画面(DOM)にリンクを追加してからクリックする
             const link = document.createElement("a");
             link.href = image;
             link.download = `試合結果_${match.opponent}戦_${match.date}.png`;
+            document.body.appendChild(link);
             link.click();
-        } catch (error) {
+            document.body.removeChild(link);
+
+        } catch (error: any) {
             console.error("画像化エラー:", error);
-            alert("画像の保存に失敗しました");
+            // 💡 修正 4：エラー内容を画面に表示して原因を特定しやすくする
+            alert(`画像の保存に失敗しました。\n詳細: ${error?.message || error}`);
         } finally {
             setIsDownloading(false);
         }
