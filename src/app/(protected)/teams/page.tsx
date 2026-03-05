@@ -93,8 +93,8 @@ export default function TeamsPage() {
 
                 {/* 💡 新規チーム作成フォーム（スライドダウンで美しく表示） */}
                 {showCreateForm && (
-                    <Card className="border-primary/20 shadow-xs animate-in slide-in-from-top-2 overflow-hidden p-0 gap-0">
-                        <CardHeader className="bg-primary/5 p-4 border-b border-primary/10">
+                    <Card className="border-primary/20 shadow-xs animate-in slide-in-from-top-2 overflow-hidden pt-0 gap-0">
+                        <CardHeader className="bg-primary/5 pt-6 border-b border-primary/10">
                             <CardTitle className="flex items-center gap-2 text-primary"><Plus className="h-5 w-5" /> チームを新しく作る</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6">
@@ -112,7 +112,7 @@ export default function TeamsPage() {
                                         <option value={ROLES.STAFF}>スタッフ (Staff)</option>
                                     </Select>
                                 </div>
-                                <Button type="submit" className="w-full h-12 text-base font-bold rounded-xl m-4 shadow-md bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isCreating}>
+                                <Button type="submit" className="w-full h-12 text-base font-bold rounded-xl mt-4 shadow-md bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isCreating}>
                                     {isCreating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "チームを作成してダッシュボードへ"}
                                 </Button>
                             </form>
