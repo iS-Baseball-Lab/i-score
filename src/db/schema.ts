@@ -204,6 +204,19 @@ export const matchLineups = sqliteTable('match_lineups', {
     position: text('position').notNull(), // 守備位置（'1'~'9', 'DH'など）
 });
 
+// ==========================================
+// 💡 スタメンテンプレート（事前作成パターン）テーブル
+// ==========================================
+export const lineupTemplates = sqliteTable("lineup_templates", {
+    id: text("id").primaryKey(),
+    teamId: text('team_id').notNull().references(() => teams.id),
+    name: text("name").notNull(), // パターン名（例: ベストメンバー）
+    lineupData: text("lineup_data").notNull(), // JSON形式で保存
+    createdAt: integer("created_at", { mode: "timestamp" })
+        .notNull()
+        .default(sql`(strftime('%s', 'now'))`),
+});
+
 export const schema = {
     user,
     session,
@@ -216,4 +229,5 @@ export const schema = {
     teamMembers,
     players,
     matchLineups,
+    lineupTemplates,
 };

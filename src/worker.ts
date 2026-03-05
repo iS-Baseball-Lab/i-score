@@ -2,7 +2,7 @@
 import { Hono } from 'hono'
 import { getAuth } from "@/lib/auth"
 import { drizzle } from 'drizzle-orm/d1'
-import { user, teams, teamMembers, matches, atBats, pitches } from '@/db/schema'
+import { teams, teamMembers, matches, atBats, pitches, lineupTemplates } from '@/db/schema'
 import { desc, eq, and, isNull } from 'drizzle-orm'
 import { canEditScore, canManageTeam } from '@/lib/roles'
 
@@ -212,6 +212,42 @@ app.delete('/api/teams/:teamId/players/:playerId', async (c) => {
         return c.json({ error: '選手の削除に失敗しました' }, 500);
     }
 });
+
+// 💡 スタメンパターンの取得
+app.get('/api/teams/:teamId/lineup-templates', async (c) => {
+    const db = drizzle(c.env.DB)
+    const teamId = c.req.param('teamId')
+    try {
+        const templates = await db.select().from(lineupTemplates)
+            .where(eq(lineupTemplates.teamId, teamId))
+            .orderBy(desc(lineupTemplates.createdAt))
+        return c.json(templates)
+    } catch (e) { return c.json({ error: 'Failed to fetch templates' }, 500) }
+})
+
+// 💡 スタメンパターンの保存
+app.post('/api/teams/:teamId/lineup-templates', async (c) => {
+    const db = drizzle(c.env.DB)
+    const teamId = c.req.param('teamId')
+    const body = await c.req.json()
+    const id = crypto.randomUUID()
+    try {
+        await db.insert(lineupTemplates).values({
+            id, teamId, name: body.name, lineupData: JSON.stringify(body.lineupData)
+        })
+        return c.json({ success: true, id })
+    } catch (e) { return c.json({ error: 'Failed to save template' }, 500) }
+})
+
+// 💡 スタメンパターンの削除
+app.delete('/api/teams/:teamId/lineup-templates/:id', async (c) => {
+    const db = drizzle(c.env.DB)
+    const id = c.req.param('id')
+    try {
+        await db.delete(lineupTemplates).where(eq(lineupTemplates.id, id))
+        return c.json({ success: true })
+    } catch (e) { return c.json({ error: 'Failed to delete template' }, 500) }
+})
 
 // ==========================================
 // 💡 試合関連 API
