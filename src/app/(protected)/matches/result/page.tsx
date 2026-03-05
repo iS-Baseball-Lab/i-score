@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Newspaper, Trophy, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
-import html2canvas from "html2canvas";
+import * as htmlToImage from 'html-to-image';
 
 interface Match {
     id: string; opponent: string; date: string; season: string; status: string;
@@ -63,19 +63,19 @@ function MatchResultContent() {
         if (!captureRef.current || !match) return;
         setIsDownloading(true);
         try {
-            // 💡 scale を 1.5 に下げてスマホ等でのクラッシュを防ぎます
-            const canvas = await html2canvas(captureRef.current, {
+            // 💡 修正：html-to-image を使ったモダンで確実な画像生成
+            const dataUrl = await htmlToImage.toPng(captureRef.current, {
                 backgroundColor: document.documentElement.classList.contains('dark') ? '#020817' : '#ffffff',
-                scale: 1.5,
-                useCORS: true,
+                pixelRatio: 1.5, // スマホでも綺麗に、かつ重すぎない解像度
             });
-            const image = canvas.toDataURL("image/png");
+
             const link = document.createElement("a");
-            link.href = image;
             link.download = `試合結果_${match.opponent}戦_${match.date}.png`;
-            document.body.appendChild(link); // 💡 一時的にDOMに追加してクリック
+            link.href = dataUrl;
+            document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+
         } catch (error: any) {
             console.error("画像化エラー:", error);
             alert(`画像の保存に失敗しました。\n詳細: ${error?.message || error}`);
