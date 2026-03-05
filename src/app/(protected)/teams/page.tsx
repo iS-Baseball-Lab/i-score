@@ -93,7 +93,7 @@ export default function TeamsPage() {
 
                 {/* 💡 新規チーム作成フォーム（スライドダウンで美しく表示） */}
                 {showCreateForm && (
-                    <Card className="border-primary/20 shadow-md animate-in slide-in-from-top-2">
+                    <Card className="border-primary/20 shadow-xs animate-in slide-in-from-top-2 overflow-hidden p-0 gap-0">
                         <CardHeader className="bg-primary/5 pb-4 border-b border-primary/10">
                             <CardTitle className="flex items-center gap-2 text-primary"><Plus className="h-5 w-5" /> チームを新しく作る</CardTitle>
                         </CardHeader>
@@ -132,7 +132,7 @@ export default function TeamsPage() {
                             <Card
                                 key={team.id}
                                 onClick={() => handleTeamClick(team.id)}
-                                className="group relative overflow-hidden rounded-2xl border-border bg-background shadow-sm transition-all hover:shadow-md hover:border-primary/40 active:scale-[0.98] cursor-pointer"
+                                className="group relative overflow-hidden rounded-2xl border-border bg-background shadow-xs transition-all hover:shadow-md hover:border-primary/40 active:scale-[0.98] cursor-pointer"
                             >
                                 {/* 背景のうっすらとしたアクセント装飾 */}
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110" />
