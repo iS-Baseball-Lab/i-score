@@ -94,7 +94,7 @@ export default function TeamsPage() {
                 {/* 💡 新規チーム作成フォーム（スライドダウンで美しく表示） */}
                 {showCreateForm && (
                     <Card className="border-primary/20 shadow-xs animate-in slide-in-from-top-2 overflow-hidden pt-0 gap-0">
-                        <CardHeader className="bg-primary/5 p-0 border-b border-primary/10">
+                        <CardHeader className="bg-primary/5 pt-6 pb-4 border-b border-primary/10">
                             <CardTitle className="flex items-center gap-2 text-primary"><Plus className="h-5 w-5" /> チームを新しく作る</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6">
