@@ -13,8 +13,8 @@ export function Footer() {
     return null;
   }
 
+  // 💡 常にダーク基調にするため、背景を zinc-950 (漆黒) に固定し、すりガラス効果を追加
   return (
-    {/* 💡 常にダーク基調にするため、背景を zinc-950 (漆黒) に固定し、すりガラス効果を追加 */}
     <footer className="w-full border-t border-zinc-800/80 bg-zinc-950/95 backdrop-blur-md text-zinc-400 mt-auto transition-all duration-300">
       <div className="container mx-auto px-4 py-8 sm:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
@@ -30,7 +30,6 @@ export function Footer() {
 
           {/* リンク群 */}
           <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-xs font-bold">
-            {/* 💡 ホバー時は真っ白に光らせる */}
             <Link href="/" className="hover:text-white transition-colors duration-200">ホーム</Link>
             <Link href="#" className="hover:text-white transition-colors duration-200">利用規約</Link>
             <Link href="#" className="hover:text-white transition-colors duration-200">プライバシーポリシー</Link>
