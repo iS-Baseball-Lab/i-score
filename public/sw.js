@@ -1,12 +1,28 @@
 // public/sw.js
-const CACHE_NAME = 'iscore-cache-v1';
+// 💡 キャッシュ名を v2 に変更して、スマホに「新しい設定が来たぞ！」と認識させます
+const CACHE_NAME = 'iscore-cache-v2';
 
-// 1. インストール時：すぐに待機状態を解除して有効化
+// 💡 最初に絶対に保存しておくべきリスト（Precache）
+const PRECACHE_URLS = [
+  '/',
+  '/dashboard',
+  '/manifest.json',
+  '/logo.png'
+];
+
+// 1. インストール時：必須ファイルを強制的にキャッシュ
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('必須ファイルをキャッシュしました');
+      // 例外が起きても止まらないように、一つずつ安全にキャッシュします
+      return Promise.allSettled(PRECACHE_URLS.map(url => cache.add(url)));
+    })
+  );
   self.skipWaiting();
 });
 
-// 2. アクティベート時：古いバージョンのキャッシュがあれば綺麗に掃除する
+// 2. アクティベート時：古いバージョンのキャッシュを掃除
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -18,42 +34,42 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 3. 通信の傍受（ここがオフライン対応のコア！）
+// 3. 通信の傍受とキャッシュ戦略
 self.addEventListener('fetch', (event) => {
-  // GETリクエスト（データ取得）以外は無視
   if (!event.request.url.startsWith('http') || event.request.method !== 'GET') return;
+  // Next.jsの開発用通信などは無視
+  if (event.request.url.includes('_next/webpack') || event.request.url.includes('__nextjs')) return;
 
-  // ⚾️ API（スコアや成績データ）は「Network First（通信優先、ダメならキャッシュ）」
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // 通信成功したら、最新データをキャッシュに保存
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => {
-          // オフライン（圏外）の場合は、前回保存したキャッシュを返す！
-          return caches.match(event.request);
-        })
-    );
-    return;
-  }
-
-  // ⚾️ 画面のHTMLや画像、CSSなどは「Stale-While-Revalidate（爆速キャッシュ表示＋裏で更新）」
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        caches.open(CACHE_NAME).then((cache) => {
+      // ⚾️ キャッシュがあれば、それを一瞬で返す（裏でこっそり最新化）
+      if (cachedResponse) {
+        fetch(event.request).then((networkResponse) => {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+          });
+        }).catch(() => {}); // オフライン時は無視
+        return cachedResponse;
+      }
+
+      // ⚾️ キャッシュがない場合は通信する
+      return fetch(event.request).then((networkResponse) => {
+        return caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, networkResponse.clone());
+          return networkResponse;
         });
-        return networkResponse;
-      }).catch(() => {
-        // オフライン時は何もしない（既存のキャッシュで耐える）
+      }).catch(async () => {
+        // ⚾️ 圏外（オフライン）で、かつキャッシュにも無かった場合の最終手段！
+        
+        // もし画面遷移（HTMLの要求）であれば、強制的にダッシュボードのキャッシュを表示する
+        if (event.request.mode === 'navigate') {
+          const fallbackCache = await caches.match('/dashboard') || await caches.match('/');
+          if (fallbackCache) return fallbackCache;
+        }
+        
+        // それでもダメならそのままエラー（恐竜画面など）
+        throw new Error('Offline and no cache available');
       });
-      // キャッシュがあれば一瞬でそれを返し、無ければ通信を待つ
-      return cachedResponse || fetchPromise;
     })
   );
 });
