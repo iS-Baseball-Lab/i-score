@@ -149,7 +149,7 @@ function LineupContent() {
                 
                 {/* 💡 パターン呼び出しエリア */}
                 {templates.length > 0 && (
-                    <div className="bg-muted/30 border border-border/50 rounded-2xl p-4 mb-6 shadow-sm animate-in slide-in-from-top-4 fade-in duration-500">
+                    <div className="bg-muted/30 border border-border/50 rounded-2xl p-4 mb-6 shadow-xs animate-in slide-in-from-top-4 fade-in duration-500">
                         <label className="text-xs font-extrabold text-muted-foreground flex items-center gap-1.5 mb-3 uppercase tracking-wider">
                             <Download className="h-4 w-4 text-primary" /> パターンを呼び出す
                         </label>
@@ -172,7 +172,7 @@ function LineupContent() {
                         // 💡 カスケード・アニメーション（順番にフワッと表示）
                         <div 
                             key={entry.battingOrder} 
-                            className="flex items-center gap-3 bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow rounded-2xl p-2.5 sm:p-3 animate-in slide-in-from-bottom-8 fade-in duration-500 fill-mode-both"
+                            className="flex items-center gap-3 bg-card border border-border/60 shadow-xs hover:shadow-md transition-shadow rounded-2xl p-2.5 sm:p-3 animate-in slide-in-from-bottom-8 fade-in duration-500 fill-mode-both"
                             style={{ animationDelay: `${index * 60}ms` }}
                         >
                             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 shadow-inner">
@@ -239,3 +239,4 @@ export default function MatchLineupPage() {
         </Suspense>
     );
 }
+
