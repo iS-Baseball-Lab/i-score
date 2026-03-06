@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Plus, History, Trophy, Calendar, ChevronRight, Loader2, Users, CheckCircle2, ClipboardList, Edit2, Trash2, Check, X, BarChart3, Activity, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Match {
   id: string; opponent: string; date: string;
@@ -179,7 +180,34 @@ export default function DashboardPage() {
     } catch (e) { console.error(e); }
   };
 
-  if (isSessionLoading || isLoadingTeams) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (isSessionLoading || isLoadingTeams) {
+    return (
+      <div className="container mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 rounded-2xl border border-border/50">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <Skeleton className="h-11 w-full sm:w-64 rounded-xl" />
+        </div>
+        
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="h-40 rounded-2xl" />
+          <Skeleton className="h-40 rounded-2xl md:col-span-2" />
+        </div>
+
+        <Skeleton className="h-12 w-full max-w-2xl rounded-xl" />
+
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-40" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <Skeleton className="h-56 rounded-2xl" />
+            <Skeleton className="h-56 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentTeam = teams.find(t => t.id === selectedTeamId);
   const canEdit = currentTeam ? canEditScore(currentTeam.myRole) : false;
@@ -337,7 +365,10 @@ export default function DashboardPage() {
               <History className="h-5 w-5 text-primary" /> 最近の試合
             </h2>
             {isLoadingData ? (
-              <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Skeleton className="h-48 rounded-2xl" />
+                <Skeleton className="h-48 rounded-2xl" />
+              </div>
             ) : matches.length === 0 ? (
               <div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed border-border"><p className="text-muted-foreground font-medium mb-4">まだ試合の記録がありません。</p></div>
             ) : (
@@ -429,7 +460,17 @@ export default function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-border/50">
                     {isLoadingData ? (
-                      <tr><td colSpan={10} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></td></tr>
+                      <>
+                        {[1, 2, 3].map((i) => (
+                          <tr key={i}>
+                            <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
+                            <td className="px-4 py-3"><Skeleton className="h-4 w-10 mx-auto" /></td>
+                            <td className="px-4 py-3"><Skeleton className="h-4 w-10 mx-auto" /></td>
+                            <td className="px-4 py-3"><Skeleton className="h-4 w-10 mx-auto" /></td>
+                            <td colSpan={6}><Skeleton className="h-4 w-full mx-auto opacity-50" /></td>
+                          </tr>
+                        ))}
+                      </>
                     ) : batterStats.length === 0 ? (
                       <tr><td colSpan={10} className="text-center py-8 text-muted-foreground">完了した試合のデータがありません</td></tr>
                     ) : (
@@ -483,7 +524,14 @@ export default function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-border/50">
                     {isLoadingData ? (
-                      <tr><td colSpan={6} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></td></tr>
+                      <>
+                        {[1, 2].map((i) => (
+                          <tr key={i}>
+                            <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
+                            <td colSpan={5} className="px-4 py-3"><Skeleton className="h-4 w-full mx-auto opacity-50" /></td>
+                          </tr>
+                        ))}
+                      </>
                     ) : pitcherStats.length === 0 ? (
                       <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">完了した試合のデータがありません</td></tr>
                     ) : (
