@@ -38,6 +38,11 @@ export const metadata: Metadata = {
 		statusBarStyle: "black-translucent",
 		title: "i-Score",
 	},
+	// 💡 iPhoneなどで「ホーム画面に追加」したときのアイコンを指定
+	icons: {
+		icon: "/logo.png",
+		apple: "/logo.png",
+	},
 };
 
 export default function RootLayout({
