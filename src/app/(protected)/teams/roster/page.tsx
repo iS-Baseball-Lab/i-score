@@ -145,7 +145,7 @@ function RosterContent() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                         {players.map((player) => (
                             <Card key={player.id} className="relative overflow-hidden group border-border/60 bg-gradient-to-br from-background via-background to-muted/30 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 rounded-2xl">
-                                <div className="absolute -bottom-16 -right-2 text-[220px] sm:-bottom-20 sm:-right-2 sm:text-[280px] font-black italic text-foreground/5 group-hover:text-primary/10 transition-colors select-none z-0 tracking-tighter leading-none">{player.uniformNumber}</div>
+                                <div className="absolute -bottom-6 -right-2 text-[220px] sm:-bottom-8 sm:-right-2 sm:text-[280px] font-black italic text-foreground/5 group-hover:text-primary/10 transition-colors select-none z-0 tracking-tighter leading-none">{player.uniformNumber}</div>
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-primary/20 group-hover:bg-primary transition-colors z-10" />
                                 <CardContent className="p-6 relative z-10 flex flex-col h-full pl-8">
                                     <div className="flex justify-between items-start mb-4">
@@ -222,6 +222,7 @@ export default function RosterWrapper() {
         </Suspense>
     );
 }
+
 
 
 
