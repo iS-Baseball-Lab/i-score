@@ -40,7 +40,7 @@ export function Footer() {
         {/* コピーライト */}
         <div className="mt-8 pt-4 border-t border-zinc-800/80 text-center text-[10px] flex items-center justify-center gap-1.5 opacity-60 font-medium tracking-wider">
           <Trophy className="h-3 w-3 text-zinc-500" />
-          <p>&copy; {new Date().getFullYear()} i-Score. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} iS Baseball Lab. All rights reserved.</p>
         </div>
       </div>
     </footer>
