@@ -43,7 +43,7 @@ function RosterContent() {
             // 💡 実際のAPIのパスに合わせました！
             const res = await fetch(`/api/teams/${teamId}/players`);
             if (res.ok) {
-                const data = await res.json();
+                const data = await res.json() as Player[];
                 setPlayers(data);
             } else {
                 toast.error("選手データの取得に失敗しました");
@@ -222,3 +222,4 @@ export default function RosterWrapper() {
         </Suspense>
     );
 }
+
