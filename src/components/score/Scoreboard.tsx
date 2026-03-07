@@ -32,41 +32,40 @@ export function Scoreboard({
     const displayInnings = Math.max(match.innings || 9, Math.max(9, inning));
 
     return (
-        // 💡 修正2: バッジが下にはみ出す分の余白（pb-6 / sm:pb-8）を確保
         <header className="px-2 pt-2 pb-6 sm:px-4 sm:pt-4 sm:pb-8 shrink-0 z-20">
-            <div className="bg-gradient-to-b from-background/95 to-background/70 backdrop-blur-2xl border border-border/50 rounded-[28px] shadow-[0_8px_30px_rgba(0,0,0,0.08)] flex flex-col relative">
+            <div className="bg-background/95 backdrop-blur-2xl border border-border/50 rounded-[28px] shadow-[0_8px_30px_rgba(0,0,0,0.1)] flex flex-col relative">
                 
-                {/* 上段：ヘッダー情報 */}
-                <div className="flex items-center justify-between px-3 py-3">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted text-foreground border-none transition-all shrink-0" asChild>
+                {/* 💡 修正: 上段（ヘッダー全体）をプライマリカラーで塗りつぶす！ */}
+                <div className="bg-primary text-primary-foreground flex items-center justify-between px-3 py-3 rounded-t-[27px] relative overflow-hidden">
+                    {/* うっすらと上部に光沢を入れるグラデーション */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 text-primary-foreground border-none transition-all shrink-0 z-10" asChild>
                         <Link href="/dashboard"><ChevronLeft className="h-5 w-5 pr-0.5" /></Link>
                     </Button>
 
-                    <div className="flex flex-col items-center justify-center">
-                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1 opacity-80 leading-none">
+                    <div className="flex flex-col items-center justify-center z-10">
+                        <span className="text-[9px] font-black text-primary-foreground/70 uppercase tracking-[0.2em] mb-1 leading-none">
                             {match.season} {match.matchType === 'practice' ? 'Practice' : 'Official'}
                         </span>
-                        {/* 💡 修正1: 背景をプライマリカラーで塗りつぶし、インパクト抜群のタイトルバッジに！ */}
-                        <div className="bg-primary px-4 py-1.5 rounded-full shadow-md border border-primary-foreground/20 flex items-center justify-center">
-                            <h1 className="font-black text-sm sm:text-base tracking-tight truncate max-w-[150px] sm:max-w-[220px] text-primary-foreground drop-shadow-sm leading-none">
-                                VS {match.opponent}
-                            </h1>
-                        </div>
+                        <h1 className="font-black text-base sm:text-lg tracking-tight truncate max-w-[180px] sm:max-w-[250px] drop-shadow-md leading-none">
+                            VS {match.opponent}
+                        </h1>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
-                        <Button onClick={onFinish} size="sm" className="bg-[#ef4444]/10 text-[#ef4444] hover:bg-[#ef4444] hover:text-white font-black rounded-full px-4 shadow-none text-[10px] h-8 border-none transition-colors">
+                    <div className="flex items-center gap-1.5 shrink-0 z-10">
+                        {/* 終了ボタンもプライマリ背景に馴染むように白半透明ベースに */}
+                        <Button onClick={onFinish} size="sm" className="bg-white/20 hover:bg-red-500 hover:text-white text-primary-foreground font-black rounded-full px-4 shadow-none text-[10px] h-8 border-none transition-colors">
                             終了
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted text-foreground border-none transition-all hidden sm:flex" onClick={onToggleFullScreen}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 text-primary-foreground border-none transition-all hidden sm:flex" onClick={onToggleFullScreen}>
                             <Maximize className="h-4 w-4" />
                         </Button>
                     </div>
                 </div>
 
                 {/* 中段：スコアボード本体 */}
-                {/* 💡 pb-6 だった余白を pb-3 に戻し、スコアボード自体はコンパクトに */}
-                <div className="bg-gradient-to-b from-muted/30 to-transparent px-3 pt-3 pb-3 border-t border-border/30 rounded-b-[28px] relative">
+                <div className="bg-gradient-to-b from-background to-muted/20 px-3 pt-3 pb-3 rounded-b-[28px] relative">
                     <div className="flex items-center justify-between overflow-x-auto scrollbar-hide">
                         {/* 左側：チーム名 */}
                         <div className="flex flex-col gap-2.5 w-[70px] sm:w-[90px] shrink-0 font-bold text-xs sm:text-sm">
@@ -98,8 +97,7 @@ export function Scoreboard({
                     </div>
                 </div>
 
-                {/* 💡 修正2: バッジをスコアボードの「完全に外側（下）」にぶら下げる！ */}
-                {/* -bottom-5 にすることで、スコアボードの枠に半分重なりながら下へ飛び出します */}
+                {/* 下段：バッジ（スコアボードの下枠からはみ出してぶら下がるスタイル） */}
                 <div className="absolute left-0 right-0 -bottom-5 flex justify-center items-end pointer-events-none z-30">
                     <div className="pointer-events-auto flex gap-2 shadow-lg rounded-full">
                         {isTop ? (
