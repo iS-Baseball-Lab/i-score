@@ -12,7 +12,8 @@ import { toast } from "sonner";
 
 interface Match {
     id: string; opponent: string; date: string; season: string; status: string;
-    matchType: string; myScore: number; opponentScore: number;
+    matchType: string;
+    myScore: number; opponentScore: number;
     myInningScores: string; opponentInningScores: string;
     innings?: number;
 }
@@ -26,7 +27,6 @@ const resultLabels: Record<string, string> = {
     'walk': '四死球', 'strikeout': '三振', 'groundout': 'ゴロ', 'flyout': '飛・直', 'double_play': '併殺打',
 };
 
-// 💡 究極UI: ただの色文字ではなく、美しい「ソリッドバッジ」で結果を表現
 const getResultBadge = (result: string | null) => {
     if (!result) return <span className="text-muted-foreground font-bold">-</span>;
     
@@ -41,7 +41,6 @@ const getResultBadge = (result: string | null) => {
     if (['strikeout', 'double_play'].includes(result)) {
         return <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[8px] bg-[#ef4444]/10 text-[#dc2626] dark:bg-[#ef4444]/20 dark:text-[#f87171] font-black text-[11px] whitespace-nowrap tracking-wider border border-[#ef4444]/20">{text}</span>;
     }
-    // 普通のアウト（ゴロ・フライ）は目立たせすぎないグレー
     return <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[8px] bg-muted text-muted-foreground font-bold text-[11px] whitespace-nowrap tracking-wider border border-border/50">{text}</span>;
 };
 
@@ -72,16 +71,19 @@ function MatchResultContent() {
 
     const handleDownloadImage = async () => {
         if (!captureRef.current || !match) return;
+        
+        // 💡 1. 状態を「ダウンロード中」に変更し、UIをPCサイズ（幅800px固定）に展開させる
         setIsDownloading(true);
-        toast.info("画像を生成しています...", { id: "download-toast" });
+        toast.info("画像を綺麗に生成するため最適化中...", { id: "download-toast" });
+
+        // 💡 2. Reactの再レンダリング（幅が広がるアニメーション）が完了するのを待つ
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         try {
             const dataUrl = await htmlToImage.toPng(captureRef.current, {
                 backgroundColor: document.documentElement.classList.contains('dark') ? '#020817' : '#ffffff',
-                pixelRatio: 2, // 💡 画質を少し上げて、文字をくっきり綺麗に
-                style: {
-                    margin: '0',
-                }
+                pixelRatio: 2,
+                style: { margin: '0' }
             });
 
             const link = document.createElement("a");
@@ -96,6 +98,7 @@ function MatchResultContent() {
             console.error("画像化エラー:", error);
             toast.error(`画像の保存に失敗しました。\n詳細: ${error?.message || error}`, { id: "download-toast" });
         } finally {
+            // 💡 3. 画像生成が終わったら、元のスマホサイズ（レスポンシブ）に戻す
             setIsDownloading(false);
         }
     };
@@ -126,7 +129,7 @@ function MatchResultContent() {
     const isDraw = match.myScore === match.opponentScore;
 
     return (
-        <div className="flex flex-col min-h-screen bg-muted/20 text-foreground pb-24">
+        <div className="flex flex-col min-h-screen bg-muted/20 text-foreground pb-24 overflow-x-hidden">
             <PageHeader
                 href="/dashboard"
                 icon={Newspaper}
@@ -134,26 +137,32 @@ function MatchResultContent() {
                 subtitle={`${new Date(match.date).toLocaleDateString('ja-JP')} • ${match.season}`}
             />
 
-            <main className="max-w-4xl mx-auto w-full px-4 mt-6">
-                {/* 💡 追従するダウンロードボタン */}
-                <div className="flex justify-end mb-4 sticky top-4 z-50">
-                    <Button 
-                        onClick={handleDownloadImage} 
-                        disabled={isDownloading} 
-                        className="rounded-full h-12 px-6 font-extrabold shadow-lg shadow-blue-500/20 bg-[#2563eb] hover:bg-[#1d4ed8] text-white transition-all active:scale-95"
-                    >
-                        {isDownloading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> 生成中...</> : <><Download className="mr-2 h-5 w-5" /> 結果を画像で保存</>}
-                    </Button>
-                </div>
+            {/* 💡 isDownloadingがtrueの時は、親要素の幅制限を解除して横スクロールを許可 */}
+            <main className={cn("mx-auto w-full mt-6", isDownloading ? "max-w-none overflow-x-auto pb-12" : "max-w-4xl px-4")}>
+                
+                {/* 追従するダウンロードボタン（ダウンロード中は非表示に） */}
+                {!isDownloading && (
+                    <div className="flex justify-end mb-4 sticky top-4 z-50">
+                        <Button 
+                            onClick={handleDownloadImage} 
+                            disabled={isDownloading} 
+                            className="rounded-full h-12 px-6 font-extrabold shadow-lg shadow-blue-500/20 bg-[#2563eb] hover:bg-[#1d4ed8] text-white transition-all active:scale-95"
+                        >
+                            <Download className="mr-2 h-5 w-5" /> 結果を画像で保存
+                        </Button>
+                    </div>
+                )}
 
-                {/* 💡 画像生成のターゲットエリア（透明度を使わずソリッドに構築） */}
+                {/* 💡 画像生成のターゲットエリア */}
                 <div 
                     ref={captureRef} 
-                    className="bg-background border border-border/50 rounded-[32px] shadow-sm overflow-hidden"
+                    className={cn(
+                        "bg-background border overflow-hidden transition-all duration-300 mx-auto",
+                        // 💡 ダウンロード中は強制的に幅800pxに広げ、角丸をなくして「一枚のポスター」化する
+                        isDownloading ? "w-[800px] min-w-[800px] rounded-none border-transparent shadow-none" : "w-full rounded-[32px] border-border/50 shadow-sm"
+                    )}
                 >
-                    {/* ヘッダー部分：スポーツ新聞の「見出し」のような大迫力デザイン */}
                     <div className="bg-primary text-primary-foreground p-8 sm:p-10 text-center relative overflow-hidden">
-                        {/* 背景の装飾 */}
                         <div className="absolute top-0 right-0 -mt-10 -mr-10 opacity-10">
                             <Trophy className="w-64 h-64" />
                         </div>
@@ -167,7 +176,6 @@ function MatchResultContent() {
                             </h1>
                             <p className="text-primary-foreground/80 font-bold tracking-widest">{new Date(match.date).toLocaleDateString('ja-JP')}</p>
                             
-                            {/* 勝敗バッジ */}
                             <div className="mt-6 flex items-center justify-center gap-4 bg-background/10 backdrop-blur-sm rounded-2xl px-6 py-3 border border-primary-foreground/20">
                                 <span className="text-2xl font-black">{match.opponentScore}</span>
                                 <span className="text-primary-foreground/50 font-black">-</span>
@@ -181,13 +189,14 @@ function MatchResultContent() {
                     </div>
 
                     <div className="p-4 sm:p-8 space-y-10">
-                        {/* 💡 スコアボード（ランニングスコア） */}
+                        {/* 💡 ランニングスコア */}
                         <section>
                             <h2 className="text-lg font-black tracking-tight flex items-center gap-2 mb-4 text-foreground">
                                 <Activity className="h-5 w-5 text-primary" /> ランニングスコア
                             </h2>
                             <div className="border border-border rounded-2xl overflow-hidden bg-background">
-                                <div className="overflow-x-auto scrollbar-hide">
+                                {/* 💡 ダウンロード中はスクロールを無効化（要素がすべて見えている状態にする） */}
+                                <div className={cn("scrollbar-hide", isDownloading ? "" : "overflow-x-auto")}>
                                     <table className="w-full text-center text-sm min-w-[500px]">
                                         <thead>
                                             <tr className="bg-muted border-b border-border">
@@ -211,9 +220,7 @@ function MatchResultContent() {
                                                 <td className="py-3.5 text-xl bg-primary/5 text-foreground">{match.opponentScore}</td>
                                             </tr>
                                             <tr>
-                                                <td className="text-left py-3.5 pl-4 text-primary">
-                                                    Self
-                                                </td>
+                                                <td className="text-left py-3.5 pl-4 text-primary">Self</td>
                                                 {[...Array(inningsCount)].map((_, i) => (
                                                     <td key={i} className="py-3.5 text-muted-foreground/80">
                                                         {selfScores[i] !== null && selfScores[i] !== undefined ? selfScores[i] : '-'}
@@ -227,13 +234,14 @@ function MatchResultContent() {
                             </div>
                         </section>
 
-                        {/* 💡 ボックススコア（打撃成績） */}
+                        {/* 💡 ボックススコア */}
                         <section>
                             <h2 className="text-lg font-black tracking-tight flex items-center gap-2 mb-4 text-foreground">
                                 <Target className="h-5 w-5 text-primary" /> ボックススコア
                             </h2>
                             <div className="border border-border rounded-2xl overflow-hidden bg-background">
-                                <div className="overflow-x-auto">
+                                {/* 💡 ダウンロード中はスクロールを無効化（要素がすべて見えている状態にする） */}
+                                <div className={cn("", isDownloading ? "" : "overflow-x-auto")}>
                                     <table className="w-full text-sm text-left whitespace-nowrap min-w-[600px]">
                                         <thead className="bg-muted border-b border-border">
                                             <tr>
@@ -278,7 +286,6 @@ function MatchResultContent() {
                             </div>
                         </section>
 
-                        {/* フッター署名 */}
                         <div className="pt-6 border-t border-border flex items-center justify-center gap-2">
                             <Trophy className="h-4 w-4 text-primary/50" />
                             <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Powered by i-Score</span>
@@ -297,4 +304,3 @@ export default function MatchResultPage() {
         </Suspense>
     );
 }
-
