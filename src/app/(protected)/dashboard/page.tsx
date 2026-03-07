@@ -279,7 +279,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Select className="flex h-12 w-full sm:w-64 rounded-[16px] border border-border/60 bg-muted/20 px-4 text-sm font-bold shadow-xs focus-visible:ring-primary" value={selectedTeamId} onChange={(e) => handleTeamChange(e.target.value)}>
+          <Select value={selectedTeamId} onChange={(e) => handleTeamChange(e.target.value)}>
             {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </Select>
         </div>
