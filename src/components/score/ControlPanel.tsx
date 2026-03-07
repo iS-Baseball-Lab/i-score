@@ -26,44 +26,44 @@ export function ControlPanel({
     initiateHit, handleWalk, initiateInPlayOut, initiateAdvance, initiateSubstitution
 }: ControlPanelProps) {
     return (
-        <footer className="bg-background border-t border-border/50 p-3 sm:p-5 pb-8 shrink-0 space-y-3 z-10 relative shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.2)]">
+        <footer className="bg-background border-t border-border/50 p-3 sm:p-5 pb-8 shrink-0 space-y-3 z-10 relative shadow-[0_-4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
             
-            {/* 💡 究極UI: 物理ボタンのような押し心地のBSO */}
+            {/* 💡 影をマイルドに調整したBSOボタン */}
             <div className="grid grid-cols-4 gap-2 sm:gap-3">
                 <button 
-                    className="flex flex-col items-center justify-center h-16 sm:h-20 rounded-2xl bg-gradient-to-b from-green-400 to-green-600 border-b-[5px] border-green-800 active:border-b-0 active:translate-y-[5px] hover:brightness-110 shadow-lg shadow-green-500/30 transition-all select-none" 
+                    className="flex flex-col items-center justify-center h-16 sm:h-20 rounded-2xl bg-gradient-to-b from-green-400 to-green-600 border-b-[4px] border-green-800 active:border-b-0 active:translate-y-[4px] hover:brightness-110 shadow-md shadow-green-500/15 transition-all select-none" 
                     onClick={() => { haptic(40); handleBall(); }}
                 >
-                    <span className="text-white font-black text-3xl sm:text-4xl drop-shadow-md">B</span>
+                    <span className="text-white font-black text-3xl sm:text-4xl drop-shadow-sm">B</span>
                 </button>
                 <button 
-                    className="flex flex-col items-center justify-center h-16 sm:h-20 rounded-2xl bg-gradient-to-b from-yellow-400 to-yellow-500 border-b-[5px] border-yellow-700 active:border-b-0 active:translate-y-[5px] hover:brightness-110 shadow-lg shadow-yellow-500/30 transition-all select-none" 
+                    className="flex flex-col items-center justify-center h-16 sm:h-20 rounded-2xl bg-gradient-to-b from-yellow-400 to-yellow-500 border-b-[4px] border-yellow-700 active:border-b-0 active:translate-y-[4px] hover:brightness-110 shadow-md shadow-yellow-500/15 transition-all select-none" 
                     onClick={() => { haptic(40); handleStrike(); }}
                 >
-                    <span className="text-white font-black text-3xl sm:text-4xl drop-shadow-md">S</span>
+                    <span className="text-white font-black text-3xl sm:text-4xl drop-shadow-sm">S</span>
                 </button>
                 <button 
-                    className="flex flex-col items-center justify-center h-16 sm:h-20 rounded-2xl bg-gradient-to-b from-red-500 to-red-600 border-b-[5px] border-red-800 active:border-b-0 active:translate-y-[5px] hover:brightness-110 shadow-lg shadow-red-500/30 transition-all select-none" 
+                    className="flex flex-col items-center justify-center h-16 sm:h-20 rounded-2xl bg-gradient-to-b from-red-500 to-red-600 border-b-[4px] border-red-800 active:border-b-0 active:translate-y-[4px] hover:brightness-110 shadow-md shadow-red-500/15 transition-all select-none" 
                     onClick={() => { haptic(80); handleManualOut(); }}
                 >
-                    <span className="text-white font-black text-3xl sm:text-4xl drop-shadow-md">O</span>
+                    <span className="text-white font-black text-3xl sm:text-4xl drop-shadow-sm">O</span>
                 </button>
                 <button 
                     onClick={() => { haptic(30); handleUndo(); }} 
                     disabled={!canUndo} 
-                    className="flex flex-col items-center justify-center h-16 sm:h-20 rounded-2xl bg-muted/80 border-b-[5px] border-border hover:bg-muted text-muted-foreground font-black shadow-sm disabled:opacity-40 transition-all active:border-b-0 active:translate-y-[5px] select-none"
+                    className="flex flex-col items-center justify-center h-16 sm:h-20 rounded-2xl bg-muted/80 border-b-[4px] border-border hover:bg-muted text-muted-foreground font-black shadow-sm disabled:opacity-40 transition-all active:border-b-0 active:translate-y-[4px] select-none"
                 >
                     <RotateCcw className="h-5 w-5 sm:h-6 sm:w-6 mb-1" />
                     <span className="text-[10px] sm:text-xs">1球戻る</span>
                 </button>
             </div>
 
-            {/* 💡 究極UI: ガラスモーフィズム風の美しいサブボタン */}
+            {/* サブボタンの影も全体的に控えめに */}
             <div className="grid grid-cols-4 gap-2">
                 <Button onClick={() => { haptic(80); initiateHit(1); }} variant="outline" className="h-11 sm:h-12 rounded-xl border-border/60 bg-muted/10 font-extrabold hover:bg-blue-600 hover:text-white active:scale-95 text-xs sm:text-sm transition-all shadow-sm">単打</Button>
                 <Button onClick={() => { haptic(80); initiateHit(2); }} variant="outline" className="h-11 sm:h-12 rounded-xl border-border/60 bg-muted/10 font-extrabold hover:bg-blue-600 hover:text-white active:scale-95 text-xs sm:text-sm transition-all shadow-sm">二塁打</Button>
                 <Button onClick={() => { haptic(80); initiateHit(3); }} variant="outline" className="h-11 sm:h-12 rounded-xl border-border/60 bg-muted/10 font-extrabold hover:bg-blue-600 hover:text-white active:scale-95 text-xs sm:text-sm transition-all shadow-sm">三塁打</Button>
-                <Button onClick={() => { haptic(120); initiateHit(4); }} variant="outline" className="h-11 sm:h-12 rounded-xl border-orange-500/50 text-orange-500 font-black hover:bg-gradient-to-br hover:from-orange-500 hover:to-orange-600 hover:text-white active:scale-95 text-xs sm:text-sm shadow-[0_0_15px_rgba(249,115,22,0.15)] transition-all">本塁打</Button>
+                <Button onClick={() => { haptic(120); initiateHit(4); }} variant="outline" className="h-11 sm:h-12 rounded-xl border-orange-500/50 text-orange-500 font-black hover:bg-gradient-to-br hover:from-orange-500 hover:to-orange-600 hover:text-white active:scale-95 text-xs sm:text-sm shadow-[0_0_8px_rgba(249,115,22,0.1)] transition-all">本塁打</Button>
             </div>
             
             <div className="grid grid-cols-3 gap-2">
