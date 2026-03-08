@@ -10,11 +10,11 @@ import { Save, Users, Loader2, Download, BookmarkPlus, Trash2, CheckCircle2 } fr
 import { toast } from "sonner"; // 💡 美しい通知のために追加
 
 const POSITIONS = [
-    { value: "1", label: "1 (投)" }, { value: "2", label: "2 (捕)" },
-    { value: "3", label: "3 (一)" }, { value: "4", label: "4 (二)" },
-    { value: "5", label: "5 (三)" }, { value: "6", label: "6 (遊)" },
-    { value: "7", label: "7 (左)" }, { value: "8", label: "8 (中)" },
-    { value: "9", label: "9 (右)" }, { value: "DH", label: "DH (指)" },
+    { value: "1", label: "1 (投手)" }, { value: "2", label: "2 (捕手)" },
+    { value: "3", label: "3 (一塁手)" }, { value: "4", label: "4 (二塁手)" },
+    { value: "5", label: "5 (三塁手)" }, { value: "6", label: "6 (遊撃手)" },
+    { value: "7", label: "7 (左翼手)" }, { value: "8", label: "8 (中堅手)" },
+    { value: "9", label: "9 (右翼手)" }, { value: "DH", label: "DH (指名打者)" },
 ];
 
 interface Player { id: string; name: string; uniformNumber: string; }
@@ -154,7 +154,7 @@ function LineupContent() {
                             <Download className="h-4 w-4 text-primary" /> パターンを呼び出す
                         </label>
                         <div className="flex gap-2">
-                            <Select value={selectedTemplate} onChange={(e) => handleApplyTemplate(e.target.value)} className="flex-1 h-12 bg-background font-bold shadow-sm rounded-xl border-border/50 focus:border-primary">
+                            <Select value={selectedTemplate} onChange={(e) => handleApplyTemplate(e.target.value)}>
                                 <option value="">選択してください...</option>
                                 {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                             </Select>
@@ -180,13 +180,13 @@ function LineupContent() {
                             </div>
                             <div className="flex-1 grid grid-cols-5 gap-2">
                                 <div className="col-span-3">
-                                    <Select value={entry.playerId} onChange={(e) => handleLineupChange(entry.battingOrder, 'playerId', e.target.value)} className="h-10 sm:h-12 rounded-xl bg-muted/30 font-bold border-transparent focus:border-primary focus:bg-background transition-colors w-full px-3 text-sm sm:text-base">
+                                    <Select value={entry.playerId} onChange={(e) => handleLineupChange(entry.battingOrder, 'playerId', e.target.value)}>
                                         <option value="" disabled hidden>選手を選択...</option>
                                         {players.map(p => <option key={p.id} value={p.id} className="bg-background font-medium">背番号{p.uniformNumber} - {p.name}</option>)}
                                     </Select>
                                 </div>
                                 <div className="col-span-2">
-                                    <Select value={entry.position} onChange={(e) => handleLineupChange(entry.battingOrder, 'position', e.target.value)} className="h-10 sm:h-12 rounded-xl bg-muted/30 font-bold border-transparent focus:border-primary focus:bg-background transition-colors w-full px-3 text-sm sm:text-base text-center">
+                                    <Select value={entry.position} onChange={(e) => handleLineupChange(entry.battingOrder, 'position', e.target.value)}>
                                         <option value="" disabled hidden>守備...</option>
                                         {POSITIONS.map(pos => <option key={pos.value} value={pos.value} className="bg-background font-medium">{pos.label}</option>)}
                                     </Select>
@@ -239,4 +239,5 @@ export default function MatchLineupPage() {
         </Suspense>
     );
 }
+
 
