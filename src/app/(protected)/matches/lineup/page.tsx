@@ -10,11 +10,11 @@ import { Save, Users, Loader2, Download, BookmarkPlus, Trash2, CheckCircle2 } fr
 import { toast } from "sonner"; // 💡 美しい通知のために追加
 
 const POSITIONS = [
-    { value: "1", label: "1 (投手)" }, { value: "2", label: "2 (捕手)" },
-    { value: "3", label: "3 (一塁手)" }, { value: "4", label: "4 (二塁手)" },
-    { value: "5", label: "5 (三塁手)" }, { value: "6", label: "6 (遊撃手)" },
-    { value: "7", label: "7 (左翼手)" }, { value: "8", label: "8 (中堅手)" },
-    { value: "9", label: "9 (右翼手)" }, { value: "DH", label: "DH (指名打者)" },
+    { value: "1", label: "1 投手" }, { value: "2", label: "2 捕手" },
+    { value: "3", label: "3 一塁手" }, { value: "4", label: "4 二塁手" },
+    { value: "5", label: "5 三塁手" }, { value: "6", label: "6 遊撃手" },
+    { value: "7", label: "7 左翼手" }, { value: "8", label: "8 中堅手" },
+    { value: "9", label: "9 右翼手" }, { value: "DH", label: "DH 指名打者" },
 ];
 
 interface Player { id: string; name: string; uniformNumber: string; }
@@ -182,7 +182,7 @@ function LineupContent() {
                                 <div className="col-span-3">
                                     <Select value={entry.playerId} onChange={(e) => handleLineupChange(entry.battingOrder, 'playerId', e.target.value)}>
                                         <option value="" disabled hidden>選手を選択...</option>
-                                        {players.map(p => <option key={p.id} value={p.id} className="bg-background font-medium">背番号{p.uniformNumber} - {p.name}</option>)}
+                                        {players.map(p => <option key={p.id} value={p.id} className="bg-background font-medium">#{p.uniformNumber} {p.name}</option>)}
                                     </Select>
                                 </div>
                                 <div className="col-span-2">
@@ -239,5 +239,6 @@ export default function MatchLineupPage() {
         </Suspense>
     );
 }
+
 
 
