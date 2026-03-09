@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Loader2, Users, Shield, Plus, ChevronRight, X, Building2, ChevronLeft } from "lucide-react";
+import { Loader2, Users, Shield, Plus, ChevronRight, X, ChevronLeft } from "lucide-react";
+import { RiTeamFill } from "react-icons/ri";
 import { ROLES } from "@/lib/roles";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -137,10 +138,9 @@ export default function TeamsPage() {
 
     return (
         <div className="flex flex-col min-h-screen bg-background text-foreground pb-24 relative overflow-hidden">
-            {/* 💡 修正1: タイトルとサブタイトルを更新 */}
             <PageHeader
                 href="/dashboard"
-                icon={Building2}
+                icon={RiTeamFill}
                 title="クラブ・チーム管理"
                 subtitle="所属するクラブとチームの作成・編集を行います。"
             />
@@ -154,8 +154,8 @@ export default function TeamsPage() {
                     <div className="animate-in slide-in-from-left-4 fade-in duration-300">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5">
-                                {/* 💡 修正2: BlueをすべてPrimaryに変更 */}
-                                <Building2 className="h-6 w-6 text-primary" />
+                                {/* 💡 アイコンを RiTeamFill に変更 */}
+                                <RiTeamFill className="h-6 w-6 text-primary" />
                                 所属クラブ <span className="text-muted-foreground/50 text-base sm:text-lg">({orgs.length})</span>
                             </h2>
                             {!showOrgCreate && (
@@ -170,7 +170,8 @@ export default function TeamsPage() {
                                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary/60 to-primary" />
                                 <CardHeader className="pt-8 pb-4 flex flex-row items-center justify-between">
                                     <CardTitle className="flex items-center gap-3 text-xl font-black">
-                                        <div className="p-2.5 bg-primary/20 rounded-2xl text-primary"><Building2 className="h-6 w-6" /></div>
+                                        {/* 💡 アイコンを RiTeamFill に変更 */}
+                                        <div className="p-2.5 bg-primary/20 rounded-2xl text-primary"><RiTeamFill className="h-6 w-6" /></div>
                                         クラブを新しく作る
                                     </CardTitle>
                                     <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-primary/10 text-muted-foreground transition-all" onClick={() => setShowOrgCreate(false)}>
@@ -194,7 +195,8 @@ export default function TeamsPage() {
                         {orgs.length === 0 && !showOrgCreate ? (
                             <div className="text-center py-20 bg-muted/10 rounded-[32px] border border-dashed border-border/60 mt-6 shadow-sm">
                                 <div className="h-20 w-20 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-5 border border-primary/10">
-                                    <Building2 className="h-10 w-10 text-primary/40" />
+                                    {/* 💡 アイコンを RiTeamFill に変更 */}
+                                    <RiTeamFill className="h-10 w-10 text-primary/40" />
                                 </div>
                                 <p className="text-muted-foreground font-extrabold text-lg mb-6">所属しているクラブがありません</p>
                                 <Button onClick={() => setShowOrgCreate(true)} className="font-extrabold rounded-full h-12 px-8 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground hover:-translate-y-1 transition-all">最初のクラブを作成する</Button>
@@ -207,20 +209,17 @@ export default function TeamsPage() {
                                         onClick={() => handleSelectOrg(org)}
                                         className="group relative overflow-hidden rounded-[28px] border-border/50 bg-background shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/40 active:border-primary/40 active:scale-[0.96] cursor-pointer"
                                     >
-                                        {/* 💡 修正3: デザイン性爆上がりの「3重の円（波紋エフェクト）」 */}
                                         <div className="absolute top-0 right-0 pointer-events-none">
-                                            {/* 1番外側の円 */}
                                             <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-110 group-active:scale-110" />
-                                            {/* 2番目の円（少し遅れて広がる） */}
                                             <div className="absolute top-0 right-0 w-36 h-36 bg-primary/5 rounded-bl-full -mr-10 -mt-10 transition-transform duration-500 delay-75 group-hover:scale-110 group-active:scale-110 group-hover:bg-primary/10 group-active:bg-primary/10" />
-                                            {/* 3番目・一番内側の円（さらに遅れて大きく広がり、色が濃くなる） */}
                                             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full -mr-4 -mt-4 transition-transform duration-500 delay-150 group-hover:scale-[1.2] group-active:scale-[1.2] group-hover:bg-primary/20 group-active:bg-primary/20" />
                                         </div>
 
                                         <CardContent className="p-6 sm:p-8 relative z-10 flex flex-col h-full pointer-events-none">
                                             <div className="flex justify-between items-start mb-6">
                                                 <div className="p-3.5 bg-muted/50 rounded-[18px] text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary group-active:bg-primary/10 group-active:text-primary transition-colors duration-300 shadow-sm border border-border/50 group-hover:border-primary/20 group-active:border-primary/20">
-                                                    <Building2 className="h-7 w-7" />
+                                                    {/* 💡 アイコンを RiTeamFill に変更 */}
+                                                    <RiTeamFill className="h-7 w-7" />
                                                 </div>
                                                 <div className="inline-flex items-center rounded-full px-3 py-1.5 text-[10px] sm:text-xs font-black bg-muted/50 text-muted-foreground uppercase tracking-widest group-hover:bg-primary/10 group-hover:text-primary group-active:bg-primary/10 group-active:text-primary transition-colors duration-300 border border-border/50 group-hover:border-primary/20 group-active:border-primary/20 shadow-sm">
                                                     {org.myRole}
@@ -322,7 +321,6 @@ export default function TeamsPage() {
                                         onClick={() => handleTeamClick(team.id)}
                                         className="group relative overflow-hidden rounded-[28px] border-border/50 bg-background shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/40 active:border-primary/40 active:scale-[0.96] cursor-pointer"
                                     >
-                                        {/* 💡 チーム側にも「3重の円（波紋エフェクト）」を適用 */}
                                         <div className="absolute top-0 right-0 pointer-events-none">
                                             <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-110 group-active:scale-110" />
                                             <div className="absolute top-0 right-0 w-36 h-36 bg-primary/5 rounded-bl-full -mr-10 -mt-10 transition-transform duration-500 delay-75 group-hover:scale-110 group-active:scale-110 group-hover:bg-primary/10 group-active:bg-primary/10" />

@@ -8,7 +8,8 @@ import { canEditScore, canManageTeam, ROLES } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plus, History, ChevronRight, Loader2, Users, Edit2, Trash2, Check, X, BarChart3, Activity, Map, Building2 } from "lucide-react";
+import { Plus, History, ChevronRight, Loader2, Users, Edit2, Trash2, Check, X, BarChart3, Activity, Map } from "lucide-react";
+import { RiTeamFill } from "react-icons/ri";
 import { FaBaseballBatBall } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -206,14 +207,14 @@ export default function DashboardPage() {
   const draws = completedMatches.filter(m => m.myScore === m.opponentScore).length;
   const winRate = completedMatches.length > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
 
-  // 💡 究極UI: チームが0件の場合の洗練されたウェルカム画面（SaaS風）
   if (teams.length === 0) {
     return (
       <div className="container mx-auto max-w-xl px-4 py-20 animate-in slide-in-from-bottom-4 fade-in duration-500">
         <div className="text-center mb-10">
           <div className="h-28 w-28 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-blue-500/20 relative">
             <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
-            <Building2 className="h-14 w-14 text-blue-600 relative z-10" />
+            {/* 💡 アイコンを RiTeamFill に変更 */}
+            <RiTeamFill className="h-14 w-14 text-blue-600 relative z-10" />
           </div>
           <h1 className="text-4xl font-black tracking-tight mb-4 drop-shadow-sm">ようこそ i-Score へ！</h1>
           <p className="text-muted-foreground font-extrabold text-lg">まずはあなたの「クラブ」と「チーム」を立ち上げましょう。</p>
@@ -246,7 +247,6 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          {/* 💡 先ほど究極化した Select をそのまま利用 */}
           <Select
             value={selectedTeamId}
             onChange={(e) => handleTeamChange(e.target.value)}
@@ -265,6 +265,7 @@ export default function DashboardPage() {
               <div className="relative z-10 flex flex-col h-full justify-between">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-xl flex items-center gap-3 text-primary font-black">
+                    {/* 💡 先ほど追加した野球アイコン！ */}
                     <div className="p-2.5 bg-primary/20 rounded-2xl"><FaBaseballBatBall className="h-6 w-6" /></div>
                     新しい試合を記録
                   </CardTitle>
