@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Shield, Plus, ChevronRight, X, ChevronLeft, Trash2 } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
@@ -231,12 +231,10 @@ export default function TeamsPage() {
                                             <h3 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 truncate group-hover:text-primary group-active:text-primary transition-colors duration-300 drop-shadow-sm mt-auto">
                                                 {org.name}
                                             </h3>
-                                        </CardContent>
-                                        <CardFooter>
                                             <div className="flex items-center text-sm font-extrabold text-muted-foreground mt-4 group-hover:text-primary/80 group-active:text-primary/80 transition-colors duration-300">
                                                 チーム一覧を開く <ChevronRight className="h-5 w-5 ml-1 transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-1" />
                                             </div>
-                                        </CardFooter>
+                                        </CardContent>
                                     </Card>
                                 ))}
                             </div>
