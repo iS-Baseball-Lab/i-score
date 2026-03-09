@@ -92,7 +92,7 @@ export default function TeamsPage() {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newOrgName }),
             });
-            const data = await res.json();
+            const data = await res.json() as { success: boolean; error?: string };
 
             if (res.ok && data.success) {
                 toast.success("クラブを作成しました！");
