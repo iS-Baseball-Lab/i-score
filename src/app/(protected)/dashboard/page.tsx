@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Plus, History, ChevronRight, Loader2, Users, Edit2, Trash2, Check, X, BarChart3, Activity, Map, Building2 } from "lucide-react";
+import { FaBaseballBatBall } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -264,7 +265,7 @@ export default function DashboardPage() {
               <div className="relative z-10 flex flex-col h-full justify-between">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-xl flex items-center gap-3 text-primary font-black">
-                    <div className="p-2.5 bg-primary/20 rounded-2xl"><Plus className="h-6 w-6" /></div>
+                    <div className="p-2.5 bg-primary/20 rounded-2xl"><FaBaseballBatBall className="h-6 w-6" /></div>
                     新しい試合を記録
                   </CardTitle>
                   <CardDescription className="text-sm font-bold mt-2 text-primary/70">スコアブックの入力を開始します</CardDescription>
