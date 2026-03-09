@@ -18,9 +18,7 @@ import {
   Home,
   ClipboardList,
   ShieldAlert,
-  ChevronDown
 } from "lucide-react";
-// 💡 クラブ・チーム用のアイコンをインポート
 import { RiTeamFill } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +37,7 @@ export function Header() {
   if (!mounted) {
     return (
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md text-foreground">
-        <div className="container mx-auto max-w-5xl flex h-16 items-center justify-between px-4 sm:px-6">
+        <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-4">
             <div className="md:hidden h-10 w-10" />
             <Link href="/" className="flex items-center space-x-2">
@@ -63,11 +61,9 @@ function HeaderContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const closeMenu = () => setIsMobileMenuOpen(false);
 
-  // 💡 プルダウンメニューの開閉状態と、画面外クリック検知用のRef
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const userMenuRef = React.useRef<HTMLDivElement>(null);
 
-  // 画面外をクリックしたらプルダウンを閉じる魔法
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -84,7 +80,6 @@ function HeaderContent() {
   const navItems = [
     { name: "ホーム", href: "/", icon: Home, show: false },
     { name: "ダッシュボード", href: "/dashboard", icon: ClipboardList, show: !!session },
-    // 💡 メニュー名を「クラブ・チーム」に変更し、アイコンを RiTeamFill に！
     { name: "クラブ・チーム", href: "/teams", icon: RiTeamFill, show: !!session },
     { name: "システム管理", href: "/admin", icon: ShieldAlert, show: !!session && isManager },
   ];
@@ -105,8 +100,7 @@ function HeaderContent() {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md text-foreground transition-all duration-300">
-        {/* 💡 コンテナの幅も max-w-5xl (または4xl) で合わせておくことで、コンテンツの左端が揃います */}
-        <div className="container mx-auto max-w-5xl flex h-16 items-center justify-between px-4 sm:px-6">
+        <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-6">
 
           <div className="flex items-center gap-4">
             <button
@@ -117,7 +111,6 @@ function HeaderContent() {
               <Menu className="h-6 w-6" />
             </button>
 
-            {/* PC用ヘッダー部分 */}
             <Link href="/" className="flex items-center gap-1 group transition-opacity hover:opacity-80">
               <LogoIcon className="h-10 w-10 transition-transform group-hover:scale-110 duration-300" />
               <span className="font-black italic text-2xl tracking-tighter text-foreground group-hover:text-primary transition-colors">
@@ -125,7 +118,6 @@ function HeaderContent() {
               </span>
             </Link>
 
-            {/* PC用ナビゲーション */}
             <nav className="hidden md:flex items-center gap-2 ml-8 text-sm font-bold">
               {navItems.map((item) => {
                 if (!item.show) return null;
@@ -151,31 +143,33 @@ function HeaderContent() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* 💡 未ログイン時の「ログインボタン」は不要なので削除！ */}
             {session && (
               <div className="relative hidden md:block" ref={userMenuRef}>
-                {/* 💡 アバターアイコンだけのスマートなボタン */}
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  // 💡 修正: 画像が丸く切り抜かれるように `overflow-hidden` と `p-0` などの微調整を追加
                   className={cn(
-                    "flex items-center justify-center h-10 w-10 rounded-full border transition-all active:scale-95",
-                    isUserMenuOpen ? "bg-primary/10 border-primary/30 text-primary ring-2 ring-primary/20 ring-offset-2 ring-offset-background" : "bg-muted/50 border-border/50 text-foreground/70 hover:bg-muted hover:text-foreground"
+                    "flex items-center justify-center h-10 w-10 rounded-full border transition-all active:scale-95 overflow-hidden",
+                    isUserMenuOpen ? "border-primary/30 ring-2 ring-primary/20 ring-offset-2 ring-offset-background" : "border-border/50 hover:border-primary/50",
+                    !session.user.image && "bg-muted/50 text-foreground/70 hover:bg-muted hover:text-foreground"
                   )}
                 >
-                  <UserCircle className="h-6 w-6" />
+                  {/* 💡 アバター画像があれば表示、なければデフォルトアイコン */}
+                  {session.user.image ? (
+                    <img src={session.user.image} alt={session.user.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <UserCircle className="h-6 w-6" />
+                  )}
                 </button>
 
-                {/* 💡 クリックで開く、極上のプルダウンメニュー（グラスモーフィズム） */}
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-3 w-72 bg-card/95 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-border/50 p-2 z-50 animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-200">
 
-                    {/* ユーザー情報エリア */}
                     <div className="px-4 py-4 border-b border-border/50 mb-2 bg-muted/20 rounded-[18px]">
                       <div className="font-black text-base truncate text-foreground mb-0.5">{session.user.name}</div>
                       <div className="text-xs font-bold text-muted-foreground truncate">{session.user.email}</div>
                     </div>
 
-                    {/* テーマ選択エリア */}
                     <div className="px-3 py-3 space-y-3">
                       <div className="flex items-center justify-between px-1">
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">外観（テーマ）</span>
@@ -188,7 +182,6 @@ function HeaderContent() {
 
                     <div className="h-px bg-border/50 my-2 mx-3" />
 
-                    {/* ログアウトエリア */}
                     <div className="p-1">
                       <Button
                         variant="ghost"
@@ -206,7 +199,6 @@ function HeaderContent() {
         </div>
       </header>
 
-      {/* 背景オーバーレイ（モバイル用） */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity md:hidden"
@@ -214,7 +206,6 @@ function HeaderContent() {
         />
       )}
 
-      {/* スライドメニュー本体（モバイル用） */}
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-[70] flex w-[300px] flex-col bg-card/95 backdrop-blur-xl border-r border-border/50 shadow-2xl transition-transform duration-300 ease-out md:hidden",
@@ -260,13 +251,17 @@ function HeaderContent() {
           </nav>
         </div>
 
-        {/* モバイル用のユーザープロフィールカード */}
         {session && (
           <div className="p-4 pb-8 mt-auto">
             <div className="rounded-[24px] bg-muted/30 border border-border/50 p-4 space-y-5 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-background border border-border/50 text-foreground shadow-sm">
-                  <UserCircle className="h-7 w-7" />
+                {/* 💡 モバイルメニューのプロフィールアイコンも同様に対応 */}
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-background border border-border/50 text-foreground shadow-sm overflow-hidden">
+                  {session.user.image ? (
+                    <img src={session.user.image} alt={session.user.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <UserCircle className="h-7 w-7" />
+                  )}
                 </div>
                 <div className="flex flex-col overflow-hidden">
                   <span className="text-sm font-black truncate">{session.user.name}</span>
