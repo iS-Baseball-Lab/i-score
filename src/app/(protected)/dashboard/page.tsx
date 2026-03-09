@@ -213,7 +213,7 @@ export default function DashboardPage() {
         <div className="text-center mb-10">
           {/* 💡 修正: Blue系をすべて Primary系 に変更 */}
           <div className="h-28 w-28 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-primary/20 relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse shadow-xs" />
             <RiTeamFill className="h-14 w-14 text-primary relative z-10" />
           </div>
           <h1 className="text-4xl font-black tracking-tight mb-4 drop-shadow-sm text-foreground">ようこそ i-Score へ！</h1>
@@ -221,7 +221,7 @@ export default function DashboardPage() {
         </div>
 
         {/* 💡 修正: 背景を bg-card/80 にして白く浮き上がらせる */}
-        <Card className="rounded-[32px] border-border/40 shadow-[0_8px_30px_rgba(0,0,0,0.08)] bg-card/80 backdrop-blur-2xl overflow-hidden text-center p-8 sm:p-12 relative group">
+        <Card className="rounded-[32px] border-border/40 shadow-xs bg-card/80 backdrop-blur-2xl overflow-hidden text-center p-8 sm:p-12 relative group">
           {/* 💡 修正: 上部のグラデーションラインを Primary に */}
           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary/60 to-primary" />
 
