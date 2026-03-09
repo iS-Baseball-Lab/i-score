@@ -33,6 +33,13 @@ app.post('/', async (c) => {
 
     const body = await c.req.json()
     const db = drizzle(c.env.DB)
+
+    // 💡 究極化：クラブ名の重複チェック（すでに同名のクラブがある場合はエラーを返す）
+    const existingOrg = await db.select().from(organizations).where(eq(organizations.name, body.name)).get()
+    if (existingOrg) {
+        return c.json({ success: false, error: 'このクラブ名はすでに登録されています。別の名前をお試しください。' }, 400)
+    }
+
     const orgId = crypto.randomUUID()
 
     try {
@@ -69,7 +76,6 @@ app.get('/:orgId/teams', async (c) => {
     return c.json(orgTeams)
 })
 
-// 💡 新規追加：クラブ（組織）の完全削除 API
 app.delete('/:orgId', async (c) => {
     const auth = getAuth(c.env.DB, c.env)
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
@@ -79,7 +85,6 @@ app.delete('/:orgId', async (c) => {
     const db = drizzle(c.env.DB)
 
     try {
-        // 権限チェック：OWNER（代表）またはシステム管理者のみ削除可能
         const member = await db.select().from(organizationMembers)
             .where(and(eq(organizationMembers.organizationId, orgId), eq(organizationMembers.userId, session.user.id))).get()
 
@@ -87,10 +92,8 @@ app.delete('/:orgId', async (c) => {
             return c.json({ error: '権限がありません' }, 403)
         }
 
-        // この組織に属するチーム一覧を取得
         const orgTeams = await db.select({ id: teams.id }).from(teams).where(eq(teams.organizationId, orgId))
 
-        // 各チームに紐づく深いデータ（試合・打席・投球・名簿など）を順にカスケード削除
         for (const t of orgTeams) {
             const teamId = t.id;
             await c.env.DB.prepare(`DELETE FROM match_lineups WHERE match_id IN (SELECT id FROM matches WHERE team_id = ?)`).bind(teamId).run()
@@ -102,11 +105,8 @@ app.delete('/:orgId', async (c) => {
             await c.env.DB.prepare(`DELETE FROM team_members WHERE team_id = ?`).bind(teamId).run()
         }
 
-        // チーム自体を削除
         await c.env.DB.prepare(`DELETE FROM teams WHERE organization_id = ?`).bind(orgId).run()
-        // 組織メンバーの紐付けを削除
         await c.env.DB.prepare(`DELETE FROM organization_members WHERE organization_id = ?`).bind(orgId).run()
-        // 組織本体を削除
         await c.env.DB.prepare(`DELETE FROM organizations WHERE id = ?`).bind(orgId).run()
 
         return c.json({ success: true })

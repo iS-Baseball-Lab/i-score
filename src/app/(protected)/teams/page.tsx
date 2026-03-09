@@ -82,6 +82,7 @@ export default function TeamsPage() {
         router.push('/dashboard');
     };
 
+    // 💡 修正：バックエンドから返ってきたエラーメッセージ（重複など）をトーストで表示する
     const handleCreateOrg = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newOrgName.trim()) return;
@@ -91,19 +92,23 @@ export default function TeamsPage() {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newOrgName }),
             });
-            if (res.ok) {
+            const data = await res.json();
+
+            if (res.ok && data.success) {
                 toast.success("クラブを作成しました！");
                 setNewOrgName("");
                 setShowOrgCreate(false);
                 fetchOrgs();
             } else {
-                toast.error("クラブの作成に失敗しました");
+                toast.error(data.error || "クラブの作成に失敗しました");
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            toast.error("通信エラーが発生しました");
+        }
         finally { setIsCreatingOrg(false); }
     };
 
-    // 💡 新規追加：クラブの削除
     const handleDeleteOrg = async (e: React.MouseEvent, orgId: string, orgName: string) => {
         e.preventDefault();
         e.stopPropagation();
@@ -125,6 +130,7 @@ export default function TeamsPage() {
         } catch (e) { console.error(e); }
     };
 
+    // 💡 修正：チーム作成時もバックエンドのエラーを正しく処理するよう強化
     const handleCreateTeam = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newTeamName.trim() || !selectedOrg) return;
@@ -138,16 +144,20 @@ export default function TeamsPage() {
                     organizationId: selectedOrg.id
                 }),
             });
-            if (res.ok) {
-                const data = await res.json() as { teamId: string };
+            const data = await res.json() as any;
+
+            if (res.ok && data.success) {
                 toast.success("チームを作成しました！");
                 localStorage.setItem("iScore_selectedTeamId", data.teamId);
                 localStorage.setItem("iScore_selectedOrgId", selectedOrg.id);
                 router.push('/dashboard');
             } else {
-                toast.error("チームの作成に失敗しました");
+                toast.error(data.error || "チームの作成に失敗しました");
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            toast.error("通信エラーが発生しました");
+        }
         finally { setIsCreatingTeam(false); }
     };
 
@@ -179,13 +189,12 @@ export default function TeamsPage() {
                         </div>
 
                         {orgs.length === 0 ? (
-                            // 💡 空状態のデザインをプライマリーカラーに統一
                             <div className="text-center py-24 bg-primary/5 rounded-[32px] border border-dashed border-primary/20 mt-6 shadow-sm">
                                 <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-inner">
                                     <RiTeamFill className="h-12 w-12 text-primary/60" />
                                 </div>
                                 <h3 className="text-xl font-black text-primary/90 mb-2 tracking-tight">クラブが登録されていません</h3>
-                                <p className="text-primary/70 font-extrabold text-sm mb-8">左下の＋ボタンから、最初のクラブを作成しましょう。</p>
+                                <p className="text-primary/70 font-extrabold text-sm mb-8">右下の＋ボタンから、最初のクラブを作成しましょう。</p>
                             </div>
                         ) : (
                             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 mt-4">
@@ -208,7 +217,6 @@ export default function TeamsPage() {
                                                 </div>
 
                                                 <div className="flex items-center gap-2 pointer-events-auto">
-                                                    {/* 💡 削除ボタンを追加（OWNERのみ） */}
                                                     {org.myRole === 'OWNER' && (
                                                         <Button
                                                             variant="ghost"
@@ -266,13 +274,12 @@ export default function TeamsPage() {
                         {isLoadingTeams ? (
                             <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/50" /></div>
                         ) : teams.length === 0 ? (
-                            // 💡 チーム空状態のデザインもプライマリーカラーに
                             <div className="text-center py-24 bg-primary/5 rounded-[32px] border border-dashed border-primary/20 mt-6 shadow-sm">
                                 <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-inner">
                                     <Shield className="h-12 w-12 text-primary/60" />
                                 </div>
                                 <h3 className="text-xl font-black text-primary/90 mb-2 tracking-tight">チームが登録されていません</h3>
-                                <p className="text-primary/70 font-extrabold text-sm mb-8">左下の＋ボタンから、最初のチームを追加しましょう。</p>
+                                <p className="text-primary/70 font-extrabold text-sm mb-8">右下の＋ボタンから、最初のチームを追加しましょう。</p>
                             </div>
                         ) : (
                             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 mt-4">
@@ -315,11 +322,11 @@ export default function TeamsPage() {
             </main>
 
             {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                💡 究極のFAB（左下に浮遊する＋ボタン）
+                💡 究極のFAB（右下に浮遊する完全な丸型＋ボタン）
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <Button
                 onClick={() => view === 'orgs' ? setShowOrgCreate(true) : setShowTeamCreate(true)}
-                className="fixed bottom-8 left-4 sm:bottom-10 sm:left-8 h-16 w-16 rounded-[24px] shadow-2xl shadow-primary/40 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:-translate-y-1 active:scale-[0.92] z-40 flex items-center justify-center"
+                className="fixed bottom-8 right-4 sm:bottom-10 sm:right-8 h-16 w-16 rounded-full shadow-2xl shadow-primary/40 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:-translate-y-1 active:scale-[0.92] z-40 flex items-center justify-center"
             >
                 <Plus className="h-8 w-8" />
             </Button>
@@ -338,7 +345,6 @@ export default function TeamsPage() {
 
                     <div className="relative w-full max-w-lg bg-gradient-to-br from-primary via-primary to-green-900 shadow-[0_20px_60px_rgba(0,0,0,0.4)] rounded-[32px] sm:rounded-[36px] overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-8 duration-500 text-white">
 
-                        {/* 💡 グラスモーフィズム＆光彩エフェクト */}
                         <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-white/20 blur-[60px] rounded-full pointer-events-none" />
                         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-black/30 blur-[60px] rounded-full pointer-events-none" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
