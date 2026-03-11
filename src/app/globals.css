@@ -24,7 +24,7 @@
     /* 透明度を 10% → 6% に下げて、さらにさりげなく */
     --wavy-color: color-mix(in srgb, #6b7280 6%, transparent);
     /* 間隔を 12px → 8px にして、より繊細できめ細かい波紋に */
-    --wavy-size: 8px;
+    --wavy-size: 6px;
 }
 
 @theme inline {
@@ -59,10 +59,10 @@
     --ring: #d4d4d8;
 
     /* ダークモードは光彩を控えめに（1.5%） */
-    --bg-glow: 1.5%;
+    --bg-glow: 3%;
 
     /* 💡 ダークモードも透明度を 5% → 3% に下げてさらに美しく馴染ませる */
-    --wavy-color: color-mix(in srgb, #9ca3af 3%, transparent);
+    --wavy-color: color-mix(in srgb, #9ca3af 5%, transparent);
 }
 
 body {
