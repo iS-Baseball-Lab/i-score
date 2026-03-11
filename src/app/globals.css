@@ -21,10 +21,10 @@
     --bg-glow: 3%;
 
     /* 💡 円の波線（Wavy）の設定（ライトモード） */
-    /* pattern-gray-500 opacity-10 に相当する色 */
-    --wavy-color: color-mix(in srgb, #6b7280 10%, transparent);
-    /* pattern-size-1 に相当する波の間隔（お好みで 8px ~ 16px などに調整可能） */
-    --wavy-size: 12px;
+    /* 透明度を 10% → 6% に下げて、さらにさりげなく */
+    --wavy-color: color-mix(in srgb, #6b7280 6%, transparent);
+    /* 間隔を 12px → 8px にして、より繊細できめ細かい波紋に */
+    --wavy-size: 8px;
 }
 
 @theme inline {
@@ -61,8 +61,8 @@
     /* ダークモードは光彩を控えめに（1.5%） */
     --bg-glow: 1.5%;
 
-    /* 💡 円の波線の設定（ダークモード）: 白浮きしないよう少し明るいグレーの5%に */
-    --wavy-color: color-mix(in srgb, #9ca3af 5%, transparent);
+    /* 💡 ダークモードも透明度を 5% → 3% に下げてさらに美しく馴染ませる */
+    --wavy-color: color-mix(in srgb, #9ca3af 3%, transparent);
 }
 
 body {
