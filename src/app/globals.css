@@ -2,29 +2,29 @@
 @import "tailwindcss";
 
 :root {
-    /* Better Auth風 (Light Mode) */
-    /* 💡 1. 背景を真っ白から「極上のオフホワイト」に変更 */
-    --background: #f0f0f0;
-    --foreground: #09090b;
-
-    /* 💡 2. カードは「純白」を定義。これで背景との間に美しい段差が生まれます */
+    /* ライトモード */
+    --background: #fafafa;
+    --foreground: #09090b; 
+    
     --card: #ffffff;
     --card-foreground: #09090b;
 
-    --muted: #f4f4f5;
-    --muted-foreground: #71717a;
-    --primary: #18181b;
-    --primary-foreground: #f0f0f0;
-    --border: #e4e4e7;
-    --ring: #18181b;
-    --radius: 0.5rem;
+    --muted: #f4f4f5; 
+    --muted-foreground: #71717a; 
+    --primary: #18181b; 
+    --primary-foreground: #fafafa; 
+    --border: #e4e4e7; 
+    --ring: #18181b; 
+    --radius: 0.5rem; 
 
-    /* 💡 3. 光彩エフェクトの濃さ（ライトモードは3%） */
+    /* 光彩エフェクトの濃さ（ライトモードは3%） */
     --bg-glow: 3%;
+
+    /* 💡 波線（Wavy）パターンのSVGデータ（グレー500相当、透明度10%） */
+    --pattern-wavy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='54' height='14' viewBox='0 0 54 14'%3E%3Cg fill='none' fill-rule='evenodd' transform='translate(1 1)'%3E%3Cpath d='M46 5c0 2.833-2.686 5-6 5s-6-2.167-6-5-2.686-5-6-5-6 2.167-6 5-2.686 5-6 5-6-2.167-6-5-2.686-5-6-5-6 2.167-6 5 2.686 5 6 5 6-2.167 6-5 2.686-5 6-5 6 2.167 6 5 2.686 5 6 5 6-2.167 6-5 2.686-5 6-5 6 2.167 6 5z' stroke='%236b7280' stroke-opacity='0.1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 @theme inline {
-    /* Tailwindのクラス名とCSS変数を結びつける */
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);
@@ -35,154 +35,127 @@
     --color-primary-foreground: var(--primary-foreground);
     --color-border: var(--border);
     --color-ring: var(--ring);
-
+    
     --radius-md: var(--radius);
-
+    
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-geist-mono);
 }
 
 .dark {
-    /* Better Auth風 (Dark Mode) */
+    /* ダークモード */
     --background: #09090b;
-    --foreground: #f0f0f0;
-    --card: #000000;
-    /* ダーク時は背景と同化させてスッキリと */
-    --card-foreground: #f0f0f0;
+    --foreground: #fafafa;
+    --card: #09090b;
+    --card-foreground: #fafafa;
     --muted: #27272a;
     --muted-foreground: #a1a1aa;
-    --primary: #f0f0f0;
+    --primary: #fafafa;
     --primary-foreground: #18181b;
     --border: #27272a;
     --ring: #d4d4d8;
 
     /* ダークモードは光彩を控えめに（1.5%） */
     --bg-glow: 1.5%;
+
+    /* 💡 ダークモードでは白浮きしないように、波線を暗めのグレーにして透明度を下げる */
+    --pattern-wavy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='54' height='14' viewBox='0 0 54 14'%3E%3Cg fill='none' fill-rule='evenodd' transform='translate(1 1)'%3E%3Cpath d='M46 5c0 2.833-2.686 5-6 5s-6-2.167-6-5-2.686-5-6-5-6 2.167-6 5-2.686 5-6 5-6-2.167-6-5-2.686-5-6-5-6 2.167-6 5 2.686 5 6 5 6-2.167 6-5 2.686-5 6-5 6 2.167 6 5 2.686 5 6 5 6-2.167 6-5 2.686-5 6-5 6 2.167 6 5z' stroke='%239ca3af' stroke-opacity='0.03' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 body {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-
-    /* 💡 4. 究極の「さりげなさ」：最新CSSの color-mix を使ったグラデーション魔法 */
-    /* どのテーマカラーを選んでも、自動的にその色が画面の隅から極薄で滲み出ます */
-    background-image:
-        radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
-        radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw);
+    
+    /* 💡 究極のハイブリッド：光彩エフェクト ＋ 波線パターン を重ね掛け！ */
+    background-image: 
+      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
+      radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
+      var(--pattern-wavy); /* 最後に波線を敷く */
+      
     background-attachment: fixed;
+    
+    /* 波線のサイズを控えめに調整（前2つの auto は光彩用） */
+    background-size: auto, auto, 24px;
 }
 
 /* =======================================================
    ⚾️ テーマカラー定義（ここから下は変更なし）
    ======================================================= */
 
-/* ⚾️ パターン1：ブルー（爽やかなスポーツブルー・横浜や中日風） */
 .theme-blue {
-    --primary: #0284c7;
-    /* Sky 600 */
+    --primary: #0284c7; 
     --primary-foreground: #ffffff;
     --ring: #0284c7;
 }
-
-.dark .theme-blue,
-.theme-blue.dark {
-    --primary: #0ea5e9;
-    /* ダークモード時は少し明るく */
+.dark .theme-blue, .theme-blue.dark {
+    --primary: #0ea5e9; 
     --primary-foreground: #ffffff;
     --ring: #0ea5e9;
 }
 
-/* ⚾️ パターン2：レッド（情熱の赤・広島やエンゼルス風） */
 .theme-red {
-    --primary: #e11d48;
-    /* Rose 600 */
+    --primary: #e11d48; 
     --primary-foreground: #ffffff;
     --ring: #e11d48;
 }
-
-.dark .theme-red,
-.theme-red.dark {
+.dark .theme-red, .theme-red.dark {
     --primary: #fb7185;
-    --primary-foreground: #18181b;
-    /* 背景が明るい赤なので文字は黒に */
+    --primary-foreground: #18181b; 
     --ring: #fb7185;
 }
 
-/* ⚾️ パターン3：グリーン（芝生・ヤクルトやアスレチックス風） */
 .theme-green {
-    --primary: #16a34a;
-    /* Green 600 */
+    --primary: #16a34a; 
     --primary-foreground: #ffffff;
     --ring: #16a34a;
 }
-
-.dark .theme-green,
-.theme-green.dark {
+.dark .theme-green, .theme-green.dark {
     --primary: #4ade80;
     --primary-foreground: #18181b;
     --ring: #4ade80;
 }
 
-/* ⚾️ パターン4：オレンジ（夕焼け・巨人やオリオールズ風） */
 .theme-orange {
-    --primary: #ea580c;
-    /* Orange 600 */
+    --primary: #ea580c; 
     --primary-foreground: #ffffff;
     --ring: #ea580c;
 }
-
-.dark .theme-orange,
-.theme-orange.dark {
+.dark .theme-orange, .theme-orange.dark {
     --primary: #fb923c;
     --primary-foreground: #18181b;
     --ring: #fb923c;
 }
 
-/* ⚾️ パターン5：ティール（海と風・マリナーズやマーリンズ風） */
 .theme-teal {
-    --primary: #0d9488;
-    /* Teal 600 */
+    --primary: #0d9488; 
     --primary-foreground: #ffffff;
     --ring: #0d9488;
 }
-
-.dark .theme-teal,
-.theme-teal.dark {
-    --primary: #2dd4bf;
-    /* Teal 400 */
+.dark .theme-teal, .theme-teal.dark {
+    --primary: #2dd4bf; 
     --primary-foreground: #18181b;
     --ring: #2dd4bf;
 }
 
-/* ⚾️ パターン6：パープル（高貴と力強さ・ロッキーズ風） */
 .theme-purple {
-    --primary: #7c3aed;
-    /* Violet 600 */
+    --primary: #7c3aed; 
     --primary-foreground: #ffffff;
     --ring: #7c3aed;
 }
-
-.dark .theme-purple,
-.theme-purple.dark {
-    --primary: #a78bfa;
-    /* Violet 400 */
+.dark .theme-purple, .theme-purple.dark {
+    --primary: #a78bfa; 
     --primary-foreground: #18181b;
     --ring: #a78bfa;
 }
 
-/* ⚾️ パターン7：インディゴ（伝統の深い紺・侍ジャパンやヤンキース風） */
 .theme-indigo {
-    --primary: #4338ca;
-    /* Indigo 600 */
+    --primary: #4338ca; 
     --primary-foreground: #ffffff;
     --ring: #4338ca;
 }
-
-.dark .theme-indigo,
-.theme-indigo.dark {
-    --primary: #818cf8;
-    /* Indigo 400 */
+.dark .theme-indigo, .theme-indigo.dark {
+    --primary: #818cf8; 
     --primary-foreground: #18181b;
     --ring: #818cf8;
 }
