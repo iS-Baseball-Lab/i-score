@@ -4,18 +4,18 @@
 :root {
     /* ライトモード */
     --background: #fafafa;
-    --foreground: #09090b; 
-    
+    --foreground: #09090b;
+
     --card: #ffffff;
     --card-foreground: #09090b;
 
-    --muted: #f4f4f5; 
-    --muted-foreground: #71717a; 
-    --primary: #18181b; 
-    --primary-foreground: #fafafa; 
-    --border: #e4e4e7; 
-    --ring: #18181b; 
-    --radius: 0.5rem; 
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+    --primary: #18181b;
+    --primary-foreground: #fafafa;
+    --border: #e4e4e7;
+    --ring: #18181b;
+    --radius: 0.5rem;
 
     /* 光彩エフェクトの濃さ（ライトモードは3%） */
     --bg-glow: 3%;
@@ -35,9 +35,9 @@
     --color-primary-foreground: var(--primary-foreground);
     --color-border: var(--border);
     --color-ring: var(--ring);
-    
+
     --radius-md: var(--radius);
-    
+
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-geist-mono);
 }
@@ -66,15 +66,15 @@ body {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-    
+
     /* 💡 究極のハイブリッド：光彩エフェクト ＋ 「円の波線」パターン を重ね掛け！ */
-    background-image: 
-      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
-      radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
-      var(--pattern-wavy);
-      
+    background-image:
+        radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
+        radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
+        var(--pattern-wavy);
+
     background-attachment: fixed;
-    
+
     /* pattern-size-1 のイメージに近づけるため、横40px 縦8px に設定 */
     background-size: auto, auto, 40px 8px;
 }
@@ -84,78 +84,92 @@ body {
    ======================================================= */
 
 .theme-blue {
-    --primary: #0284c7; 
+    --primary: #0284c7;
     --primary-foreground: #ffffff;
     --ring: #0284c7;
 }
-.dark .theme-blue, .theme-blue.dark {
-    --primary: #0ea5e9; 
+
+.dark .theme-blue,
+.theme-blue.dark {
+    --primary: #0ea5e9;
     --primary-foreground: #ffffff;
     --ring: #0ea5e9;
 }
 
 .theme-red {
-    --primary: #e11d48; 
+    --primary: #e11d48;
     --primary-foreground: #ffffff;
     --ring: #e11d48;
 }
-.dark .theme-red, .theme-red.dark {
+
+.dark .theme-red,
+.theme-red.dark {
     --primary: #fb7185;
-    --primary-foreground: #18181b; 
+    --primary-foreground: #18181b;
     --ring: #fb7185;
 }
 
 .theme-green {
-    --primary: #16a34a; 
+    --primary: #16a34a;
     --primary-foreground: #ffffff;
     --ring: #16a34a;
 }
-.dark .theme-green, .theme-green.dark {
+
+.dark .theme-green,
+.theme-green.dark {
     --primary: #4ade80;
     --primary-foreground: #18181b;
     --ring: #4ade80;
 }
 
 .theme-orange {
-    --primary: #ea580c; 
+    --primary: #ea580c;
     --primary-foreground: #ffffff;
     --ring: #ea580c;
 }
-.dark .theme-orange, .theme-orange.dark {
+
+.dark .theme-orange,
+.theme-orange.dark {
     --primary: #fb923c;
     --primary-foreground: #18181b;
     --ring: #fb923c;
 }
 
 .theme-teal {
-    --primary: #0d9488; 
+    --primary: #0d9488;
     --primary-foreground: #ffffff;
     --ring: #0d9488;
 }
-.dark .theme-teal, .theme-teal.dark {
-    --primary: #2dd4bf; 
+
+.dark .theme-teal,
+.theme-teal.dark {
+    --primary: #2dd4bf;
     --primary-foreground: #18181b;
     --ring: #2dd4bf;
 }
 
 .theme-purple {
-    --primary: #7c3aed; 
+    --primary: #7c3aed;
     --primary-foreground: #ffffff;
     --ring: #7c3aed;
 }
-.dark .theme-purple, .theme-purple.dark {
-    --primary: #a78bfa; 
+
+.dark .theme-purple,
+.theme-purple.dark {
+    --primary: #a78bfa;
     --primary-foreground: #18181b;
     --ring: #a78bfa;
 }
 
 .theme-indigo {
-    --primary: #4338ca; 
+    --primary: #4338ca;
     --primary-foreground: #ffffff;
     --ring: #4338ca;
 }
-.dark .theme-indigo, .theme-indigo.dark {
-    --primary: #818cf8; 
+
+.dark .theme-indigo,
+.theme-indigo.dark {
+    --primary: #818cf8;
     --primary-foreground: #18181b;
     --ring: #818cf8;
 }
