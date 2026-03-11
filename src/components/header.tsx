@@ -10,7 +10,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { canManageTeam } from "@/lib/roles";
-import { toast } from "sonner"; // 💡 トースト通知を追加
+import { toast } from "sonner";
 import {
   UserCircle,
   LogOut,
@@ -19,8 +19,8 @@ import {
   Home,
   ClipboardList,
   ShieldAlert,
-  Camera, // 💡 カメラアイコンを追加
-  Loader2 // 💡 ローディングアイコンを追加
+  Camera,
+  Loader2
 } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { cn } from "@/lib/utils";
@@ -67,7 +67,6 @@ function HeaderContent() {
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const userMenuRef = React.useRef<HTMLDivElement>(null);
 
-  // 💡 画像アップロード用の状態管理とRefを追加
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = React.useState(false);
 
@@ -104,14 +103,10 @@ function HeaderContent() {
     });
   };
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // 💡 究極の処理：画像をR2にアップして、プロフィールを更新！
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 簡単なファイルサイズチェック（5MB以下）
     if (file.size > 5 * 1024 * 1024) {
       toast.error("画像サイズは5MB以下にしてください");
       return;
@@ -122,7 +117,6 @@ function HeaderContent() {
       const formData = new FormData();
       formData.append('file', file);
 
-      // 1. 先ほど作った Hono API に画像を送信
       const res = await fetch('/api/images/upload', {
         method: 'POST',
         body: formData
@@ -130,13 +124,12 @@ function HeaderContent() {
       const data = await res.json() as { success: boolean; imageUrl?: string; error?: string };
 
       if (res.ok && data.success && data.imageUrl) {
-        // 2. 成功したら、Better Auth の updateUser を使って DB の画像URLを更新
         await authClient.updateUser({
           image: data.imageUrl
         });
 
         toast.success('プロフィール画像を更新しました！');
-        router.refresh(); // ヘッダーの画像を最新にリロード
+        router.refresh();
       } else {
         toast.error(data.error || '画像のアップロードに失敗しました');
       }
@@ -145,13 +138,21 @@ function HeaderContent() {
       toast.error('通信エラーが発生しました');
     } finally {
       setIsUploadingAvatar(false);
-      // 同じ画像を連続で選べるようにinputをリセット
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   return (
     <>
+      {/* 💡 【修正のキモ】PC・スマホ共通で使えるように、input要素を一番外側に移動しました！ */}
+      <input
+        type="file"
+        accept="image/jpeg, image/png, image/webp"
+        className="hidden"
+        ref={fileInputRef}
+        onChange={handleAvatarUpload}
+      />
+
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md text-foreground transition-all duration-300">
         <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-6">
 
@@ -218,10 +219,7 @@ function HeaderContent() {
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-3 w-72 bg-card/95 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-border/50 p-2 z-50 animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-200">
 
-                    {/* 💡 究極UI化：アバター変更エリア */}
                     <div className="px-4 py-4 border-b border-border/50 mb-2 bg-muted/20 rounded-[18px] flex items-center gap-3">
-
-                      {/* クリックで画像を選択する魔法のアバター */}
                       <div
                         className="relative group cursor-pointer shrink-0"
                         onClick={() => fileInputRef.current?.click()}
@@ -236,20 +234,12 @@ function HeaderContent() {
                             <UserCircle className="h-8 w-8 text-muted-foreground" />
                           )}
 
-                          {/* ホバー時にふんわり浮かび上がるカメラアイコン（グラスモーフィズム） */}
                           {!isUploadingAvatar && (
                             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
                               <Camera className="h-5 w-5 text-white" />
                             </div>
                           )}
                         </div>
-                        <input
-                          type="file"
-                          accept="image/jpeg, image/png, image/webp"
-                          className="hidden"
-                          ref={fileInputRef}
-                          onChange={handleAvatarUpload}
-                        />
                       </div>
 
                       <div className="flex flex-col overflow-hidden">
@@ -286,7 +276,7 @@ function HeaderContent() {
         </div>
       </header>
 
-      {/* --- モバイルメニュー（ここから下は同様の処理） --- */}
+      {/* --- モバイルメニュー --- */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity md:hidden"
@@ -343,7 +333,6 @@ function HeaderContent() {
           <div className="p-4 pb-8 mt-auto">
             <div className="rounded-[24px] bg-muted/30 border border-border/50 p-4 space-y-5 shadow-sm">
               <div className="flex items-center gap-3">
-                {/* 💡 モバイルメニューのアバターも画像アップロード対応に！ */}
                 <div
                   className="relative cursor-pointer shrink-0 active:scale-95 transition-transform"
                   onClick={() => fileInputRef.current?.click()}
@@ -357,16 +346,17 @@ function HeaderContent() {
                       <UserCircle className="h-8 w-8 text-muted-foreground" />
                     )}
                   </div>
-                  {/* スマホでも一目で「変更できる」と分かる右下のカメラバッジ */}
+
                   {!isUploadingAvatar && (
                     <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1.5 shadow-md border-2 border-background">
                       <Camera className="h-3.5 w-3.5" />
                     </div>
                   )}
                 </div>
+
                 <div className="flex flex-col overflow-hidden">
-                  <span className="text-sm font-black truncate">{session.user.name}</span>
-                  <span className="text-xs font-bold text-muted-foreground truncate">{session.user.email}</span>
+                  <span className="text-base font-black truncate">{session.user.name}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground truncate uppercase tracking-widest">{session.user.email}</span>
                 </div>
               </div>
 
