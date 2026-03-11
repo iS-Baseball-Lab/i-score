@@ -25,12 +25,12 @@ function NewMatchForm() {
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!teamId) {
-        toast.error("チームが選択されていません");
-        return;
+      toast.error("チームが選択されていません");
+      return;
     }
     if (!opponent.trim() || !season.trim() || !date) {
-        toast.error("必須項目が入力されていません");
-        return;
+      toast.error("必須項目が入力されていません");
+      return;
     }
 
     setIsLoading(true);
@@ -75,7 +75,7 @@ function NewMatchForm() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground pb-32 relative">
+    <div className="flex flex-col min-h-screen text-foreground pb-32 relative">
       <PageHeader
         href="/dashboard"
         icon={CalendarPlus}
@@ -92,13 +92,13 @@ function NewMatchForm() {
               <Calendar className="h-5 w-5 text-primary" /> シーズン・大会名
             </label>
             {/* 💡 フォーカス時に背景が光り、太くて柔らかいリング（オーラ）が出るように変更 */}
-            <input 
-              type="text" 
-              required 
-              className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-base font-bold shadow-xs transition-all duration-300 placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background focus-visible:shadow-md" 
-              placeholder="例: 2026, 2026-春季大会" 
-              value={season} 
-              onChange={(e) => setSeason(e.target.value)} 
+            <input
+              type="text"
+              required
+              className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-base font-bold shadow-xs transition-all duration-300 placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background focus-visible:shadow-md"
+              placeholder="例: 2026, 2026-春季大会"
+              value={season}
+              onChange={(e) => setSeason(e.target.value)}
             />
           </div>
 
@@ -107,13 +107,13 @@ function NewMatchForm() {
             <label className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2 tracking-wide pl-1">
               <Users className="h-5 w-5 text-primary" /> 対戦相手
             </label>
-            <input 
-              type="text" 
-              required 
-              className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-base font-bold shadow-xs transition-all duration-300 placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background focus-visible:shadow-md" 
-              placeholder="例: 横浜ボーイズ" 
-              value={opponent} 
-              onChange={(e) => setOpponent(e.target.value)} 
+            <input
+              type="text"
+              required
+              className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-base font-bold shadow-xs transition-all duration-300 placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background focus-visible:shadow-md"
+              placeholder="例: 横浜ボーイズ"
+              value={opponent}
+              onChange={(e) => setOpponent(e.target.value)}
             />
           </div>
 
@@ -122,12 +122,12 @@ function NewMatchForm() {
             <label className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2 tracking-wide pl-1">
               <CalendarDays className="h-5 w-5 text-primary" /> 試合日
             </label>
-            <input 
-              type="date" 
-              required 
-              className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-base font-bold shadow-xs transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background focus-visible:shadow-md" 
-              value={date} 
-              onChange={(e) => setDate(e.target.value)} 
+            <input
+              type="date"
+              required
+              className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-base font-bold shadow-xs transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background focus-visible:shadow-md"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
             />
           </div>
 
@@ -142,8 +142,8 @@ function NewMatchForm() {
                 onClick={() => setMatchType('practice')}
                 className={cn(
                   "flex items-center justify-center h-12 rounded-[14px] font-extrabold transition-all duration-200 active:scale-[0.96]",
-                  matchType === 'practice' 
-                    ? "bg-background shadow-xs text-primary border border-border/50" 
+                  matchType === 'practice'
+                    ? "bg-background shadow-xs text-primary border border-border/50"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}
               >
@@ -154,8 +154,8 @@ function NewMatchForm() {
                 onClick={() => setMatchType('official')}
                 className={cn(
                   "flex items-center justify-center h-12 rounded-[14px] font-extrabold transition-all duration-200 active:scale-[0.96]",
-                  matchType === 'official' 
-                    ? "bg-background shadow-xs text-primary border border-border/50" 
+                  matchType === 'official'
+                    ? "bg-background shadow-xs text-primary border border-border/50"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}
               >
@@ -178,7 +178,7 @@ function NewMatchForm() {
                   className={cn(
                     "flex items-center justify-center h-12 rounded-[14px] font-extrabold transition-all duration-200 active:scale-[0.96]",
                     innings === num
-                      ? "bg-background shadow-xs text-primary border border-border/50" 
+                      ? "bg-background shadow-xs text-primary border border-border/50"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
                 >
@@ -194,13 +194,13 @@ function NewMatchForm() {
       {/* 追従する決定ボタン */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border/50 z-50 flex justify-center pb-8 sm:pb-6 animate-in slide-in-from-bottom-full duration-500">
         <div className="w-full max-w-2xl px-2">
-            <Button 
-                onClick={() => handleSubmit()} 
-                disabled={isLoading} 
-                className="w-full h-14 text-base font-extrabold rounded-2xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground transition-all hover:-translate-y-1 active:scale-[0.98]"
-            >
-                {isLoading ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> 作成中...</> : <span className="flex items-center">スタメンの入力へ進む <ChevronRight className="ml-1 h-5 w-5" /></span>}
-            </Button>
+          <Button
+            onClick={() => handleSubmit()}
+            disabled={isLoading}
+            className="w-full h-14 text-base font-extrabold rounded-2xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground transition-all hover:-translate-y-1 active:scale-[0.98]"
+          >
+            {isLoading ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> 作成中...</> : <span className="flex items-center">スタメンの入力へ進む <ChevronRight className="ml-1 h-5 w-5" /></span>}
+          </Button>
         </div>
       </div>
     </div>

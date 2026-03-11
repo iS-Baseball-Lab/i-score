@@ -164,7 +164,7 @@ export default function TeamsPage() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-background text-foreground pb-32 relative overflow-hidden">
+        <div className="flex flex-col min-h-screen text-foreground pb-32 relative overflow-hidden">
             <PageHeader
                 href="/dashboard"
                 icon={RiTeamFill}

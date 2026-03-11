@@ -29,12 +29,12 @@ export default function AdminPage() {
     const [newMemberRole, setNewMemberRole] = useState<string>(ROLES.SCORER);
 
     const fetchUsers = async () => {
-        try { const res = await fetch('/api/users'); if (res.ok) setUsers(await res.json()); } 
+        try { const res = await fetch('/api/users'); if (res.ok) setUsers(await res.json()); }
         catch (error) { console.error(error); }
     };
 
     const fetchTeams = async () => {
-        try { const res = await fetch('/api/admin/teams'); if (res.ok) setTeams(await res.json()); } 
+        try { const res = await fetch('/api/admin/teams'); if (res.ok) setTeams(await res.json()); }
         catch (error) { console.error(error); }
     };
 
@@ -73,7 +73,7 @@ export default function AdminPage() {
             if (res.ok) {
                 setNewMemberId("");
                 fetchTeams(); // 外側の人数表示を更新
-                
+
                 // 💡 無理やり画面を閉じて開くハックをやめ、APIから直接メンバーリストを再取得する
                 const membersRes = await fetch(`/api/admin/teams/${teamId}/members`);
                 if (membersRes.ok) {
@@ -82,8 +82,8 @@ export default function AdminPage() {
             } else {
                 alert("追加に失敗しました");
             }
-        } catch (e) { 
-            console.error("メンバー追加処理エラー:", e); 
+        } catch (e) {
+            console.error("メンバー追加処理エラー:", e);
         }
     };
 
@@ -134,16 +134,16 @@ export default function AdminPage() {
     const adminCount = users.filter(u => u.role === 'admin').length;
 
     return (
-        <div className="flex flex-col min-h-screen bg-background text-foreground pb-20">
-            <PageHeader 
-                href="/dashboard" 
-                icon={ShieldAlert} 
-                title="システム管理 (Admin)" 
-                subtitle="全ユーザーとチームの管理" 
+        <div className="flex flex-col min-h-screen text-foreground pb-20">
+            <PageHeader
+                href="/dashboard"
+                icon={ShieldAlert}
+                title="システム管理 (Admin)"
+                subtitle="全ユーザーとチームの管理"
             />
 
             <main className="flex-1 p-4 max-w-4xl mx-auto w-full space-y-6 mt-2">
-                
+
                 <div className="flex bg-muted/30 p-1.5 rounded-xl border border-border shadow-inner">
                     <button onClick={() => setActiveTab("users")} className={cn("flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2", activeTab === "users" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
                         <Users className="h-4 w-4" /> ユーザー
@@ -276,7 +276,7 @@ export default function AdminPage() {
                                                     <div className="pt-2 border-t border-border/50">
                                                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-1"><UserPlus className="h-3 w-3" /> ユーザーの紐付け</h4>
                                                         <div className="flex flex-col sm:flex-row gap-2">
-                                                            <Select 
+                                                            <Select
                                                                 className="flex-1 h-9"
                                                                 value={newMemberId}
                                                                 onChange={(e) => setNewMemberId(e.target.value)}
@@ -286,8 +286,8 @@ export default function AdminPage() {
                                                                     <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
                                                                 ))}
                                                             </Select>
-                                                            
-                                                            <Select 
+
+                                                            <Select
                                                                 className="w-full sm:w-[130px] h-9"
                                                                 value={newMemberRole}
                                                                 onChange={(e) => setNewMemberRole(e.target.value)}

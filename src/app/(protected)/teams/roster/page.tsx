@@ -22,7 +22,7 @@ interface Player {
 function RosterContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    
+
     const teamId = searchParams.get("id") || (typeof window !== 'undefined' ? localStorage.getItem("iScore_selectedTeamId") : null);
 
     const [players, setPlayers] = useState<Player[]>([]);
@@ -30,7 +30,7 @@ function RosterContent() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    
+
     const [formData, setFormData] = useState({
         name: "",
         uniformNumber: "",
@@ -51,7 +51,7 @@ function RosterContent() {
             } else {
                 toast.error("選手データの取得に失敗しました");
             }
-        } catch (e) { console.error(e); } 
+        } catch (e) { console.error(e); }
         finally { setIsLoading(false); }
     };
 
@@ -100,7 +100,7 @@ function RosterContent() {
         e.stopPropagation();
 
         if (!teamId || !confirm(`本当に選手「${playerName}」を名簿から削除しますか？\n（スコアブック上の記録は残ります）`)) return;
-        
+
         try {
             const res = await fetch(`/api/teams/${teamId}/players/${playerId}`, { method: 'DELETE' });
             if (res.ok) {
@@ -115,12 +115,12 @@ function RosterContent() {
     if (!teamId) return null;
 
     return (
-        <div className="flex flex-col min-h-screen bg-background text-foreground pb-24 relative">
-            <PageHeader 
-                href="/dashboard" 
-                icon={Users} 
-                title="選手名簿・ロースター" 
-                subtitle="チーム所属選手の管理と成績確認" 
+        <div className="flex flex-col min-h-screen text-foreground pb-24 relative">
+            <PageHeader
+                href="/dashboard"
+                icon={Users}
+                title="選手名簿・ロースター"
+                subtitle="チーム所属選手の管理と成績確認"
             />
 
             <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-6 animate-in fade-in duration-500">
@@ -142,31 +142,31 @@ function RosterContent() {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                         {players.map((player) => (
-                            <Link 
+                            <Link
                                 href={`/players/detail?teamId=${teamId}&playerName=${encodeURIComponent(player.name)}&uniformNumber=${encodeURIComponent(player.uniformNumber)}`}
-                                key={player.id} 
+                                key={player.id}
                                 className="block group outline-none"
                             >
                                 <Card className="relative overflow-hidden rounded-[28px] border-border/50 bg-background shadow-sm transition-all duration-200 hover:shadow-lg hover:border-primary/40 active:border-primary/40 active:scale-[0.96] cursor-pointer h-full">
-                                    
+
                                     {/* 💡 背景の円を削除し、巨大背番号ウォーターマークだけを主役に！ */}
                                     <div className="absolute -bottom-6 -right-2 text-[180px] sm:text-[220px] font-black italic text-foreground/[0.03] group-hover:text-primary/10 group-active:text-primary/10 transition-colors duration-300 select-none z-0 tracking-tighter leading-none pointer-events-none">
                                         {player.uniformNumber}
                                     </div>
-                                    
+
                                     <CardContent className="p-6 sm:p-8 relative z-10 flex flex-col h-full pl-8 pointer-events-none">
                                         <div className="flex justify-between items-start mb-6">
                                             {/* 背番号アイコン */}
                                             <div className="flex items-center justify-center w-14 h-14 rounded-[20px] bg-muted/50 text-muted-foreground font-black text-2xl border border-border/50 shadow-sm group-hover:bg-primary/10 group-hover:text-primary group-active:bg-primary/10 group-active:text-primary group-hover:border-primary/20 group-active:border-primary/20 transition-all duration-200">
                                                 {player.uniformNumber}
                                             </div>
-                                            
+
                                             {/* 削除ボタン */}
                                             <div className="pointer-events-auto">
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="icon" 
-                                                    onClick={(e) => handleDeletePlayer(e, player.id, player.name)} 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={(e) => handleDeletePlayer(e, player.id, player.name)}
                                                     className="h-10 w-10 rounded-full text-muted-foreground/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
                                                     title="選手を削除"
                                                 >
@@ -174,12 +174,12 @@ function RosterContent() {
                                                 </Button>
                                             </div>
                                         </div>
-                                        
+
                                         {/* 選手名 */}
                                         <h3 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 truncate group-hover:text-primary group-active:text-primary transition-colors duration-200 drop-shadow-sm mt-auto">
                                             {player.name}
                                         </h3>
-                                        
+
                                         {/* 矢印 */}
                                         <div className="flex items-center text-sm font-extrabold text-muted-foreground mt-4 group-hover:text-primary/80 group-active:text-primary/80 transition-colors duration-200">
                                             <BarChart3 className="h-4 w-4 mr-1.5 opacity-70" />
@@ -194,7 +194,7 @@ function RosterContent() {
             </main>
 
             {/* 追従する登録ボタン */}
-            <Button 
+            <Button
                 onClick={() => setIsModalOpen(true)}
                 className="fixed bottom-8 right-4 sm:bottom-10 sm:right-8 h-16 w-16 rounded-[24px] shadow-2xl shadow-primary/40 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:-translate-y-1 active:scale-[0.92] z-40 flex items-center justify-center"
             >
@@ -208,7 +208,7 @@ function RosterContent() {
                     <div className="absolute inset-0" onClick={() => !isSaving && setIsModalOpen(false)} />
                     <div className="relative w-full max-w-lg bg-background/95 backdrop-blur-xl border border-border/50 shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[32px] sm:rounded-[36px] overflow-hidden animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300">
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary/50 to-primary" />
-                        
+
                         <div className="flex items-center justify-between p-6 sm:p-8 pb-4">
                             <h2 className="text-xl sm:text-2xl font-black flex items-center gap-3 tracking-tight">
                                 <div className="p-2.5 bg-primary/10 rounded-2xl text-primary"><Users className="h-6 w-6" /></div>
@@ -218,32 +218,32 @@ function RosterContent() {
                                 <X className="h-6 w-6" />
                             </Button>
                         </div>
-                        
+
                         <form onSubmit={handleSavePlayer} className="p-6 sm:p-8 pt-2 space-y-6">
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="space-y-3 col-span-2">
                                     <label className="text-xs sm:text-sm font-extrabold text-foreground tracking-wide pl-1">選手名</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        placeholder="例: 山田 太郎" 
-                                        className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-base font-bold shadow-xs focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background transition-all" 
-                                        value={formData.name} 
-                                        onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                                        disabled={isSaving} 
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="例: 山田 太郎"
+                                        className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-base font-bold shadow-xs focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background transition-all"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        disabled={isSaving}
                                         autoFocus
                                     />
                                 </div>
                                 <div className="space-y-3 col-span-1">
                                     <label className="text-xs sm:text-sm font-extrabold text-foreground tracking-wide pl-1 text-center block">背番号</label>
-                                    <input 
-                                        type="number" 
-                                        required 
-                                        placeholder="1" 
-                                        className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-xl font-black shadow-xs focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background transition-all text-center placeholder:text-muted-foreground/30" 
-                                        value={formData.uniformNumber} 
-                                        onChange={(e) => setFormData({...formData, uniformNumber: e.target.value})} 
-                                        disabled={isSaving} 
+                                    <input
+                                        type="number"
+                                        required
+                                        placeholder="1"
+                                        className="flex h-14 w-full rounded-2xl border border-border/60 bg-muted/20 px-4 text-xl font-black shadow-xs focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:bg-background transition-all text-center placeholder:text-muted-foreground/30"
+                                        value={formData.uniformNumber}
+                                        onChange={(e) => setFormData({ ...formData, uniformNumber: e.target.value })}
+                                        disabled={isSaving}
                                     />
                                 </div>
                             </div>

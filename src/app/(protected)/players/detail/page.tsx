@@ -83,7 +83,7 @@ function PlayerDetailContent() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-background text-foreground pb-24">
+        <div className="flex flex-col min-h-screen text-foreground pb-24">
             <PageHeader
                 href={`/teams/roster?id=${teamId}`}
                 icon={User}
@@ -96,7 +96,7 @@ function PlayerDetailContent() {
                 {/* 💡 究極UI: 大迫力のヒーローパネル */}
                 <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground rounded-[32px] p-6 sm:p-10 shadow-lg shadow-primary/20 border border-primary/20 group">
                     <div className="absolute -right-10 -top-10 w-64 h-64 bg-white/20 blur-[60px] rounded-full pointer-events-none transition-transform duration-700 group-hover:scale-110" />
-                    
+
                     <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 relative z-10">
                         {/* カメラアイコン付きのプロフィール写真枠（グラスモーフィズム） */}
                         <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-[28px] bg-white/10 backdrop-blur-xl border border-white/20 flex flex-col items-center justify-center shrink-0 overflow-hidden text-white/60 relative shadow-inner">
@@ -153,7 +153,7 @@ function PlayerDetailContent() {
                                                 <div className="text-3xl sm:text-4xl font-black text-foreground leading-none">{ops.toFixed(3).replace(/^0/, '')}</div>
                                             </div>
                                         </div>
-                                        
+
                                         {/* 詳細スタッツ（ピル型のリストUI） */}
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="flex justify-between items-center bg-muted/20 px-5 py-3.5 rounded-[16px] border border-border/40">
@@ -219,7 +219,7 @@ function PlayerDetailContent() {
                             </CardContent>
                         </Card>
                     </div>
-                    
+
                     {/* 💡 究極UI: スプレーチャート（正方形を維持し美しく） */}
                     <div>
                         <Card className="rounded-[32px] border-border/50 bg-background shadow-xs overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-md hover:border-green-500/30">

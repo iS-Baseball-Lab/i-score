@@ -142,11 +142,11 @@ function LineupContent() {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-background text-foreground pb-32 relative">
+        <div className="flex flex-col min-h-screen text-foreground pb-32 relative">
             <PageHeader href="/dashboard" icon={Users} title="スターティングメンバー" subtitle="打順と守備位置の登録をしてください。" />
 
             <main className="flex-1 p-4 max-w-2xl mx-auto w-full mt-4">
-                
+
                 {/* 💡 パターン呼び出しエリア */}
                 {templates.length > 0 && (
                     <div className="bg-muted/30 border border-border/50 rounded-2xl p-4 mb-6 shadow-xs animate-in slide-in-from-top-4 fade-in duration-500">
@@ -170,8 +170,8 @@ function LineupContent() {
                 <div className="space-y-3 relative z-10">
                     {lineup.map((entry, index) => (
                         // 💡 カスケード・アニメーション（順番にフワッと表示）
-                        <div 
-                            key={entry.battingOrder} 
+                        <div
+                            key={entry.battingOrder}
                             className="flex items-center gap-3 bg-card border border-border/60 shadow-xs hover:shadow-md transition-shadow rounded-2xl p-2.5 sm:p-3 animate-in slide-in-from-bottom-8 fade-in duration-500 fill-mode-both"
                             style={{ animationDelay: `${index * 60}ms` }}
                         >
@@ -219,9 +219,9 @@ function LineupContent() {
             {/* 💡 追従する決定ボタン（Sticky Bottom Bar） */}
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border/50 z-50 flex justify-center pb-8 sm:pb-6 animate-in slide-in-from-bottom-full duration-500">
                 <div className="w-full max-w-2xl px-2">
-                    <Button 
-                        onClick={handleSave} 
-                        disabled={isSaving} 
+                    <Button
+                        onClick={handleSave}
+                        disabled={isSaving}
                         className="w-full h-14 text-base font-extrabold rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground transition-all hover:-translate-y-1 active:scale-[0.98]"
                     >
                         {isSaving ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> 保存中...</> : <><CheckCircle2 className="mr-2 h-6 w-6" /> スタメンを決定してスコア入力へ</>}
