@@ -116,4 +116,33 @@ app.delete('/:orgId', async (c) => {
     }
 })
 
+// 💡 クラブ（組織）の更新 API
+app.patch('/:orgId', async (c) => {
+    const auth = getAuth(c.env.DB, c.env)
+    const session = await auth.api.getSession({ headers: c.req.raw.headers })
+    if (!session) return c.json({ error: 'Unauthorized' }, 401)
+
+    const orgId = c.req.param('orgId')
+    const body = await c.req.json()
+    const db = drizzle(c.env.DB)
+
+    try {
+        // 権限チェック：OWNERのみ編集可能
+        const member = await db.select().from(organizationMembers)
+            .where(and(eq(organizationMembers.organizationId, orgId), eq(organizationMembers.userId, session.user.id))).get()
+
+        if ((session.user as any).role !== 'admin' && (!member || member.role !== 'OWNER')) {
+            return c.json({ error: '権限がありません' }, 403)
+        }
+
+        await c.env.DB.prepare(`UPDATE organizations SET name = ? WHERE id = ?`)
+            .bind(body.name, orgId).run()
+
+        return c.json({ success: true })
+    } catch (e) {
+        console.error("クラブ更新エラー:", e)
+        return c.json({ success: false, error: 'Failed to update organization' }, 500)
+    }
+})
+
 export default app
