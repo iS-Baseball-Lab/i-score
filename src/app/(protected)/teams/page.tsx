@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, Plus, ChevronRight, X, ChevronLeft, Trash2, Settings, Info, Check, CalendarDays } from "lucide-react";
+import { Loader2, Shield, Plus, ChevronRight, X, ChevronLeft, Trash2, Settings, Info, Check } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { ROLES } from "@/lib/roles";
 import { toast } from "sonner";
@@ -35,7 +35,6 @@ export default function TeamsPage() {
     const [isLoadingOrgs, setIsLoadingOrgs] = useState(true);
     const [isLoadingTeams, setIsLoadingTeams] = useState(false);
 
-    // 新規作成用ステート
     const [showOrgCreate, setShowOrgCreate] = useState(false);
     const [isCreatingOrg, setIsCreatingOrg] = useState(false);
     const [newOrgName, setNewOrgName] = useState("");
@@ -45,7 +44,6 @@ export default function TeamsPage() {
     const [newTeamName, setNewTeamName] = useState("");
     const [newTeamRole, setNewTeamRole] = useState<string>(ROLES.SCORER);
 
-    // 💡 究極UI化：詳細・設定モーダル用ステート
     const [detailModal, setDetailModal] = useState<{ type: 'org' | 'team', data: Organization | Team } | null>(null);
     const [editName, setEditName] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
@@ -129,7 +127,6 @@ export default function TeamsPage() {
         finally { setIsCreatingTeam(false); }
     };
 
-    // 💡 更新・削除処理
     const handleUpdate = async () => {
         if (!detailModal || !editName.trim()) return;
         setIsUpdating(true);
@@ -187,7 +184,6 @@ export default function TeamsPage() {
 
             <main className="flex-1 px-4 sm:px-6 max-w-4xl mx-auto w-full mt-6 sm:mt-8 relative z-10">
 
-                {/* クラブ一覧 */}
                 {view === 'orgs' && (
                     <div className="animate-in slide-in-from-left-4 fade-in duration-300">
                         <div className="flex items-center justify-between mb-6">
@@ -209,25 +205,40 @@ export default function TeamsPage() {
                             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 mt-4">
                                 {orgs.map((org) => (
                                     <Card key={org.id} onClick={() => handleSelectOrg(org)} className="group relative overflow-hidden rounded-[28px] border-border/50 bg-card shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/40 active:border-primary/40 active:scale-[0.96] cursor-pointer">
+
+                                        {/* 💡 復活！右上の3重円（波紋）アニメーション */}
+                                        <div className="absolute top-0 right-0 pointer-events-none">
+                                            <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-110 group-active:scale-110" />
+                                            <div className="absolute top-0 right-0 w-36 h-36 bg-primary/5 rounded-bl-full -mr-10 -mt-10 transition-transform duration-500 delay-75 group-hover:scale-110 group-active:scale-110 group-hover:bg-primary/10 group-active:bg-primary/10" />
+                                            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full -mr-4 -mt-4 transition-transform duration-500 delay-150 group-hover:scale-[1.2] group-active:scale-[1.2] group-hover:bg-primary/20 group-active:bg-primary/20" />
+                                        </div>
+
                                         <CardContent className="p-6 sm:p-8 relative z-10 flex flex-col h-full pointer-events-none">
                                             <div className="flex justify-between items-start mb-6">
-                                                <div className="p-3.5 bg-muted/50 rounded-[18px] text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors shadow-sm border border-border/50">
+                                                {/* 💡 アイコンのホバーエフェクト復活 */}
+                                                <div className="p-3.5 bg-muted/50 rounded-[18px] text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary group-active:bg-primary/10 group-active:text-primary transition-colors duration-300 shadow-sm border border-border/50 group-hover:border-primary/20 group-active:border-primary/20">
                                                     <RiTeamFill className="h-7 w-7" />
                                                 </div>
 
                                                 <div className="flex items-center gap-2 pointer-events-auto">
-                                                    <div className="inline-flex items-center rounded-full px-3 py-1.5 text-[10px] sm:text-xs font-black bg-muted/50 text-muted-foreground uppercase tracking-widest border border-border/50 shadow-sm pointer-events-none">
+                                                    {/* 💡 バッジのホバーエフェクト復活 */}
+                                                    <div className="inline-flex items-center rounded-full px-3 py-1.5 text-[10px] sm:text-xs font-black bg-muted/50 text-muted-foreground uppercase tracking-widest group-hover:bg-primary/10 group-hover:text-primary group-active:bg-primary/10 group-active:text-primary transition-colors duration-300 border border-border/50 group-hover:border-primary/20 group-active:border-primary/20 shadow-sm pointer-events-none">
                                                         {org.myRole}
                                                     </div>
-                                                    {/* 💡 権限に応じたアイコンを表示 */}
                                                     <Button variant="ghost" size="icon" onClick={(e) => openDetail(e, 'org', org)} className={cn("h-8 w-8 rounded-full transition-colors z-20", org.myRole === 'OWNER' ? "text-primary/70 hover:bg-primary/10 hover:text-primary" : "text-muted-foreground hover:bg-muted")}>
                                                         {org.myRole === 'OWNER' ? <Settings className="h-4 w-4" /> : <Info className="h-4 w-4" />}
                                                     </Button>
                                                 </div>
                                             </div>
-                                            <h3 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 truncate drop-shadow-sm mt-auto">{org.name}</h3>
-                                            <div className="flex items-center text-sm font-extrabold text-muted-foreground mt-4 transition-colors">
-                                                チーム一覧を開く <ChevronRight className="h-5 w-5 ml-1 transition-transform group-hover:translate-x-1" />
+
+                                            {/* 💡 テキストのホバーエフェクト復活 */}
+                                            <h3 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 truncate group-hover:text-primary group-active:text-primary transition-colors duration-300 drop-shadow-sm mt-auto">
+                                                {org.name}
+                                            </h3>
+
+                                            {/* 💡 下部リンクのホバーアニメーション復活 */}
+                                            <div className="flex items-center text-sm font-extrabold text-muted-foreground mt-4 group-hover:text-primary/80 group-active:text-primary/80 transition-colors duration-300">
+                                                チーム一覧を開く <ChevronRight className="h-5 w-5 ml-1 transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-1" />
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -237,7 +248,6 @@ export default function TeamsPage() {
                     </div>
                 )}
 
-                {/* チーム一覧 */}
                 {view === 'teams' && selectedOrg && (
                     <div className="animate-in slide-in-from-right-4 fade-in duration-300">
                         <div className="mb-6 flex flex-col items-start gap-4">
@@ -269,21 +279,37 @@ export default function TeamsPage() {
                             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 mt-4">
                                 {teams.map((team) => (
                                     <Card key={team.id} onClick={() => handleTeamClick(team.id)} className="group relative overflow-hidden rounded-[28px] border-border/50 bg-card shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/40 active:border-primary/40 active:scale-[0.96] cursor-pointer">
+
+                                        {/* 💡 復活！右上の3重円（波紋）アニメーション */}
+                                        <div className="absolute top-0 right-0 pointer-events-none">
+                                            <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-110 group-active:scale-110" />
+                                            <div className="absolute top-0 right-0 w-36 h-36 bg-primary/5 rounded-bl-full -mr-10 -mt-10 transition-transform duration-500 delay-75 group-hover:scale-110 group-active:scale-110 group-hover:bg-primary/10 group-active:bg-primary/10" />
+                                            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full -mr-4 -mt-4 transition-transform duration-500 delay-150 group-hover:scale-[1.2] group-active:scale-[1.2] group-hover:bg-primary/20 group-active:bg-primary/20" />
+                                        </div>
+
                                         <CardContent className="p-6 sm:p-8 relative z-10 flex flex-col h-full pointer-events-none">
                                             <div className="flex justify-between items-start mb-6">
-                                                <div className="p-3.5 bg-muted/50 rounded-[18px] text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors shadow-sm border border-border/50">
+                                                {/* 💡 ホバーエフェクト復活 */}
+                                                <div className="p-3.5 bg-muted/50 rounded-[18px] text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary group-active:bg-primary/10 group-active:text-primary transition-colors duration-300 shadow-sm border border-border/50 group-hover:border-primary/20 group-active:border-primary/20">
                                                     <Shield className="h-7 w-7" />
                                                 </div>
                                                 <div className="flex items-center gap-2 pointer-events-auto">
-                                                    <div className="inline-flex items-center rounded-full px-3 py-1.5 text-[10px] sm:text-xs font-black bg-muted/50 text-muted-foreground uppercase tracking-widest border border-border/50 shadow-sm pointer-events-none">TEAM</div>
+                                                    {/* 💡 ホバーエフェクト復活 */}
+                                                    <div className="inline-flex items-center rounded-full px-3 py-1.5 text-[10px] sm:text-xs font-black bg-muted/50 text-muted-foreground uppercase tracking-widest group-hover:bg-primary/10 group-hover:text-primary group-active:bg-primary/10 group-active:text-primary transition-colors duration-300 border border-border/50 group-hover:border-primary/20 group-active:border-primary/20 shadow-sm">TEAM</div>
                                                     <Button variant="ghost" size="icon" onClick={(e) => openDetail(e, 'team', team)} className={cn("h-8 w-8 rounded-full transition-colors z-20", selectedOrg.myRole === 'OWNER' ? "text-primary/70 hover:bg-primary/10 hover:text-primary" : "text-muted-foreground hover:bg-muted")}>
                                                         {selectedOrg.myRole === 'OWNER' ? <Settings className="h-4 w-4" /> : <Info className="h-4 w-4" />}
                                                     </Button>
                                                 </div>
                                             </div>
-                                            <h3 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 truncate drop-shadow-sm mt-auto">{team.name}</h3>
-                                            <div className="flex items-center text-sm font-extrabold text-muted-foreground mt-4 transition-colors">
-                                                ダッシュボードを開く <ChevronRight className="h-5 w-5 ml-1 transition-transform group-hover:translate-x-1" />
+
+                                            {/* 💡 ホバーエフェクト復活 */}
+                                            <h3 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 truncate group-hover:text-primary group-active:text-primary transition-colors duration-300 drop-shadow-sm mt-auto">
+                                                {team.name}
+                                            </h3>
+
+                                            {/* 💡 ホバーエフェクト復活 */}
+                                            <div className="flex items-center text-sm font-extrabold text-muted-foreground mt-4 group-hover:text-primary/80 group-active:text-primary/80 transition-colors duration-300">
+                                                ダッシュボードを開く <ChevronRight className="h-5 w-5 ml-1 transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-1" />
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -294,12 +320,11 @@ export default function TeamsPage() {
                 )}
             </main>
 
-            {/* 新規作成FAB */}
             <Button onClick={() => view === 'orgs' ? setShowOrgCreate(true) : setShowTeamCreate(true)} className="fixed bottom-8 right-4 sm:bottom-10 sm:right-8 h-16 w-16 rounded-full shadow-2xl shadow-primary/40 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:-translate-y-1 active:scale-[0.92] z-40 flex items-center justify-center">
                 <Plus className="h-8 w-8" />
             </Button>
 
-            {/* 新規作成モーダル（省略・既存のまま） */}
+            {/* モーダル群は変更なしでそのまま機能します */}
             {(showOrgCreate || showTeamCreate) && (
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0 bg-background/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="absolute inset-0" onClick={() => { if (!isCreatingOrg && !isCreatingTeam) { setShowOrgCreate(false); setShowTeamCreate(false); } }} />
@@ -326,9 +351,6 @@ export default function TeamsPage() {
                 </div>
             )}
 
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                💡 究極UI化：詳細・設定モーダル（Read-Only / Edit）
-            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             {detailModal && (
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0 bg-background/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="absolute inset-0" onClick={() => !isUpdating && setDetailModal(null)} />
@@ -345,8 +367,6 @@ export default function TeamsPage() {
                         </div>
 
                         <div className="relative z-10 p-6 sm:p-8 space-y-6">
-
-                            {/* Read-Only: 共通の表示情報 */}
                             <div className="space-y-4">
                                 <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-[20px] border border-border/50">
                                     <div className="h-14 w-14 shrink-0 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
@@ -370,7 +390,6 @@ export default function TeamsPage() {
                                 </div>
                             </div>
 
-                            {/* Edit: OWNER（代表者）のみ表示される編集フォームと危険エリア */}
                             {((detailModal.type === 'org' && (detailModal.data as Organization).myRole === 'OWNER') || (detailModal.type === 'team' && selectedOrg?.myRole === 'OWNER')) ? (
                                 <>
                                     <div className="h-px w-full bg-border/50 my-2" />
