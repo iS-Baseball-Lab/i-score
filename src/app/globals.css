@@ -24,7 +24,7 @@
 
     /* 💡 円の波線（Wavy）の設定（ライトモード） */
     /* 透明度を 10% → 6% に下げて、さらにさりげなく */
-    --wavy-color: color-mix(in srgb, #6b7280 6%, transparent);
+    --wavy-color: color-mix(in srgb, #616670 20%, transparent);
     /* 間隔を 12px → 8px にして、より繊細できめ細かい波紋に */
     --wavy-size: 4px;
     --background: oklch(1 0 0);
@@ -99,9 +99,9 @@
 
 .dark {
     /* ダークモード */
-    --background: oklch(0.145 0 0);
+    --background: oklch(0.205 0 0);
     --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
+    --card: oklch(0 0 0);
     --card-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
     --muted-foreground: oklch(0.708 0 0);
@@ -114,7 +114,7 @@
     --bg-glow: 3%;
 
     /* 💡 ダークモードも透明度を 5% → 3% に下げてさらに美しく馴染ませる */
-    --wavy-color: color-mix(in srgb, #9ca3af 6%, transparent);
+    --wavy-color: color-mix(in srgb, #9ca3af 20%, transparent);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.269 0 0);
@@ -252,13 +252,15 @@ body {
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring/50;
     }
-  body {
-    @apply bg-background text-foreground;
+
+    body {
+        @apply bg-background text-foreground;
     }
-  html {
-    @apply font-sans;
+
+    html {
+        @apply font-sans;
     }
 }
