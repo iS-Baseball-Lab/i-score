@@ -316,7 +316,7 @@ export default function TeamsPage() {
             </main>
 
             {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                💡 究極UI化：shadcn/ui Drawerの実装
+                💡 究極UI化：i-Scoreデザイン統合版 Drawer
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                 <DrawerTrigger asChild>
@@ -326,11 +326,13 @@ export default function TeamsPage() {
                     </Button>
                 </DrawerTrigger>
 
-                {/* Drawerの中身（プライマリーグラデーション＆グラスモーフィズム） */}
+                {/* 💡 Drawerの中身を「プライマリーグラデーション＆グラスモーフィズム」に！ */}
                 <DrawerContent className="border-none bg-gradient-to-br from-primary via-primary to-green-900 text-white rounded-t-[36px] shadow-[0_-20px_60px_rgba(0,0,0,0.4)] mx-auto max-w-lg">
-                    {/* 💡 背景エフェクト（光彩） */}
+
+                    {/* 💡 背景エフェクト（globals.cssと同じ雰囲気の光彩） */}
                     <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-white/20 blur-[60px] rounded-full pointer-events-none" />
                     <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-black/30 blur-[60px] rounded-full pointer-events-none" />
+                    {/* 最後に少し暗くして文字の可読性を確保 */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
 
                     <DrawerHeader className="relative z-10 text-left px-6 sm:px-8 pt-8 pb-2">
@@ -342,6 +344,7 @@ export default function TeamsPage() {
                         </DrawerTitle>
                     </DrawerHeader>
 
+                    {/* フォームエリアもDrawer用に最適化 */}
                     <div className="relative z-10 px-6 sm:px-8 pt-4 pb-12 space-y-6">
                         <form onSubmit={view === 'orgs' ? handleCreateOrg : handleCreateTeam} className="space-y-6">
                             {view === 'orgs' ? (
