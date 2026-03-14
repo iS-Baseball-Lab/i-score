@@ -6,6 +6,10 @@ import {
     organizations, organizationMembers, teams, teamMembers, players, matches
 } from '../db/schema';
 
+type Env = {
+    DB: D1Database;
+};
+
 const app = new Hono<{ Bindings: Env }>();
 
 app.post('/', async (c) => {
