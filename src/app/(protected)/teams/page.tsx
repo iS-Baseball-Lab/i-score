@@ -107,13 +107,13 @@ export default function TeamsPage() {
         finally { setIsCreating(false); }
     };
 
-    const handleCreateTeam = async (name: string, role: string) => {
+    const handleCreateTeam = async (name: string, role: string, year: number, tier: string) => {
         if (!name.trim() || !selectedOrg) return;
         setIsCreating(true);
         try {
             const res = await fetch('/api/teams', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, role, organizationId: selectedOrg.id }),
+                body: JSON.stringify({ name, role, organizationId: selectedOrg.id, year, tier }),
             });
             const data = await res.json() as any;
             if (res.ok && data.success) {

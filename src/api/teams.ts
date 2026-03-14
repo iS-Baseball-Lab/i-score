@@ -32,24 +32,30 @@ app.post('/', async (c) => {
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if (!session) return c.json({ error: 'Unauthorized' }, 401)
 
-    const body = await c.req.json()
+    // 💡 year と tier も受け取るように追加
+    const { name, role, organizationId, year, tier } = await c.req.json()
     const db = drizzle(c.env.DB)
-    const teamId = crypto.randomUUID()
 
     try {
+        const teamId = crypto.randomUUID()
+                                                
+        // 1. チームの作成
         await db.insert(teams).values({
             id: teamId,
-            organizationId: body.organizationId || null,
-            name: body.name,
+            organizationId,
+            name,
+            year: year || new Date().getFullYear(), // デフォルトは今年
+            tier: tier || null,
             createdBy: session.user.id,
             createdAt: new Date(),
         })
 
+        // 2. 作成者をチームメンバーとして登録
         await db.insert(teamMembers).values({
             id: crypto.randomUUID(),
-            teamId: teamId,
+            teamId,
             userId: session.user.id,
-            role: body.role || 'scorer',
+            role,
             joinedAt: new Date(),
         })
 

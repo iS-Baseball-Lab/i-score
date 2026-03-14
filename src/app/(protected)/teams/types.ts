@@ -10,6 +10,8 @@ export interface Team {
     id: string;
     name: string;
     organizationId: string | null;
+    year: number;
+    tier?: string;
 }
 
 export interface MatchRecord {

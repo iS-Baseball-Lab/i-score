@@ -1,7 +1,7 @@
 // src/app/(protected)/teams/_components/team-modals.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, X, Trash2, Settings, Info, Check, Swords, MapPin, CalendarDays, PlusCircle, Tag, UserCircle, Building2 } from "lucide-react";
+import { Loader2, Shield, X, Trash2, Settings, Info, Check, Swords, MapPin, CalendarDays, PlusCircle, Tag, UserCircle, Building2, Calendar, Layers } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { ROLES } from "@/lib/roles";
 import { Organization, Team, Opponent } from "../types";
@@ -18,7 +18,7 @@ interface CreateModalProps {
     isExternalOrgCreate?: boolean;
     defaultCategory?: string;
     onSubmitOrg: (name: string, category: string) => Promise<void>;
-    onSubmitTeam: (name: string, role: string) => Promise<void>;
+    onSubmitTeam: (name: string, role: string, year: number, tier: string) => Promise<void>;
 }
 
 export function CreateModal({ isOpen, onOpenChange, view, isCreating, isExternalOrgCreate, defaultCategory, onSubmitOrg, onSubmitTeam }: CreateModalProps) {
@@ -26,6 +26,8 @@ export function CreateModal({ isOpen, onOpenChange, view, isCreating, isExternal
     const [orgCategory, setOrgCategory] = useState("other");
     const [teamName, setTeamName] = useState("");
     const [teamRole, setTeamRole] = useState<string>(ROLES.SCORER);
+    const [teamYear, setTeamYear] = useState<number>(new Date().getFullYear());
+    const [teamTier, setTeamTier] = useState<string>("");
 
     useEffect(() => {
         if (isOpen) {
@@ -33,13 +35,15 @@ export function CreateModal({ isOpen, onOpenChange, view, isCreating, isExternal
             setOrgCategory(defaultCategory || "other");
             setTeamName("");
             setTeamRole(ROLES.SCORER);
+            setTeamYear(new Date().getFullYear());
+            setTeamTier("");
         }
     }, [isOpen, defaultCategory]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (view === 'orgs') await onSubmitOrg(orgName, orgCategory);
-        else await onSubmitTeam(teamName, teamRole);
+        else await onSubmitTeam(teamName, teamRole, teamYear, teamTier);
     };
 
     if (!isOpen) return null;
@@ -116,6 +120,31 @@ export function CreateModal({ isOpen, onOpenChange, view, isCreating, isExternal
                                         チーム名
                                     </label>
                                     <input type="text" required placeholder="例: 1軍 / ジュニア" className="flex h-14 w-full rounded-[18px] border border-border/50 bg-background px-5 text-base font-bold shadow-sm placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" value={teamName} onChange={(e) => setTeamName(e.target.value)} disabled={isCreating} autoFocus />
+                                </div>
+                                {/* 💡 年度とTierを横並びで美しく配置 */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-3">
+                                        <label className="text-base font-black text-foreground/90 tracking-tight pl-1 flex items-center gap-2">
+                                            <Calendar className="h-4 w-4 text-primary/70" />
+                                            年度 (Year)
+                                        </label>
+                                        <input 
+                                            type="number" required 
+                                            className="flex h-14 w-full rounded-[18px] border border-border/50 bg-background px-5 text-base font-bold shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" 
+                                            value={teamYear} onChange={(e) => setTeamYear(Number(e.target.value))} disabled={isCreating} 
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-base font-black text-foreground/90 tracking-tight pl-1 flex items-center gap-2">
+                                            <Layers className="h-4 w-4 text-primary/70" />
+                                            階層 (Tier)
+                                        </label>
+                                        <input 
+                                            type="text" placeholder="例: 1軍, A" 
+                                            className="flex h-14 w-full rounded-[18px] border border-border/50 bg-background px-5 text-base font-bold shadow-sm placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" 
+                                            value={teamTier} onChange={(e) => setTeamTier(e.target.value)} disabled={isCreating} 
+                                        />
+                                    </div>
                                 </div>
                                 <div className="space-y-3">
                                     <label className="text-base font-black text-foreground/90 tracking-tight pl-1 flex items-center gap-2">
