@@ -18,16 +18,11 @@
     --border: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
     --radius: 0.625rem;
-
-    /* 光彩エフェクトの濃さ（ライトモードは3%） */
     --bg-glow: 3%;
-
     /* 💡 円の波線（Wavy）の設定（ライトモード） */
-    /* 透明度を 10% → 6% に下げて、さらにさりげなく */
     --wavy-color: color-mix(in srgb, #616670 10%, transparent);
-    /* 間隔を 12px → 8px にして、より繊細できめ細かい波紋に */
     --wavy-size: 5px;
-    --background: oklch(1 0 0);
+    --background: oklch(0.922 0 0);
     --foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
@@ -109,11 +104,8 @@
     --primary-foreground: oklch(0.205 0 0);
     --border: oklch(1 0 0 / 10%);
     --ring: oklch(0.556 0 0);
-
-    /* ダークモードは光彩を控えめに（1.5%） */
     --bg-glow: 3%;
-
-    /* 💡 ダークモードも透明度を 5% → 3% に下げてさらに美しく馴染ませる */
+    /* 💡 円の波線（Wavy）の設定（ダークモード） */
     --wavy-color: color-mix(in srgb, #9ca3af 10%, transparent);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
