@@ -9,8 +9,12 @@ import { Plus } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { toast } from "sonner";
 import { Organization, Team, Opponent } from "./types";
-import { OrgList, TeamList } from "./_components/team-lists";
-import { CreateModal, DetailModal, OpponentDetailModal } from "./_components/team-modals";
+
+// 💡 美しく分割されたコンポーネント群をインポート
+import { OrgList } from "./_components/org-list";
+import { TeamList } from "./_components/team-list";
+import { CreateOrgModal, OrgDetailModal, OpponentDetailModal } from "./_components/org-modals";
+import { CreateTeamModal, TeamDetailModal } from "./_components/team-modals";
 
 export default function TeamsPage() {
     const router = useRouter();
@@ -26,29 +30,19 @@ export default function TeamsPage() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
 
-    // 💡 外部（対戦相手）クラブを作成するかどうかのフラグ
     const [isExternalOrgCreate, setIsExternalOrgCreate] = useState(false);
-
-    // 💡 カテゴリの記憶用 State
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
-    // 💡 マウント時に localStorage から復元
-    useEffect(() => {
-        const saved = localStorage.getItem('iScore_selectedCategory');
-        if (saved) setSelectedCategory(saved);
-        fetchOrgs(); // ついでにここで初期フェッチ
-    }, []);
-
-    // 💡 カテゴリが変更されたら保存する関数
-    const handleCategoryChange = (cat: string) => {
-        setSelectedCategory(cat);
-        localStorage.setItem('iScore_selectedCategory', cat);
-    };
 
     const [detailModal, setDetailModal] = useState<{ type: 'org' | 'team', data: Organization | Team } | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
 
     const [selectedOpponent, setSelectedOpponent] = useState<Opponent | null>(null);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('iScore_selectedCategory');
+        if (saved) setSelectedCategory(saved);
+        fetchOrgs();
+    }, []);
 
     const fetchOrgs = async () => {
         setIsLoadingOrgs(true);
@@ -68,17 +62,15 @@ export default function TeamsPage() {
         finally { setIsLoadingTeams(false); }
     };
 
-    useEffect(() => { fetchOrgs(); }, []);
+    const handleCategoryChange = (cat: string) => {
+        setSelectedCategory(cat);
+        localStorage.setItem('iScore_selectedCategory', cat);
+    };
 
     const handleSelectOrg = (org: Organization) => {
         setSelectedOrg(org);
         setView('teams');
         fetchTeams(org.id);
-    };
-
-    const handleBackToOrgs = () => {
-        setView('orgs');
-        setSelectedOrg(null);
     };
 
     const handleTeamClick = (teamId: string) => {
@@ -91,7 +83,6 @@ export default function TeamsPage() {
         if (!name.trim()) return;
         setIsCreating(true);
         try {
-            // 💡 外部クラブの場合は isExternal フラグを付与してAPIへ送信
             const res = await fetch('/api/organizations', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, isExternal: isExternalOrgCreate, category }),
@@ -133,10 +124,7 @@ export default function TeamsPage() {
         try {
             const url = detailModal.type === 'org' ? `/api/organizations/${detailModal.data.id}` : `/api/teams/${detailModal.data.id}`;
             const bodyPayload: any = { name: newName };
-
-            if (detailModal.type === 'org' && newCategory) {
-                bodyPayload.category = newCategory;
-            }
+            if (detailModal.type === 'org' && newCategory) bodyPayload.category = newCategory;
 
             const res = await fetch(url, {
                 method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -186,9 +174,8 @@ export default function TeamsPage() {
                         selectedCategory={selectedCategory}
                         onCategoryChange={handleCategoryChange}
                         onSelectOrg={handleSelectOrg}
-                        onOpenDetail={(e, type, data) => { e.preventDefault(); e.stopPropagation(); setDetailModal({ type, data }); }}
+                        onOpenDetail={(e, org) => { e.preventDefault(); e.stopPropagation(); setDetailModal({ type: 'org', data: org }); }}
                         onOpponentClick={(opp) => setSelectedOpponent(opp)}
-                        // 💡 OrgList側にDrawer起動用の関数を渡す
                         onAddOrg={(isExternal) => { setIsExternalOrgCreate(isExternal); setIsDrawerOpen(true); }}
                     />
                 ) : (
@@ -197,38 +184,51 @@ export default function TeamsPage() {
                             teams={teams}
                             selectedOrg={selectedOrg}
                             isLoading={isLoadingTeams}
-                            onBack={handleBackToOrgs}
+                            onBack={() => { setView('orgs'); setSelectedOrg(null); }}
                             onTeamClick={handleTeamClick}
-                            onOpenDetail={(e, type, data) => { e.preventDefault(); e.stopPropagation(); setDetailModal({ type, data }); }}
+                            onOpenDetail={(e, team) => { e.preventDefault(); e.stopPropagation(); setDetailModal({ type: 'team', data: team }); }}
                         />
                     )
                 )}
             </main>
 
-            {/* FABは通常クラブ作成用（view切り替え時はチーム作成） */}
             <Button onClick={() => { setIsExternalOrgCreate(false); setIsDrawerOpen(true); }} className="fixed bottom-8 right-4 sm:bottom-10 sm:right-8 h-16 w-16 rounded-full shadow-2xl shadow-primary/40 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:-translate-y-1 active:scale-[0.92] z-40 flex items-center justify-center">
                 <Plus className="h-8 w-8" />
             </Button>
 
-            <CreateModal
-                isOpen={isDrawerOpen}
+            {/* 💡 分割されたモーダル群をシンプルに呼び出す */}
+            <CreateOrgModal
+                isOpen={isDrawerOpen && view === 'orgs'}
                 onOpenChange={setIsDrawerOpen}
-                view={view}
                 isCreating={isCreating}
                 isExternalOrgCreate={isExternalOrgCreate}
                 defaultCategory={selectedCategory === 'all' ? 'other' : selectedCategory}
-                onSubmitOrg={handleCreateOrg}
-                onSubmitTeam={handleCreateTeam}
+                onSubmit={handleCreateOrg}
             />
 
-            <DetailModal
-                isOpen={!!detailModal}
-                type={detailModal?.type}
-                data={detailModal?.data}
-                selectedOrgRole={selectedOrg?.myRole}
+            <CreateTeamModal
+                isOpen={isDrawerOpen && view === 'teams'}
+                onOpenChange={setIsDrawerOpen}
+                isCreating={isCreating}
+                onSubmit={handleCreateTeam}
+            />
+
+            <OrgDetailModal
+                isOpen={!!detailModal && detailModal.type === 'org'}
+                data={detailModal?.data as Organization}
                 isUpdating={isUpdating}
                 onClose={() => setDetailModal(null)}
                 onUpdate={handleUpdate}
+                onDelete={handleDelete}
+            />
+
+            <TeamDetailModal
+                isOpen={!!detailModal && detailModal.type === 'team'}
+                data={detailModal?.data as Team}
+                selectedOrgRole={selectedOrg?.myRole}
+                isUpdating={isUpdating}
+                onClose={() => setDetailModal(null)}
+                onUpdate={(name) => handleUpdate(name)} // Teamはカテゴリなし
                 onDelete={handleDelete}
             />
 
