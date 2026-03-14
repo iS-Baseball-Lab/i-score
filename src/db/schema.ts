@@ -86,11 +86,11 @@ export const teams = sqliteTable('teams', {
     // 💡 1. ユーザーが自由に名付ける表示名（例: "2025年度 1軍"）
     name: text('name').notNull(),
     // 💡 2. 【必須キー】年度（データ混在を防ぐ絶対的な壁）
-    year: integer('year').notNull(),
+    year: integer('year').notNull().default(2026),
     // 💡 3. 【任意キー】階層・実力区分（A/B, 1軍/2軍など）
-    tier: text('tier'), 
+    tier: text('tier'),
     // 💡 4. 【任意キー】世代・入団期
-    generation: text('generation'), 
+    generation: text('generation'),
     // 💡 5. 【任意キー】チームの特性
     teamType: text('team_type').default('regular'), // 'regular', 'selection', 'practice'
     createdBy: text('created_by').notNull().references(() => user.id),
