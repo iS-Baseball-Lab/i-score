@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, DatabaseZap } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { toast } from "sonner";
 import { Organization, Team, Opponent } from "./types";
@@ -51,6 +51,23 @@ export default function TeamsPage() {
             if (res.ok) setOrgs(await res.json());
         } catch (e) { console.error(e); }
         finally { setIsLoadingOrgs(false); }
+    };
+
+    const handleSeedData = async () => {
+        if (!confirm('【開発用】テストデータを一括生成します。よろしいですか？\n（※既存のデータは消えません）')) return;
+
+        const loadingToast = toast.loading('データを生成中...');
+        try {
+            const res = await fetch('/api/seed', { method: 'POST' });
+            if (res.ok) {
+                toast.success('テストデータの生成が完了しました！', { id: loadingToast });
+                fetchOrgs(); // リストを再取得して画面を更新
+            } else {
+                toast.error('生成に失敗しました。', { id: loadingToast });
+            }
+        } catch (e) {
+            toast.error('通信エラーが発生しました。', { id: loadingToast });
+        }
     };
 
     const fetchTeams = async (orgId: string) => {
@@ -164,8 +181,22 @@ export default function TeamsPage() {
 
     return (
         <div className="flex flex-col min-h-screen text-foreground pb-32 relative overflow-hidden">
-            <PageHeader href="/dashboard" icon={RiTeamFill} title="クラブ・チーム管理" subtitle="所属するクラブとチームの作成・編集を行います。" />
+            {/* 💡 ヘッダーとテスト生成ボタンを横並びに！ */}
+            <div className="flex items-center justify-between px-4 sm:px-6 max-w-4xl mx-auto w-full pt-4">
+                <PageHeader href="/dashboard" icon={RiTeamFill} title="クラブ・チーム管理" subtitle="所属するクラブとチームの作成・編集を行います。" />
 
+                {/* 開発環境限定（または開発時のみ）のシークレットボタン */}
+                {process.env.NODE_ENV === 'development' && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSeedData}
+                        className="hidden sm:flex border-orange-500/30 text-orange-500 hover:bg-orange-500 hover:text-white transition-all bg-background/50 shadow-sm"
+                    >
+                        <DatabaseZap className="h-4 w-4 mr-2" /> テストデータを生成
+                    </Button>
+                )}
+            </div>
             <main className="flex-1 px-4 sm:px-6 max-w-4xl mx-auto w-full mt-6 sm:mt-8 relative z-10">
                 {view === 'orgs' ? (
                     <OrgList
