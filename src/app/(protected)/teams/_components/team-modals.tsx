@@ -1,10 +1,14 @@
 // src/app/(protected)/teams/_components/team-modals.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, X, Trash2, Settings, Info, Check, Calendar, Layers, UserCircle } from "lucide-react";
+import { Loader2, X, Trash2, Settings, Info, Check, Calendar, Layers, UserCircle } from "lucide-react";
+import { RiTeamFill } from "react-icons/ri"; // 💡 ShieldからRiTeamFillに変更！
 import { ROLES } from "@/lib/roles";
 import { Team } from "../types";
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 1. 編成新規作成モーダル
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 interface CreateTeamModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -35,14 +39,14 @@ export function CreateTeamModal({ isOpen, onOpenChange, isCreating, onSubmit }: 
                 <div className="mx-auto mt-4 h-1.5 w-16 rounded-full bg-border/50 sm:hidden" />
 
                 <div className="relative z-10 text-left px-6 sm:px-8 pt-6 pb-4 flex items-center justify-between border-b border-border/50 bg-background/50">
-                    <h2 className="text-xl sm:text-2xl font-black flex items-center gap-3 text-foreground drop-shadow-sm"><div className="p-2.5 bg-primary/10 rounded-2xl shadow-sm border border-primary/20 text-primary"><Shield className="h-6 w-6" /></div>編成を追加</h2>
+                    <h2 className="text-xl sm:text-2xl font-black flex items-center gap-3 text-foreground drop-shadow-sm"><div className="p-2.5 bg-primary/10 rounded-2xl shadow-sm border border-primary/20 text-primary"><RiTeamFill className="h-6 w-6" /></div>編成を追加</h2>
                     <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-10 w-10 rounded-full hover:bg-muted text-muted-foreground"><X className="h-5 w-5" /></Button>
                 </div>
 
                 <div className="relative z-10 px-6 sm:px-8 py-6 space-y-6 overflow-y-auto">
                     <form onSubmit={(e) => { e.preventDefault(); onSubmit(name, role, year, tier); }} className="space-y-6">
                         <div className="space-y-3">
-                            <label className="text-base font-black text-foreground/90 pl-1 flex items-center gap-2"><Shield className="h-4 w-4 text-primary/70" />編成名</label>
+                            <label className="text-base font-black text-foreground/90 pl-1 flex items-center gap-2"><RiTeamFill className="h-4 w-4 text-primary/70" />編成名</label>
                             <input type="text" required placeholder="例: 1軍 / ジュニア" className="flex h-14 w-full rounded-[18px] border border-border/50 bg-background px-5 text-base font-bold shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" value={name} onChange={(e) => setName(e.target.value)} disabled={isCreating} autoFocus />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -76,6 +80,9 @@ export function CreateTeamModal({ isOpen, onOpenChange, isCreating, onSubmit }: 
     );
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 2. 編成詳細・設定モーダル
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 interface TeamDetailModalProps {
     isOpen: boolean;
     data?: Team;
@@ -109,7 +116,7 @@ export function TeamDetailModal({ isOpen, data, selectedOrgRole, isUpdating, onC
                 <div className="relative z-10 flex items-center justify-between p-6 sm:p-8 pb-4 border-b border-border/50 bg-background/50 shrink-0">
                     <h2 className="text-xl sm:text-2xl font-black flex items-center gap-3 text-foreground tracking-tight drop-shadow-sm">
                         <div className="p-2.5 bg-primary/10 rounded-2xl shadow-sm border border-primary/20 text-primary">
-                            <Shield className="h-5 w-5" />
+                            <RiTeamFill className="h-5 w-5" /> {/* 💡 アイコン変更 */}
                         </div>
                         編成詳細情報
                     </h2>
@@ -120,7 +127,7 @@ export function TeamDetailModal({ isOpen, data, selectedOrgRole, isUpdating, onC
                     <div className="space-y-4">
                         <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-[20px] border border-border/50 shadow-sm">
                             <div className="h-14 w-14 shrink-0 rounded-full bg-background border border-border flex items-center justify-center text-primary shadow-sm">
-                                <Shield className="h-7 w-7" />
+                                <RiTeamFill className="h-7 w-7" /> {/* 💡 アイコン変更 */}
                             </div>
                             <div className="overflow-hidden">
                                 <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">編成名</div>

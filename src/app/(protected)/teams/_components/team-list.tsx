@@ -1,7 +1,8 @@
 // src/app/(protected)/teams/_components/team-list.tsx
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, ChevronRight, ChevronLeft, Settings, Info, CalendarDays, Layers } from "lucide-react";
+import { Loader2, ChevronRight, ChevronLeft, Settings, Info, CalendarDays, Layers } from "lucide-react";
+import { RiTeamFill } from "react-icons/ri"; // 💡 ShieldからRiTeamFillに変更！
 import { cn } from "@/lib/utils";
 import { Organization, Team } from "../types";
 
@@ -25,7 +26,7 @@ export function TeamList({ teams, selectedOrg, isLoading, onBack, onTeamClick, o
                     <div>
                         <div className="text-xs font-black text-primary tracking-wider uppercase mb-1">{selectedOrg.name}</div>
                         <h2 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5">
-                            <Shield className="h-6 w-6 text-primary" />
+                            <RiTeamFill className="h-6 w-6 text-primary" /> {/* 💡 アイコン変更 */}
                             所属チーム編成 <span className="text-muted-foreground/50 text-base sm:text-lg">({teams.length})</span>
                         </h2>
                     </div>
@@ -37,7 +38,7 @@ export function TeamList({ teams, selectedOrg, isLoading, onBack, onTeamClick, o
             ) : teams.length === 0 ? (
                 <div className="text-center py-24 bg-primary/5 rounded-[32px] border border-dashed border-primary/20 mt-6 shadow-sm">
                     <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-inner">
-                        <Shield className="h-12 w-12 text-primary/60" />
+                        <RiTeamFill className="h-12 w-12 text-primary/60" /> {/* 💡 アイコン変更 */}
                     </div>
                     <h3 className="text-xl font-black text-primary/90 mb-2 tracking-tight">編成が登録されていません</h3>
                 </div>
@@ -55,7 +56,7 @@ export function TeamList({ teams, selectedOrg, isLoading, onBack, onTeamClick, o
                             <CardContent className="p-6 sm:p-8 relative z-10 flex flex-col h-full pointer-events-none">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-3.5 bg-muted/50 rounded-[18px] text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary group-active:bg-primary/10 group-active:text-primary transition-colors duration-300 shadow-sm border border-border/50 group-hover:border-primary/20 group-active:border-primary/20">
-                                        <Shield className="h-7 w-7" />
+                                        <RiTeamFill className="h-7 w-7" /> {/* 💡 アイコン変更 */}
                                     </div>
                                     <div className="flex items-center gap-2 pointer-events-auto">
                                         <Button variant="ghost" size="icon" onClick={(e) => onOpenDetail(e, team)} className={cn("h-8 w-8 rounded-full transition-colors z-20", selectedOrg.myRole === 'OWNER' ? "text-primary/70 hover:bg-primary/10 hover:text-primary" : "text-muted-foreground hover:bg-muted")}>
