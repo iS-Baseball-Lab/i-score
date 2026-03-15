@@ -12,8 +12,9 @@ export interface Team {
     organizationId: string | null;
     year: number;
     tier?: string;
-    generation?: string; // 💡 追加
-    teamType?: string;   // 💡 追加
+    generation?: string;
+    teamType?: string;
+    myRole?: string;
 }
 
 export interface MatchRecord {
