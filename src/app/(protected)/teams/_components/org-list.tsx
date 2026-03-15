@@ -1,7 +1,8 @@
 // src/app/(protected)/teams/_components/org-list.tsx
+import { useState } from "react"; // 💡 useStateを追加
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronRight, Settings, Info, Swords, Search, Plus } from "lucide-react";
+import { Loader2, ChevronRight, Settings, Info, Swords, Search, Plus, ChevronDown } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 import { Organization } from "../types";
@@ -28,9 +29,16 @@ const CATEGORIES = [
 
 export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, onSelectOrg, onOpenDetail, onOpponentClick, onAddOrg }: OrgListProps) {
 
-    const filteredOrgs = selectedCategory === 'all'
-        ? orgs
-        : orgs.filter(org => org.category === selectedCategory);
+    // 💡 検索キーワードと表示件数（ページング）のStateを追加
+    const [searchQuery, setSearchQuery] = useState("");
+    const [visibleCount, setVisibleCount] = useState(10);
+
+    // 💡 カテゴリと検索キーワードの両方でフィルタリング！
+    const filteredOrgs = orgs.filter(org => {
+        const matchCategory = selectedCategory === 'all' || org.category === selectedCategory;
+        const matchSearch = org.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchCategory && matchSearch;
+    });
 
     const myOrgs = filteredOrgs.filter(org => org.myRole !== 'OPPONENT_MANAGER');
     const opponentOrgs = filteredOrgs.filter(org => org.myRole === 'OPPONENT_MANAGER');
@@ -39,6 +47,9 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
         id: org.id, name: org.name, matchCount: 0, lastMatch: '-',
         wins: 0, losses: 0, draws: 0, recentMatches: [], originalOrg: org
     }));
+
+    // 💡 表示する対戦相手をスライス（絞り込み）
+    const displayedOpponents = realOpponents.slice(0, visibleCount);
 
     if (isLoading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
@@ -57,7 +68,10 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                     return (
                         <button
                             key={c.id}
-                            onClick={() => onCategoryChange(c.id)}
+                            onClick={() => {
+                                onCategoryChange(c.id);
+                                setVisibleCount(10); // 💡 カテゴリを変えたら表示件数をリセット
+                            }}
                             className={cn(
                                 "flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-black transition-all active:scale-95 shadow-sm border",
                                 isSelected ? "bg-primary text-primary-foreground border-primary shadow-primary/20" : "bg-background/80 text-muted-foreground border-border/50 hover:bg-muted"
@@ -85,14 +99,12 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                     <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-inner">
                         <RiTeamFill className="h-12 w-12 text-primary/60" />
                     </div>
-                    <h3 className="text-xl font-black text-primary/90 mb-2 tracking-tight">クラブが登録されていません</h3>
+                    <h3 className="text-xl font-black text-primary/90 mb-2 tracking-tight">クラブが見つかりません</h3>
                 </div>
             ) : (
                 <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 mt-4">
                     {myOrgs.map((org) => (
                         <Card key={org.id} onClick={() => onSelectOrg(org)} className="group relative overflow-hidden rounded-[28px] border-border/50 bg-card shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/40 active:border-primary/40 active:scale-[0.96] cursor-pointer">
-
-                            {/* 💡 復活: 美しい3重の波紋アニメーション */}
                             <div className="absolute top-0 right-0 pointer-events-none">
                                 <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-110 group-active:scale-110" />
                                 <div className="absolute top-0 right-0 w-36 h-36 bg-primary/5 rounded-bl-full -mr-10 -mt-10 transition-transform duration-500 delay-75 group-hover:scale-110 group-active:scale-110 group-hover:bg-primary/10 group-active:bg-primary/10" />
@@ -113,12 +125,9 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                                         </Button>
                                     </div>
                                 </div>
-
-                                {/* 💡 復活: ホバー・クリック時のテキストカラー変化 */}
                                 <h3 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 truncate group-hover:text-primary group-active:text-primary transition-colors duration-300 drop-shadow-sm mt-auto">
                                     {org.name}
                                 </h3>
-
                                 <div className="flex items-center text-sm font-extrabold text-muted-foreground mt-4 group-hover:text-primary/80 group-active:text-primary/80 transition-colors duration-300">
                                     チーム一覧を開く <ChevronRight className="h-5 w-5 ml-1 transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-1" />
                                 </div>
@@ -140,7 +149,14 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         <div className="relative flex-1 sm:w-64">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <input type="text" placeholder="クラブを検索..." className="h-10 w-full rounded-full border border-border/50 bg-background pl-9 pr-4 text-sm font-bold shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all" />
+                            {/* 💡 検索入力を State と連携！ */}
+                            <input
+                                type="text"
+                                placeholder="クラブを検索..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="h-10 w-full rounded-full border border-border/50 bg-background pl-9 pr-4 text-sm font-bold shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+                            />
                         </div>
                         <Button variant="outline" size="sm" onClick={() => onAddOrg(true)} className="rounded-full font-bold h-10 bg-background/50 hover:bg-primary/10 hover:text-primary transition-colors border-border/50 shadow-sm shrink-0">
                             <Plus className="h-4 w-4 mr-1" /> 追加
@@ -148,15 +164,15 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                     </div>
                 </div>
 
-                {realOpponents.length === 0 ? (
+                {displayedOpponents.length === 0 ? (
                     <div className="text-center py-16 bg-muted/30 rounded-[32px] border border-dashed border-border/50 shadow-sm">
                         <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 border border-border shadow-inner text-muted-foreground"><Swords className="h-8 w-8" /></div>
-                        <h3 className="text-base font-black text-foreground/80 mb-1 tracking-tight">対戦相手が登録されていません</h3>
+                        <h3 className="text-base font-black text-foreground/80 mb-1 tracking-tight">対戦相手が見つかりません</h3>
                     </div>
                 ) : (
                     <div className="bg-card border border-border/50 rounded-[28px] overflow-hidden shadow-sm">
-                        {realOpponents.map((opp, index) => (
-                            <div key={opp.id} onClick={() => onOpponentClick(opp)} className={cn("group flex items-center justify-between p-4 sm:px-6 hover:bg-muted/50 transition-colors cursor-pointer", index !== realOpponents.length - 1 && "border-b border-border/50")}>
+                        {displayedOpponents.map((opp, index) => (
+                            <div key={opp.id} onClick={() => onOpponentClick(opp)} className={cn("group flex items-center justify-between p-4 sm:px-6 hover:bg-muted/50 transition-colors cursor-pointer", index !== displayedOpponents.length - 1 && "border-b border-border/50")}>
                                 <div className="flex items-center gap-4">
                                     <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-sm sm:text-base border border-primary/20 shrink-0 group-hover:scale-105 transition-transform">{opp.name.charAt(0)}</div>
                                     <div className="flex flex-col">
@@ -169,6 +185,16 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                                 <div className="h-8 w-8 rounded-full bg-background border border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-sm"><ChevronRight className="h-4 w-4" /></div>
                             </div>
                         ))}
+
+                        {/* 💡 もっと見るボタン */}
+                        {realOpponents.length > visibleCount && (
+                            <button
+                                onClick={() => setVisibleCount(prev => prev + 10)}
+                                className="w-full py-4 text-sm font-black flex items-center justify-center gap-2 text-primary/70 hover:text-primary hover:bg-primary/5 transition-colors border-t border-border/50"
+                            >
+                                もっと見る ({realOpponents.length - visibleCount}件) <ChevronDown className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

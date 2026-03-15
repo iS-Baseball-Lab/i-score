@@ -44,6 +44,22 @@ app.post('/', async (c) => {
     const db = drizzle(c.env.DB)
 
     try {
+        // 💡 自分が既に同じ名前のクラブに所属（または管理）していないかチェック
+        const existingOrgs = await db.select({ id: organizations.id })
+            .from(organizations)
+            .innerJoin(organizationMembers, eq(organizations.id, organizationMembers.organizationId))
+            .where(
+                and(
+                    eq(organizations.name, name),
+                    eq(organizationMembers.userId, session.user.id)
+                )
+            ).limit(1)
+
+        // もし同じ名前が見つかったらエラーを返す！
+        if (existingOrgs.length > 0) {
+            return c.json({ success: false, error: `「${name}」は既に登録されています。` }, 400)
+        }
+
         const newOrgId = crypto.randomUUID()
 
         // 1. クラブの作成（中立な組織として作成）
