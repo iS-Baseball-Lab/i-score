@@ -6,9 +6,6 @@ import { RiTeamFill } from "react-icons/ri";
 import { Organization, Opponent } from "../types";
 import { cn } from "@/lib/utils";
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 1. クラブ新規作成モーダル
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 interface CreateOrgModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -43,7 +40,7 @@ export function CreateOrgModal({ isOpen, onOpenChange, isCreating, isExternalOrg
                         <div className="p-2.5 bg-primary/10 rounded-2xl shadow-sm border border-primary/20 text-primary">
                             {isExternalOrgCreate ? <Swords className="h-6 w-6" /> : <RiTeamFill className="h-6 w-6" />}
                         </div>
-                        {isExternalOrgCreate ? "対戦相手を追加" : "クラブを作る"}
+                        {isExternalOrgCreate ? "対戦相手を追加" : "チームを作る"}
                     </h2>
                     <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-10 w-10 rounded-full hover:bg-muted text-muted-foreground"><X className="h-5 w-5" /></Button>
                 </div>
@@ -51,18 +48,23 @@ export function CreateOrgModal({ isOpen, onOpenChange, isCreating, isExternalOrg
                 <div className="relative z-10 px-6 sm:px-8 py-6 space-y-6 overflow-y-auto">
                     <form onSubmit={(e) => { e.preventDefault(); onSubmit(name, category); }} className="space-y-6">
                         <div className="space-y-3">
-                            <label className="text-base font-black text-foreground/90 pl-1 flex items-center gap-2"><Building2 className="h-4 w-4 text-primary/70" />{isExternalOrgCreate ? "対戦相手のクラブ名" : "クラブ名"}</label>
+                            <label className="text-base font-black text-foreground/90 pl-1 flex items-center gap-2"><Building2 className="h-4 w-4 text-primary/70" />{isExternalOrgCreate ? "対戦相手のチーム名" : "チーム名"}</label>
                             <input type="text" required placeholder={isExternalOrgCreate ? "例: 世田谷西シニア" : "例: 川崎中央シニア"} className="flex h-14 w-full rounded-[18px] border border-border/50 bg-background px-5 text-base font-bold shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" value={name} onChange={(e) => setName(e.target.value)} disabled={isCreating} autoFocus />
                         </div>
                         <div className="space-y-3">
                             <label className="text-base font-black text-foreground/90 pl-1 flex items-center gap-2"><Tag className="h-4 w-4 text-primary/70" />カテゴリ</label>
-                            <select className="flex h-14 w-full appearance-none rounded-[18px] border border-border/50 bg-background px-5 pr-10 text-base font-bold text-foreground shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%222.5%22%20stroke%3D%22%2371717a%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19%209l-7%207-7-7%22%2F%3E%3C%2Fsvg%3E')] bg-[length:18px_18px] bg-[position:right_18px_center] bg-no-repeat" value={category} onChange={(e) => setCategory(e.target.value)} disabled={isCreating}>
-                                <option value="gakudo">🧢 学童野球</option>
-                                <option value="junior">⚾️ 中学野球</option>
+                            <select className="flex h-14 w-full appearance-none rounded-[18px] border border-border/50 bg-background px-5 pr-10 text-base font-bold text-foreground shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%222.5%22%20stroke%3D%22%2371717a%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19%209l-7%207-7-7%22%2F%3E%3C%2Fsvg%3E')] bg-[length:18px_18px] bg-[position:right_16px_center] bg-no-repeat" value={category} onChange={(e) => setCategory(e.target.value)} disabled={isCreating}>
+                                <option value="gakudo">🧢 学童野球（少年野球）</option>
+                                <option value="junior">⚾️ 中学野球（シニア/ボーイズ等）</option>
                                 <option value="high">🏫 高校野球</option>
                                 <option value="adult">🍺 一般・草野球</option>
                                 <option value="other">📝 その他</option>
                             </select>
+                            {isExternalOrgCreate && (
+                                <p className="text-xs font-bold text-muted-foreground pl-1 mt-2 flex items-center gap-1.5">
+                                    <Info className="h-3.5 w-3.5 text-primary" /> 作成後、相手の編成（1軍など）を追加してください。
+                                </p>
+                            )}
                         </div>
                         <Button type="submit" disabled={isCreating} className="w-full h-14 rounded-[20px] font-black text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20">
                             {isCreating ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : "作成する"}
@@ -74,9 +76,6 @@ export function CreateOrgModal({ isOpen, onOpenChange, isCreating, isExternalOrg
     );
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 2. クラブ詳細・設定モーダル
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 interface OrgDetailModalProps {
     isOpen: boolean;
     data?: Organization;
@@ -118,7 +117,7 @@ export function OrgDetailModal({ isOpen, data, isUpdating, onClose, onUpdate, on
                         <div className="p-2.5 bg-primary/10 rounded-2xl shadow-sm border border-primary/20 text-primary">
                             {isOpponent ? <Swords className="h-5 w-5" /> : <RiTeamFill className="h-5 w-5" />}
                         </div>
-                        {isOpponent ? "対戦相手 詳細情報" : "クラブ詳細情報"}
+                        {isOpponent ? "対戦相手 詳細情報" : "チーム詳細情報"}
                     </h2>
                     <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 rounded-full hover:bg-muted text-muted-foreground transition-all"><X className="h-5 w-5" /></Button>
                 </div>
@@ -155,7 +154,7 @@ export function OrgDetailModal({ isOpen, data, isUpdating, onClose, onUpdate, on
                                     <Settings className="h-4 w-4 text-primary/70" /> 情報の編集
                                 </label>
                                 <div className="space-y-3">
-                                    <input type="text" placeholder="クラブ名" className="flex h-12 w-full rounded-[16px] border border-border/50 bg-background px-4 text-base font-bold shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" value={editName} onChange={(e) => setEditName(e.target.value)} disabled={isUpdating} />
+                                    <input type="text" placeholder="チーム名" className="flex h-12 w-full rounded-[16px] border border-border/50 bg-background px-4 text-base font-bold shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" value={editName} onChange={(e) => setEditName(e.target.value)} disabled={isUpdating} />
                                     <select className="flex h-12 w-full appearance-none rounded-[16px] border border-border/50 bg-background px-4 pr-10 text-base font-bold text-foreground shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%222.5%22%20stroke%3D%22%2371717a%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19%209l-7%207-7-7%22%2F%3E%3C%2Fsvg%3E')] bg-[length:18px_18px] bg-[position:right_16px_center] bg-no-repeat" value={editCategory} onChange={(e) => setEditCategory(e.target.value)} disabled={isUpdating}>
                                         <option value="gakudo">🧢 学童野球（少年野球）</option>
                                         <option value="junior">⚾️ 中学野球（シニア/ボーイズ等）</option>
@@ -170,7 +169,7 @@ export function OrgDetailModal({ isOpen, data, isUpdating, onClose, onUpdate, on
                             </div>
                             <div className="pt-2">
                                 <Button variant="outline" onClick={onDelete} disabled={isUpdating} className="w-full h-12 rounded-[16px] font-extrabold border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all">
-                                    <Trash2 className="h-4 w-4 mr-2" /> このクラブを完全に削除
+                                    <Trash2 className="h-4 w-4 mr-2" /> このチームを完全に削除
                                 </Button>
                             </div>
                         </>
@@ -185,9 +184,6 @@ export function OrgDetailModal({ isOpen, data, isUpdating, onClose, onUpdate, on
     );
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 3. 対戦相手プレビューモーダル
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 interface OpponentDetailModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -281,7 +277,7 @@ export function OpponentDetailModal({ isOpen, onOpenChange, opponent }: Opponent
 
                 <div className="relative z-10 px-6 sm:px-8 py-4 border-t border-border/50 bg-background/50 shrink-0">
                     <Button className="w-full h-14 rounded-[20px] font-black text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
-                        <PlusCircle className="mr-2 h-5 w-5" /> このクラブとの新しい試合を記録
+                        <PlusCircle className="mr-2 h-5 w-5" /> このチームとの新しい試合を記録
                     </Button>
                 </div>
             </div>

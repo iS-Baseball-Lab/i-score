@@ -5,9 +5,6 @@ import { Loader2, Shield, X, Trash2, Settings, Info, Check, Calendar, Layers, Us
 import { ROLES } from "@/lib/roles";
 import { Team } from "../types";
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 1. チーム新規作成モーダル
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 interface CreateTeamModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -38,14 +35,14 @@ export function CreateTeamModal({ isOpen, onOpenChange, isCreating, onSubmit }: 
                 <div className="mx-auto mt-4 h-1.5 w-16 rounded-full bg-border/50 sm:hidden" />
 
                 <div className="relative z-10 text-left px-6 sm:px-8 pt-6 pb-4 flex items-center justify-between border-b border-border/50 bg-background/50">
-                    <h2 className="text-xl sm:text-2xl font-black flex items-center gap-3 text-foreground drop-shadow-sm"><div className="p-2.5 bg-primary/10 rounded-2xl shadow-sm border border-primary/20 text-primary"><Shield className="h-6 w-6" /></div>チームを追加</h2>
+                    <h2 className="text-xl sm:text-2xl font-black flex items-center gap-3 text-foreground drop-shadow-sm"><div className="p-2.5 bg-primary/10 rounded-2xl shadow-sm border border-primary/20 text-primary"><Shield className="h-6 w-6" /></div>編成を追加</h2>
                     <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-10 w-10 rounded-full hover:bg-muted text-muted-foreground"><X className="h-5 w-5" /></Button>
                 </div>
 
                 <div className="relative z-10 px-6 sm:px-8 py-6 space-y-6 overflow-y-auto">
                     <form onSubmit={(e) => { e.preventDefault(); onSubmit(name, role, year, tier); }} className="space-y-6">
                         <div className="space-y-3">
-                            <label className="text-base font-black text-foreground/90 pl-1 flex items-center gap-2"><Shield className="h-4 w-4 text-primary/70" />チーム名</label>
+                            <label className="text-base font-black text-foreground/90 pl-1 flex items-center gap-2"><Shield className="h-4 w-4 text-primary/70" />編成名</label>
                             <input type="text" required placeholder="例: 1軍 / ジュニア" className="flex h-14 w-full rounded-[18px] border border-border/50 bg-background px-5 text-base font-bold shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" value={name} onChange={(e) => setName(e.target.value)} disabled={isCreating} autoFocus />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -79,9 +76,6 @@ export function CreateTeamModal({ isOpen, onOpenChange, isCreating, onSubmit }: 
     );
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 2. チーム詳細・設定モーダル
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 interface TeamDetailModalProps {
     isOpen: boolean;
     data?: Team;
@@ -117,7 +111,7 @@ export function TeamDetailModal({ isOpen, data, selectedOrgRole, isUpdating, onC
                         <div className="p-2.5 bg-primary/10 rounded-2xl shadow-sm border border-primary/20 text-primary">
                             <Shield className="h-5 w-5" />
                         </div>
-                        チーム詳細情報
+                        編成詳細情報
                     </h2>
                     <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 rounded-full hover:bg-muted text-muted-foreground transition-all"><X className="h-5 w-5" /></Button>
                 </div>
@@ -129,7 +123,7 @@ export function TeamDetailModal({ isOpen, data, selectedOrgRole, isUpdating, onC
                                 <Shield className="h-7 w-7" />
                             </div>
                             <div className="overflow-hidden">
-                                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">チーム名</div>
+                                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">編成名</div>
                                 <div className="text-lg sm:text-xl font-black truncate">{data.name}</div>
                             </div>
                         </div>
@@ -157,7 +151,7 @@ export function TeamDetailModal({ isOpen, data, selectedOrgRole, isUpdating, onC
                                     <Settings className="h-4 w-4 text-primary/70" /> 情報の編集
                                 </label>
                                 <div className="space-y-3">
-                                    <input type="text" placeholder="チーム名" className="flex h-12 w-full rounded-[16px] border border-border/50 bg-background px-4 text-base font-bold shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" value={editName} onChange={(e) => setEditName(e.target.value)} disabled={isUpdating} />
+                                    <input type="text" placeholder="編成名" className="flex h-12 w-full rounded-[16px] border border-border/50 bg-background px-4 text-base font-bold shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-foreground" value={editName} onChange={(e) => setEditName(e.target.value)} disabled={isUpdating} />
                                     <Button onClick={() => onUpdate(editName)} disabled={isUpdating || !hasChanges} className="h-12 w-full rounded-[16px] font-black mt-2">
                                         {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4 mr-2" /> 更新を保存する</>}
                                     </Button>
@@ -165,13 +159,13 @@ export function TeamDetailModal({ isOpen, data, selectedOrgRole, isUpdating, onC
                             </div>
                             <div className="pt-2">
                                 <Button variant="outline" onClick={onDelete} disabled={isUpdating} className="w-full h-12 rounded-[16px] font-extrabold border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all">
-                                    <Trash2 className="h-4 w-4 mr-2" /> このチームを完全に削除
+                                    <Trash2 className="h-4 w-4 mr-2" /> この編成を完全に削除
                                 </Button>
                             </div>
                         </>
                     ) : (
                         <div className="mt-4 p-4 bg-primary/5 rounded-[16px] border border-primary/10 text-center">
-                            <p className="text-xs font-bold text-primary/70">設定を変更するにはクラブの代表者権限が必要です。</p>
+                            <p className="text-xs font-bold text-primary/70">設定を変更するにはチームの代表者権限が必要です。</p>
                         </div>
                     )}
                 </div>

@@ -1,5 +1,5 @@
 // src/app/(protected)/teams/_components/org-list.tsx
-import { useState } from "react"; // 💡 useStateを追加
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronRight, Settings, Info, Swords, Search, Plus, ChevronDown } from "lucide-react";
@@ -29,11 +29,9 @@ const CATEGORIES = [
 
 export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, onSelectOrg, onOpenDetail, onOpponentClick, onAddOrg }: OrgListProps) {
 
-    // 💡 検索キーワードと表示件数（ページング）のStateを追加
     const [searchQuery, setSearchQuery] = useState("");
     const [visibleCount, setVisibleCount] = useState(10);
 
-    // 💡 カテゴリと検索キーワードの両方でフィルタリング！
     const filteredOrgs = orgs.filter(org => {
         const matchCategory = selectedCategory === 'all' || org.category === selectedCategory;
         const matchSearch = org.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -48,7 +46,6 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
         wins: 0, losses: 0, draws: 0, recentMatches: [], originalOrg: org
     }));
 
-    // 💡 表示する対戦相手をスライス（絞り込み）
     const displayedOpponents = realOpponents.slice(0, visibleCount);
 
     if (isLoading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -61,7 +58,6 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
 
     return (
         <div className="animate-in slide-in-from-left-4 fade-in duration-300 pb-10">
-            {/* カテゴリ・リボン */}
             <div className="flex gap-2 overflow-x-auto pb-4 mb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                 {CATEGORIES.map(c => {
                     const isSelected = selectedCategory === c.id;
@@ -70,7 +66,7 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                             key={c.id}
                             onClick={() => {
                                 onCategoryChange(c.id);
-                                setVisibleCount(10); // 💡 カテゴリを変えたら表示件数をリセット
+                                setVisibleCount(10);
                             }}
                             className={cn(
                                 "flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-black transition-all active:scale-95 shadow-sm border",
@@ -83,11 +79,10 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                 })}
             </div>
 
-            {/* 所属クラブセクション */}
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5">
                     <RiTeamFill className="h-6 w-6 text-primary" />
-                    所属クラブ <span className="text-muted-foreground/50 text-base sm:text-lg">({myOrgs.length})</span>
+                    所属チーム <span className="text-muted-foreground/50 text-base sm:text-lg">({myOrgs.length})</span>
                 </h2>
                 <Button variant="outline" size="sm" onClick={() => onAddOrg(false)} className="rounded-full font-bold h-9 bg-background/50 hover:bg-primary/10 hover:text-primary transition-colors border-border/50 shadow-sm md:hidden">
                     <Plus className="h-4 w-4 mr-1" /> 追加
@@ -99,7 +94,7 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                     <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-inner">
                         <RiTeamFill className="h-12 w-12 text-primary/60" />
                     </div>
-                    <h3 className="text-xl font-black text-primary/90 mb-2 tracking-tight">クラブが見つかりません</h3>
+                    <h3 className="text-xl font-black text-primary/90 mb-2 tracking-tight">チームが登録されていません</h3>
                 </div>
             ) : (
                 <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 mt-4">
@@ -129,7 +124,7 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                                     {org.name}
                                 </h3>
                                 <div className="flex items-center text-sm font-extrabold text-muted-foreground mt-4 group-hover:text-primary/80 group-active:text-primary/80 transition-colors duration-300">
-                                    チーム一覧を開く <ChevronRight className="h-5 w-5 ml-1 transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-1" />
+                                    編成一覧を開く <ChevronRight className="h-5 w-5 ml-1 transition-transform duration-300 group-hover:translate-x-1 group-active:translate-x-1" />
                                 </div>
                             </CardContent>
                         </Card>
@@ -137,22 +132,20 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                 </div>
             )}
 
-            {/* 対戦履歴・その他のクラブセクション */}
             <div className="mt-16 animate-in slide-in-from-bottom-8 fade-in duration-500 delay-150 fill-mode-both">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pt-6 border-t border-border/50">
                     <div>
                         <h2 className="text-lg sm:text-xl font-black tracking-tight flex items-center gap-2.5 text-foreground/80">
                             <Swords className="h-5 w-5 text-primary/70" />
-                            対戦相手・その他クラブ <span className="text-muted-foreground/50 text-base sm:text-lg">({realOpponents.length})</span>
+                            対戦相手・その他チーム <span className="text-muted-foreground/50 text-base sm:text-lg">({realOpponents.length})</span>
                         </h2>
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         <div className="relative flex-1 sm:w-64">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            {/* 💡 検索入力を State と連携！ */}
                             <input
                                 type="text"
-                                placeholder="クラブを検索..."
+                                placeholder="チームを検索..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="h-10 w-full rounded-full border border-border/50 bg-background pl-9 pr-4 text-sm font-bold shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
@@ -186,7 +179,6 @@ export function OrgList({ orgs, isLoading, selectedCategory, onCategoryChange, o
                             </div>
                         ))}
 
-                        {/* 💡 もっと見るボタン */}
                         {realOpponents.length > visibleCount && (
                             <button
                                 onClick={() => setVisibleCount(prev => prev + 10)}

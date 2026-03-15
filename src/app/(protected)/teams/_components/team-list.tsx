@@ -19,14 +19,14 @@ export function TeamList({ teams, selectedOrg, isLoading, onBack, onTeamClick, o
         <div className="animate-in slide-in-from-right-4 fade-in duration-300">
             <div className="mb-6 flex flex-col items-start gap-4">
                 <Button variant="ghost" onClick={onBack} className="rounded-full pl-2 pr-4 hover:bg-muted text-muted-foreground font-extrabold">
-                    <ChevronLeft className="h-5 w-5 mr-1" /> クラブ一覧へ戻る
+                    <ChevronLeft className="h-5 w-5 mr-1" /> チーム一覧へ戻る
                 </Button>
                 <div className="flex items-center justify-between w-full pl-2">
                     <div>
                         <div className="text-xs font-black text-primary tracking-wider uppercase mb-1">{selectedOrg.name}</div>
                         <h2 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5">
                             <Shield className="h-6 w-6 text-primary" />
-                            所属チーム <span className="text-muted-foreground/50 text-base sm:text-lg">({teams.length})</span>
+                            所属チーム編成 <span className="text-muted-foreground/50 text-base sm:text-lg">({teams.length})</span>
                         </h2>
                     </div>
                 </div>
@@ -39,14 +39,13 @@ export function TeamList({ teams, selectedOrg, isLoading, onBack, onTeamClick, o
                     <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-inner">
                         <Shield className="h-12 w-12 text-primary/60" />
                     </div>
-                    <h3 className="text-xl font-black text-primary/90 mb-2 tracking-tight">チームが登録されていません</h3>
+                    <h3 className="text-xl font-black text-primary/90 mb-2 tracking-tight">編成が登録されていません</h3>
                 </div>
             ) : (
                 <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 mt-4">
                     {teams.map((team) => (
                         <Card key={team.id} onClick={() => onTeamClick(team.id)} className="group relative overflow-hidden rounded-[28px] border-border/50 bg-card shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/40 active:border-primary/40 active:scale-[0.96] cursor-pointer flex flex-col">
 
-                            {/* 💡 復活: 美しい3重の波紋アニメーション */}
                             <div className="absolute top-0 right-0 pointer-events-none">
                                 <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform duration-500 group-hover:scale-110 group-active:scale-110" />
                                 <div className="absolute top-0 right-0 w-36 h-36 bg-primary/5 rounded-bl-full -mr-10 -mt-10 transition-transform duration-500 delay-75 group-hover:scale-110 group-active:scale-110 group-hover:bg-primary/10 group-active:bg-primary/10" />
@@ -79,7 +78,6 @@ export function TeamList({ teams, selectedOrg, isLoading, onBack, onTeamClick, o
                                         )}
                                     </div>
 
-                                    {/* 💡 復活: ホバー・クリック時のテキストカラー変化 */}
                                     <h3 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 truncate group-hover:text-primary group-active:text-primary transition-colors duration-300 drop-shadow-sm">
                                         {team.name}
                                     </h3>

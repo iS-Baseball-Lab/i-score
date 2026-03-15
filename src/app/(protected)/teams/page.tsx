@@ -5,12 +5,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Plus, DatabaseZap } from "lucide-react";
+import { Plus } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { toast } from "sonner";
 import { Organization, Team, Opponent } from "./types";
 
-// 💡 美しく分割されたコンポーネント群をインポート
 import { OrgList } from "./_components/org-list";
 import { TeamList } from "./_components/team-list";
 import { CreateOrgModal, OrgDetailModal, OpponentDetailModal } from "./_components/org-modals";
@@ -89,7 +88,7 @@ export default function TeamsPage() {
             });
             const data = await res.json() as { success: boolean; error?: string };
             if (res.ok && data.success) {
-                toast.success(isExternalOrgCreate ? "対戦相手を追加しました！" : "クラブを作成しました！");
+                toast.success(isExternalOrgCreate ? "対戦相手を追加しました！" : "チームを作成しました！");
                 setIsDrawerOpen(false);
                 handleCategoryChange(category);
                 fetchOrgs();
@@ -108,7 +107,7 @@ export default function TeamsPage() {
             });
             const data = await res.json() as any;
             if (res.ok && data.success) {
-                toast.success("チームを作成しました！");
+                toast.success("チーム編成を作成しました！");
                 setIsDrawerOpen(false);
                 localStorage.setItem("iScore_selectedTeamId", data.teamId);
                 localStorage.setItem("iScore_selectedOrgId", selectedOrg.id);
@@ -143,7 +142,7 @@ export default function TeamsPage() {
 
     const handleDelete = async () => {
         if (!detailModal) return;
-        const typeName = detailModal.type === 'org' ? 'クラブ' : 'チーム';
+        const typeName = detailModal.type === 'org' ? 'チーム' : 'チーム編成';
         if (!confirm(`⚠️ 本当に${typeName}「${detailModal.data.name}」を削除しますか？\n（復旧はできません！）`)) return;
 
         setIsUpdating(true);
@@ -164,7 +163,8 @@ export default function TeamsPage() {
 
     return (
         <div className="flex flex-col min-h-screen text-foreground pb-32 relative overflow-x-hidden">
-            <PageHeader href="/dashboard" icon={RiTeamFill} title="クラブ・チーム管理" subtitle="所属するクラブとチームの作成・編集を行います。" />
+            <PageHeader href="/dashboard" icon={RiTeamFill} title="チーム・チーム編成管理" subtitle="所属するチームとチーム編成の作成・編集を行います。" />
+
             <main className="flex-1 px-4 sm:px-6 max-w-4xl mx-auto w-full mt-6 sm:mt-8 relative z-10">
                 {view === 'orgs' ? (
                     <OrgList
@@ -195,7 +195,6 @@ export default function TeamsPage() {
                 <Plus className="h-8 w-8" />
             </Button>
 
-            {/* 💡 分割されたモーダル群をシンプルに呼び出す */}
             <CreateOrgModal
                 isOpen={isDrawerOpen && view === 'orgs'}
                 onOpenChange={setIsDrawerOpen}
@@ -227,7 +226,7 @@ export default function TeamsPage() {
                 selectedOrgRole={selectedOrg?.myRole}
                 isUpdating={isUpdating}
                 onClose={() => setDetailModal(null)}
-                onUpdate={(name) => handleUpdate(name)} // Teamはカテゴリなし
+                onUpdate={(name) => handleUpdate(name)}
                 onDelete={handleDelete}
             />
 
