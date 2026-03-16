@@ -18,7 +18,14 @@ export interface Match {
 }
 
 export interface Team {
-  id: string; name: string; myRole: string; isFounder: boolean;
+  id: string;
+  name: string;
+  myRole: string;
+  isFounder: boolean;
+  year?: number;
+  tier?: string;
+  generation?: string;
+  teamType?: string;
 }
 
 export interface PlayerStats {
@@ -59,8 +66,8 @@ export function RecentMatches({ matches, isLoadingData, currentTeam, canEdit, on
         </div>
       ) : matches.length === 0 ? (
         <div className="text-center py-16 bg-muted/20 rounded-[32px] border border-dashed border-border/60">
-            <Trophy className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground font-bold">まだ試合の記録がありません。</p>
+          <Trophy className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-muted-foreground font-bold">まだ試合の記録がありません。</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">

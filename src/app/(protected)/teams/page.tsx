@@ -122,7 +122,7 @@ export default function TeamsPage() {
         try {
             const url = detailModal.type === 'org' ? `/api/organizations/${detailModal.data.id}` : `/api/teams/${detailModal.data.id}`;
             const bodyPayload: any = { name: newName };
-            
+
             if (detailModal.type === 'org' && extraData) {
                 bodyPayload.category = extraData;
             } else if (detailModal.type === 'team' && extraData) {
@@ -170,7 +170,7 @@ export default function TeamsPage() {
 
     return (
         <div className="flex flex-col min-h-screen text-foreground pb-32 relative overflow-x-hidden">
-            <PageHeader href="/dashboard" icon={RiTeamFill} title="チーム・チーム編成" subtitle="所属するチームとチーム編成の作成・編集を行います。" />
+            <PageHeader href="/dashboard" icon={RiTeamFill} title="チーム" subtitle="所属するチームの作成・編集や対戦チームの確認が行えます。" />
 
             <main className="flex-1 px-4 sm:px-6 max-w-4xl mx-auto w-full mt-6 sm:mt-8 relative z-10">
                 {view === 'orgs' ? (

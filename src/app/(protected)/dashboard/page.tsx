@@ -111,19 +111,19 @@ export default function DashboardPage() {
       });
       if (res.ok) {
         setEditingTeamId(null);
-        toast.success("チーム名を更新しました");
+        toast.success("編成名を更新しました");
         await fetchTeams();
       } else toast.error('更新に失敗しました');
     } catch (e) { console.error(e); }
   };
 
   const handleDeleteTeam = async (targetTeamId: string) => {
-    if (!confirm('⚠️ 本当にこのチームを削除しますか？\n（所属選手やこれまでの試合データがすべて完全に消去されます！）')) return;
+    if (!confirm('⚠️ 本当にこの編成を削除しますか？\n（所属選手やこれまでの試合データがすべて完全に消去されます！）')) return;
     try {
       const res = await fetch(`/api/teams/${targetTeamId}`, { method: 'DELETE' });
       if (res.ok) {
         if (selectedTeamId === targetTeamId) setSelectedTeamId("");
-        toast.success("チームを削除しました");
+        toast.success("編成を削除しました");
         await fetchTeams();
       } else toast.error('削除に失敗しました');
     } catch (e) { console.error(e); }
@@ -211,27 +211,25 @@ export default function DashboardPage() {
     return (
       <div className="container mx-auto max-w-xl px-4 py-20 animate-in slide-in-from-bottom-4 fade-in duration-500">
         <div className="text-center mb-10">
-          {/* 💡 修正: Blue系をすべて Primary系 に変更 */}
           <div className="h-28 w-28 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-primary/20 relative">
             <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse shadow-xs" />
             <RiTeamFill className="h-14 w-14 text-primary relative z-10" />
           </div>
           <h1 className="text-4xl font-black tracking-tight mb-4 drop-shadow-sm text-foreground">ようこそ i-Score へ！</h1>
-          <p className="text-muted-foreground font-extrabold text-lg">まずはあなたの「クラブ」と「チーム」を立ち上げましょう。</p>
+          {/* 💡 クラブ・チーム から チーム・編成 に修正 */}
+          <p className="text-muted-foreground font-extrabold text-lg">まずはあなたの「チーム」と「編成」を立ち上げましょう。</p>
         </div>
 
-        {/* 💡 修正: 背景を bg-card/80 にして白く浮き上がらせる */}
         <Card className="rounded-[32px] border-border/40 shadow-xs bg-card/80 backdrop-blur-2xl overflow-hidden text-center p-8 sm:p-12 relative group">
-          {/* 💡 修正: 上部のグラデーションラインを Primary に */}
           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary/60 to-primary" />
-
+          {/* 💡 文言修正 */}
           <p className="text-sm font-bold text-muted-foreground mb-8">
-            クラブ管理画面から、新しいクラブを作成し、その中に1軍やジュニアチームを追加できます。
+            管理画面から、新しいチーム（組織）を作成し、その中に「1軍」や「ジュニア」などの編成を追加できます。
           </p>
 
-          {/* 💡 修正: ボタンも Primary カラーに */}
           <Button asChild className="h-16 px-10 text-lg font-black rounded-[24px] shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.96]">
-            <Link href="/teams">クラブ・チーム管理へ進む <ChevronRight className="ml-2 h-6 w-6 transition-transform group-hover:translate-x-1" /></Link>
+            {/* 💡 ボタンテキスト修正 */}
+            <Link href="/teams">チーム・編成管理へ進む <ChevronRight className="ml-2 h-6 w-6 transition-transform group-hover:translate-x-1" /></Link>
           </Button>
         </Card>
       </div>
@@ -250,12 +248,17 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
+          {/* 💡 セレクトボックスの選択肢に「年度」や「階層」を追加！ */}
           <Select
             value={selectedTeamId}
             onChange={(e) => handleTeamChange(e.target.value)}
-            className="w-full sm:w-64"
+            className="w-full sm:w-80 font-bold"
           >
-            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            {teams.map(t => (
+              <option key={t.id} value={t.id}>
+                {t.year ? `${t.year}年度 ` : ''}{t.name} {t.tier ? `(${t.tier})` : ''}
+              </option>
+            ))}
           </Select>
         </div>
       </div>
@@ -288,7 +291,22 @@ export default function DashboardPage() {
           <CardContent className="p-6 sm:p-8 relative z-10 h-full flex flex-col justify-center">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
               <div className="space-y-3 w-full sm:w-auto">
-                <span className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black bg-primary/20 text-primary uppercase tracking-[0.2em] border border-primary/20">2026 Season</span>
+
+                {/* 💡 固定文字を廃止し、編成のバッジを美しく並べる */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {currentTeam?.year && (
+                    <span className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black bg-emerald-500/20 text-emerald-400 uppercase tracking-widest border border-emerald-500/30 shadow-sm">{currentTeam.year}年度</span>
+                  )}
+                  {currentTeam?.tier && (
+                    <span className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black bg-blue-500/20 text-blue-400 uppercase tracking-widest border border-blue-500/30 shadow-sm">{currentTeam.tier}</span>
+                  )}
+                  {currentTeam?.generation && (
+                    <span className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black bg-purple-500/20 text-purple-400 uppercase tracking-widest border border-purple-500/30 shadow-sm">{currentTeam.generation}</span>
+                  )}
+                  {!currentTeam?.year && !currentTeam?.tier && !currentTeam?.generation && (
+                    <span className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black bg-white/10 text-white/70 uppercase tracking-widest border border-white/20">Active Roster</span>
+                  )}
+                </div>
 
                 {editingTeamId === currentTeam?.id ? (
                   <div className="flex items-center gap-2 mt-2 animate-in fade-in zoom-in duration-200">
@@ -309,7 +327,7 @@ export default function DashboardPage() {
                 )}
 
                 <div className="pt-2">
-                  <Button asChild variant="secondary" size="sm" className="rounded-[14px] font-extrabold bg-white/10 hover:bg-white/20 text-white border border-white/10 backdrop-blur-md h-10 px-4">
+                  <Button asChild variant="secondary" size="sm" className="rounded-[14px] font-extrabold bg-white/10 hover:bg-white/20 text-white border border-white/10 backdrop-blur-md h-10 px-4 shadow-sm">
                     <Link href={`/teams/roster?id=${currentTeam?.id}`}><Users className="h-4 w-4 mr-2 opacity-80" /> 選手名簿の管理</Link>
                   </Button>
                 </div>
