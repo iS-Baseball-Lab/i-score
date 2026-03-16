@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { authClient } from "@/lib/auth-client"; // 💡 ログイン判定を追加
+import { authClient } from "@/lib/auth-client";
 import { LogoIcon } from "@/components/logo";
 import { Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,7 @@ export function Footer() {
   return (
     <footer className={cn(
       "w-full border-t border-zinc-800/80 bg-zinc-950/95 backdrop-blur-md text-zinc-400 mt-auto transition-all duration-300",
-      session && "md:pl-[260px]" // 💡 ログイン中(SaaSモード)は、サイドバーの幅だけ右にシフト！
+      session && "md:pl-[280px]" // 💡 幅を 260px から 280px に拡張
     )}>
       <div className="container mx-auto px-4 py-8 sm:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">

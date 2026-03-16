@@ -5,12 +5,14 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogoIcon } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { canManageTeam } from "@/lib/roles";
 import { toast } from "sonner";
-import { UserCircle, LogOut, Menu, X, Home, ClipboardList, ShieldAlert, Camera, Loader2 } from "lucide-react";
+// 💡 UserCog（アカウント設定用アイコン）を追加
+import { UserCircle, LogOut, Menu, X, Home, ClipboardList, ShieldAlert, Camera, Loader2, UserCog } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 
@@ -27,13 +29,14 @@ export function Header() {
   if (!mounted) {
     return (
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md text-foreground">
-        <div className="container mx-auto flex h-16 items-center px-4 sm:px-6">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-4">
             <div className="md:hidden h-10 w-10" />
             <Link href="/" className="flex items-center space-x-2">
               <span className="font-extrabold italic text-2xl tracking-tighter text-primary">i-Score</span>
             </Link>
           </div>
+          <div className="h-8 w-8" />
         </div>
       </header>
     );
@@ -56,14 +59,20 @@ function HeaderContent() {
   const userRole = (session?.user as unknown as { role?: string })?.role;
   const isManager = canManageTeam(userRole);
 
-  // 💡 ログインしているかどうかで「SaaSモード（サイドバー）」を判定
   const isSaaSMode = !!session;
 
-  const navItems = [
-    { name: "ホーム", href: "/", icon: Home, show: false },
+  // 💡 メニューを「メイン」と「下部（設定・管理）」に分割しました
+  const mainNavItems = [
     { name: "ダッシュボード", href: "/dashboard", icon: ClipboardList, show: !!session },
+    // 💡 名前を「チーム」に変更
     { name: "チーム", href: "/teams", icon: RiTeamFill, show: !!session },
-    { name: "システム", href: "/admin", icon: ShieldAlert, show: !!session && isManager },
+  ];
+
+  const bottomNavItems = [
+    // 💡 アカウント設定を追加
+    { name: "アカウント設定", href: "/user", icon: UserCog, show: !!session },
+    // 💡 システム管理を下部に移動
+    { name: "システム管理", href: "/admin", icon: ShieldAlert, show: !!session && isManager },
   ];
 
   const handleLogout = async () => {
@@ -123,7 +132,7 @@ function HeaderContent() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <header className={cn(
         "sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md text-foreground transition-all duration-300",
-        isSaaSMode ? "md:hidden" : "block" // 💡 ログイン中はPCで非表示（サイドバーになるため）
+        isSaaSMode ? "md:hidden" : "block"
       )}>
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-4">
@@ -133,6 +142,10 @@ function HeaderContent() {
               <span className="font-black italic text-2xl tracking-tighter text-foreground group-hover:text-primary transition-colors">i-Score</span>
             </Link>
           </div>
+
+          <div className="flex items-center gap-2 sm:gap-4">
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -140,7 +153,7 @@ function HeaderContent() {
       {/* 💻 PC用 左サイドバー (SaaSモード) */}
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {isSaaSMode && (
-        <aside className="hidden md:flex fixed inset-y-0 left-0 z-50 w-[260px] flex-col border-r border-border/50 bg-card/95 backdrop-blur-xl shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300">
+        <aside className="hidden md:flex fixed inset-y-0 left-0 z-50 w-[280px] flex-col border-r border-border/50 bg-card/95 backdrop-blur-xl shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300">
 
           {/* 1. ロゴエリア */}
           <div className="h-20 flex items-center px-8 border-b border-border/40 shrink-0">
@@ -150,11 +163,11 @@ function HeaderContent() {
             </Link>
           </div>
 
-          {/* 2. メニューリンク */}
-          <div className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide">
+          {/* 2. メインメニューリンク */}
+          <div className="flex-1 overflow-y-auto py-6 px-5 scrollbar-hide flex flex-col">
             <nav className="flex flex-col gap-1.5">
               <div className="px-3 mb-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Main Menu</div>
-              {navItems.map((item) => {
+              {mainNavItems.map((item) => {
                 if (!item.show) return null;
                 const isActive = pathname === item.href;
                 return (
@@ -173,12 +186,34 @@ function HeaderContent() {
                 );
               })}
             </nav>
+
+            {/* 💡 3. 設定・管理メニュー（下部に配置） */}
+            <nav className="flex flex-col gap-1.5 mt-auto pt-8">
+              <div className="px-3 mb-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Settings & Admin</div>
+              {bottomNavItems.map((item) => {
+                if (!item.show) return null;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href} href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3.5 rounded-[16px] transition-all duration-300 group",
+                      isActive
+                        ? "bg-primary/10 text-primary font-black"
+                        : "text-muted-foreground font-bold hover:bg-muted/80 hover:text-foreground active:scale-[0.98]"
+                    )}
+                  >
+                    <item.icon className={cn("h-[18px] w-[18px] transition-transform duration-300", isActive ? "scale-110" : "group-hover:scale-110")} />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
 
-          {/* 3. ユーザープロフィール ＆ 設定エリア (下部固定) */}
+          {/* 4. ユーザープロフィール ＆ 設定エリア (下部固定) */}
           <div className="p-5 mt-auto border-t border-border/40 bg-muted/10 flex flex-col gap-4 shrink-0">
             <div className="flex items-center gap-3">
-              {/* アバター */}
               <div
                 className="relative h-12 w-12 rounded-full border border-border/50 shadow-sm bg-background flex items-center justify-center overflow-hidden cursor-pointer group shrink-0 transition-transform hover:border-primary/50 active:scale-95"
                 onClick={() => fileInputRef.current?.click()}
@@ -197,17 +232,16 @@ function HeaderContent() {
                   </div>
                 )}
               </div>
-              {/* ユーザー情報 */}
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-black text-foreground truncate">{session.user.name}</span>
                 <span className="text-[10px] font-bold text-muted-foreground truncate uppercase tracking-widest">{session.user.email}</span>
               </div>
             </div>
 
-            {/* 各種ボタン */}
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-background rounded-[14px] p-1.5 border border-border/50 shadow-sm flex justify-center">
-                <ThemeSwitcher />
+              <div className="flex-1 bg-background rounded-[14px] p-1 border border-border/50 shadow-sm flex items-center justify-center gap-2 h-[46px]">
+                <ThemeToggle />
+                <span className="text-xs font-bold text-muted-foreground mr-2">テーマ</span>
               </div>
               <Button variant="outline" size="icon" onClick={handleLogout} className="h-[46px] w-[46px] shrink-0 rounded-[14px] border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-sm" title="ログアウト">
                 <LogOut className="h-[18px] w-[18px]" />
@@ -218,7 +252,7 @@ function HeaderContent() {
       )}
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* 📱 スマホ用 ドロワーメニュー (変更なし) */}
+      {/* 📱 スマホ用 ドロワーメニュー */}
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity md:hidden" onClick={closeMenu} />
@@ -239,7 +273,8 @@ function HeaderContent() {
 
         <div className="flex flex-1 flex-col overflow-y-auto py-6">
           <nav className="flex flex-col gap-2 px-4">
-            {navItems.map((item) => {
+            <div className="px-4 mb-1 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Main Menu</div>
+            {mainNavItems.map((item) => {
               if (!item.show) return null;
               const isActive = pathname === item.href;
               return (
@@ -250,14 +285,29 @@ function HeaderContent() {
               );
             })}
           </nav>
+
+          {/* 💡 スマホメニューでも設定を下に分割 */}
+          <nav className="flex flex-col gap-2 px-4 mt-auto pt-8">
+            <div className="px-4 mb-1 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Settings & Admin</div>
+            {bottomNavItems.map((item) => {
+              if (!item.show) return null;
+              const isActive = pathname === item.href;
+              return (
+                <Link key={item.href} href={item.href} onClick={closeMenu} className={cn("flex items-center gap-3 rounded-[16px] px-4 py-4 text-base font-bold transition-all duration-200", isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]")}>
+                  <item.icon className={cn("h-5 w-5", isActive ? "text-primary" : "text-muted-foreground")} />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
         {session && (
-          <div className="p-4 pb-8 mt-auto">
-            <div className="rounded-[24px] bg-muted/30 border border-border/50 p-4 space-y-5 shadow-sm">
+          <div className="p-4 pb-8 mt-auto border-t border-border/40 bg-muted/10">
+            <div className="rounded-[24px] bg-background border border-border/50 p-4 space-y-5 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="relative cursor-pointer shrink-0 active:scale-95 transition-transform" onClick={() => fileInputRef.current?.click()}>
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-background border border-border/50 text-foreground shadow-sm overflow-hidden relative">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-muted border border-border/50 text-foreground shadow-sm overflow-hidden relative">
                     {isUploadingAvatar ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : session.user.image ? <img src={session.user.image} alt={session.user.name} className="h-full w-full object-cover" /> : <UserCircle className="h-8 w-8 text-muted-foreground" />}
                   </div>
                   {!isUploadingAvatar && <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1.5 shadow-md border-2 border-background"><Camera className="h-3.5 w-3.5" /></div>}
@@ -267,7 +317,7 @@ function HeaderContent() {
                   <span className="text-[10px] font-bold text-muted-foreground truncate uppercase tracking-widest">{session.user.email}</span>
                 </div>
               </div>
-              <div className="flex items-center justify-center bg-background rounded-[16px] p-3 border border-border/50"><ThemeSwitcher /></div>
+              <div className="flex items-center justify-center bg-muted/30 rounded-[16px] p-3 border border-border/50"><ThemeSwitcher /></div>
               <Button variant="outline" className="w-full rounded-[16px] h-12 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white font-extrabold transition-colors" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" />ログアウト</Button>
             </div>
           </div>
