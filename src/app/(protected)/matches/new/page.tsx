@@ -17,7 +17,6 @@ function NewMatchContent() {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 💡 フォームの初期値（今日の日付や今年のシーズンを自動セット）
   const today = new Date().toISOString().split('T')[0];
   const currentYear = new Date().getFullYear().toString();
 
@@ -52,16 +51,15 @@ function NewMatchContent() {
           season,
           matchType,
           location,
-          // 新規作成時はステータスを scheduled (予定/スタメン入力中) にする想定
           status: 'scheduled'
         }),
       });
 
+      // 💡 型アサーションを追加してTypeScriptエラーを解消
       const data = await res.json() as { success: boolean; matchId?: string; error?: string };
 
       if (res.ok && data.success) {
         toast.success("試合を作成しました！スタメンを入力しましょう。");
-        // 💡 成功したら、そのままスタメン入力画面へリレー！
         router.push(`/matches/lineup?id=${data.matchId}&teamId=${teamId}`);
       } else {
         toast.error(data.error || "試合の作成に失敗しました");
@@ -106,7 +104,6 @@ function NewMatchContent() {
           <CardContent className="p-6 sm:p-10 relative z-10">
             <form onSubmit={handleSubmit} className="space-y-8">
 
-              {/* 💡 日付・シーズン */}
               <div className="grid grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
@@ -132,7 +129,6 @@ function NewMatchContent() {
 
               <div className="h-px w-full bg-border/50" />
 
-              {/* 💡 対戦相手 */}
               <div className="space-y-2">
                 <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
                   <Swords className="h-4 w-4 text-primary/70" /> 対戦相手
@@ -144,7 +140,6 @@ function NewMatchContent() {
                 />
               </div>
 
-              {/* 💡 試合種別・場所 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
@@ -172,7 +167,6 @@ function NewMatchContent() {
                 </div>
               </div>
 
-              {/* 💡 ボタン */}
               <div className="pt-6">
                 <Button
                   type="submit" disabled={isSubmitting || !opponent.trim()}
