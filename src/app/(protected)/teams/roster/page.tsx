@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-// 💡 Dialogのインポートを削除し、Xアイコンを追加しました
 import { Users, Plus, Edit2, Trash2, ChevronLeft, Loader2, Save, CalendarDays, Layers, Search, Tag, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -153,13 +152,14 @@ function RosterContent() {
                                 {team.tier && <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] sm:text-xs font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-sm"><Layers className="h-3 w-3 mr-1" />{team.tier}</span>}
                                 {team.generation && <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] sm:text-xs font-black bg-purple-500/10 text-purple-500 border border-purple-500/20 shadow-sm"><Users className="h-3 w-3 mr-1" />{team.generation}</span>}
                                 {team.teamType && team.teamType !== 'regular' && <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] sm:text-xs font-black bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-sm"><Tag className="h-3 w-3 mr-1" />{getTeamTypeLabel(team.teamType)}</span>}
-                                <span className="text-sm font-black text-muted-foreground ml-1">{team.name}</span>
+                                <span className="text-sm sm:text-base font-black text-muted-foreground ml-1">{team.name}</span>
                             </div>
                         ) : (
                             <div className="h-6 w-64 bg-muted rounded-md animate-pulse mb-1" />
                         )}
-                        <h1 className="text-3xl sm:text-4xl font-black tracking-tight flex items-center gap-3">
-                            <div className="p-2.5 bg-primary/10 rounded-2xl text-primary shadow-sm border border-primary/20"><Users className="h-7 w-7 sm:h-8 sm:w-8" /></div>
+                        {/* 💡 基準1: ページタイトル H1 */}
+                        <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-3">
+                            <div className="p-2.5 bg-primary/10 rounded-2xl text-primary shadow-sm border border-primary/20"><Users className="h-6 w-6 sm:h-7 sm:w-7" /></div>
                             選手名簿
                         </h1>
                     </div>
@@ -169,19 +169,24 @@ function RosterContent() {
                 <Card className="mb-8 rounded-[28px] border-primary/20 bg-primary/5 shadow-sm overflow-hidden relative">
                     <div className="absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 bg-primary/10 blur-[40px] rounded-full pointer-events-none" />
                     <CardContent className="p-5 sm:p-6 relative z-10">
-                        <h3 className="text-sm font-black text-primary/80 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <Plus className="h-4 w-4" /> 選手を名簿に追加
-                        </h3>
-                        <form onSubmit={handleAddPlayer} className="flex flex-col sm:flex-row items-end gap-3">
-                            <div className="w-full sm:w-28 space-y-1.5">
-                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-1">背番号</label>
-                                <Input id="newNumberInput" type="number" placeholder="例: 1" required className="h-12 rounded-[16px] border-primary/30 bg-background font-black text-lg focus-visible:ring-primary/50 text-center shadow-sm transition-all" value={newNumber} onChange={(e) => setNewNumber(e.target.value)} disabled={isAdding} autoFocus />
+                        {/* 💡 基準2: セクションタイトル H2 */}
+                        <h2 className="text-lg sm:text-xl font-black text-primary/90 tracking-tight mb-4 flex items-center gap-2">
+                            <Plus className="h-5 w-5" /> 選手を名簿に追加
+                        </h2>
+                        <form onSubmit={handleAddPlayer} className="flex flex-col sm:flex-row items-end gap-4">
+                            <div className="w-full sm:w-32 space-y-2">
+                                {/* 💡 基準3: ラベル（大きく視認性高く！） */}
+                                <label className="block text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-widest pl-1">背番号</label>
+                                {/* 💡 基準4: 入力エリア */}
+                                <Input id="newNumberInput" type="number" placeholder="例: 1" required className="h-12 rounded-[16px] border-primary/30 bg-background text-base font-bold focus-visible:ring-primary/50 text-center shadow-sm transition-all" value={newNumber} onChange={(e) => setNewNumber(e.target.value)} disabled={isAdding} autoFocus />
                             </div>
-                            <div className="w-full flex-1 space-y-1.5">
-                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-1">選手名</label>
-                                <Input type="text" placeholder="例: 山田 太郎" required className="h-12 rounded-[16px] border-primary/30 bg-background font-black text-lg focus-visible:ring-primary/50 shadow-sm transition-all" value={newName} onChange={(e) => setNewName(e.target.value)} disabled={isAdding} />
+                            <div className="w-full flex-1 space-y-2">
+                                {/* 💡 基準3: ラベル */}
+                                <label className="block text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-widest pl-1">選手名</label>
+                                {/* 💡 基準4: 入力エリア */}
+                                <Input type="text" placeholder="例: 山田 太郎" required className="h-12 rounded-[16px] border-primary/30 bg-background text-base font-bold focus-visible:ring-primary/50 shadow-sm transition-all" value={newName} onChange={(e) => setNewName(e.target.value)} disabled={isAdding} />
                             </div>
-                            <Button type="submit" disabled={isAdding || !newNumber || !newName} className="w-full sm:w-auto h-12 rounded-[16px] font-black px-8 bg-primary hover:bg-primary/90 shadow-md shadow-primary/20 transition-all active:scale-95">
+                            <Button type="submit" disabled={isAdding || !newNumber || !newName} className="w-full sm:w-auto h-12 rounded-[16px] text-base font-black px-8 bg-primary hover:bg-primary/90 shadow-md shadow-primary/20 transition-all active:scale-95">
                                 {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : "追加する"}
                             </Button>
                         </form>
@@ -190,12 +195,14 @@ function RosterContent() {
 
                 {/* 3. 検索＆リスト */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                    <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
+                    {/* 💡 基準2: セクションタイトル H2 */}
+                    <h2 className="text-lg sm:text-xl font-black tracking-tight flex items-center gap-2">
                         登録済みの選手 <span className="text-muted-foreground/50 text-base">({players.length})</span>
                     </h2>
                     <div className="relative w-full sm:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input type="text" placeholder="名前・背番号で検索..." className="h-10 rounded-full border-border/50 bg-muted/30 pl-9 font-bold text-sm focus-visible:ring-primary/30 shadow-sm transition-all" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                        {/* 💡 基準4: 検索入力エリア */}
+                        <Input type="text" placeholder="名前・背番号で検索..." className="h-10 rounded-full border-border/50 bg-muted/30 pl-9 text-base sm:text-sm font-bold focus-visible:ring-primary/30 shadow-sm transition-all" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                     </div>
                 </div>
 
@@ -217,7 +224,8 @@ function RosterContent() {
                                         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-primary/5" />
                                         <span className="font-black text-xl sm:text-2xl z-10 font-mono tracking-tighter">{player.uniformNumber}</span>
                                     </div>
-                                    <div className="font-black text-lg sm:text-xl text-foreground group-hover:text-primary transition-colors">
+                                    {/* 💡 基準5: リストテキスト */}
+                                    <div className="text-base sm:text-lg font-black text-foreground group-hover:text-primary transition-colors">
                                         {player.name}
                                     </div>
                                 </div>
@@ -235,17 +243,17 @@ function RosterContent() {
                 )}
             </main>
 
-            {/* 💡 4. 編集モーダル (独自実装版に差し替え) */}
+            {/* 4. 編集モーダル */}
             {!!editingPlayer && (
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    {/* 背景クリックで閉じる */}
                     <div className="absolute inset-0" onClick={() => !isUpdating && setEditingPlayer(null)} />
 
                     <div className="relative w-full max-w-md bg-card/95 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[32px] sm:rounded-[36px] overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-8 duration-500 border border-border/50 flex flex-col max-h-[90vh]">
                         <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
 
                         <div className="px-6 pt-8 pb-4 border-b border-border/50 bg-muted/20 relative z-10 text-left flex justify-between items-start">
-                            <h2 className="text-xl font-black flex items-center gap-3">
+                            {/* 💡 基準2: モーダルタイトル H2 */}
+                            <h2 className="text-lg sm:text-xl font-black flex items-center gap-3">
                                 <div className="p-2 bg-primary/10 rounded-xl border border-primary/20 text-primary shadow-sm"><Edit2 className="h-5 w-5" /></div>
                                 選手情報の編集
                             </h2>
@@ -257,15 +265,17 @@ function RosterContent() {
                         <form onSubmit={handleUpdatePlayer} className="p-6 sm:p-8 space-y-6 relative z-10">
                             <div className="flex gap-4">
                                 <div className="w-24 space-y-2">
-                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-1">背番号</label>
-                                    <Input type="number" required className="h-14 rounded-[16px] bg-muted/30 border-border/50 font-black text-xl text-center focus-visible:ring-primary/50 shadow-inner" value={editingPlayer.uniformNumber} onChange={(e) => setEditingPlayer({ ...editingPlayer, uniformNumber: e.target.value })} disabled={isUpdating} />
+                                    {/* 💡 基準3: ラベル */}
+                                    <label className="block text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-widest pl-1">背番号</label>
+                                    <Input type="number" required className="h-14 rounded-[16px] bg-muted/30 border-border/50 text-base font-black text-center focus-visible:ring-primary/50 shadow-inner" value={editingPlayer.uniformNumber} onChange={(e) => setEditingPlayer({ ...editingPlayer, uniformNumber: e.target.value })} disabled={isUpdating} />
                                 </div>
                                 <div className="flex-1 space-y-2">
-                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-1">選手名</label>
-                                    <Input type="text" required className="h-14 rounded-[16px] bg-muted/30 border-border/50 font-black text-lg focus-visible:ring-primary/50 shadow-inner" value={editingPlayer.name} onChange={(e) => setEditingPlayer({ ...editingPlayer, name: e.target.value })} disabled={isUpdating} />
+                                    {/* 💡 基準3: ラベル */}
+                                    <label className="block text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-widest pl-1">選手名</label>
+                                    <Input type="text" required className="h-14 rounded-[16px] bg-muted/30 border-border/50 text-base font-black focus-visible:ring-primary/50 shadow-inner" value={editingPlayer.name} onChange={(e) => setEditingPlayer({ ...editingPlayer, name: e.target.value })} disabled={isUpdating} />
                                 </div>
                             </div>
-                            <Button type="submit" disabled={isUpdating || !editingPlayer.name || !editingPlayer.uniformNumber} className="w-full h-14 rounded-[20px] font-black text-base bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                            <Button type="submit" disabled={isUpdating || !editingPlayer.name || !editingPlayer.uniformNumber} className="w-full h-14 rounded-[20px] text-base font-black bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
                                 {isUpdating ? <Loader2 className="h-6 w-6 animate-spin" /> : <><Save className="mr-2 h-5 w-5" /> 保存する</>}
                             </Button>
                         </form>
