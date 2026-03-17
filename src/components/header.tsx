@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { canManageTeam } from "@/lib/roles";
 import { toast } from "sonner";
-// 💡 開閉用の ChevronLeft, ChevronRight を追加
 import { UserCircle, LogOut, Menu, X, Home, ClipboardList, ShieldAlert, Camera, Loader2, UserCog, ChevronLeft, ChevronRight } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { cn } from "@/lib/utils";
@@ -61,7 +60,6 @@ function HeaderContent() {
 
   const isSaaSMode = !!session;
 
-  // 💡 サイドバーの開閉状態と、CSS変数を連携
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   React.useEffect(() => {
@@ -166,10 +164,8 @@ function HeaderContent() {
       {/* 💻 PC用 左サイドバー (SaaSモード) */}
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {isSaaSMode && (
-        // 💡 CSS変数を使って幅を動的に変更
         <aside className="hidden md:flex fixed inset-y-0 left-0 z-50 flex-col border-r border-border/50 bg-card/95 backdrop-blur-xl shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-[width] duration-300 ease-in-out w-[var(--sidebar-width,300px)]">
 
-          {/* 💡 開閉トグルボタン */}
           <button
             onClick={toggleSidebar}
             className="absolute -right-3.5 top-10 bg-background border border-border/50 rounded-full p-1.5 shadow-sm text-muted-foreground hover:text-primary hover:scale-110 transition-all z-50 flex items-center justify-center"
@@ -187,7 +183,8 @@ function HeaderContent() {
 
           {/* 2. メインメニューリンク */}
           <div className={cn("flex-1 overflow-y-auto py-6 scrollbar-hide flex flex-col transition-all duration-300", isCollapsed ? "px-3" : "px-5")}>
-            <nav className="flex flex-col gap-1.5">
+            {/* 💡 gap-1.5 を gap-1 に縮小 */}
+            <nav className="flex flex-col gap-1">
               {!isCollapsed && <div className="px-3 mb-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Main Menu</div>}
               {mainNavItems.map((item) => {
                 if (!item.show) return null;
@@ -197,13 +194,14 @@ function HeaderContent() {
                     key={item.href} href={item.href} title={isCollapsed ? item.name : undefined}
                     className={cn(
                       "flex items-center transition-all duration-300 group",
-                      isCollapsed ? "justify-center h-12 w-12 rounded-[16px] mx-auto" : "gap-3 px-4 py-3.5 rounded-[16px]",
+                      // 💡 py-3.5 を py-2.5 に縮め、丸みも少しシャープに(rounded-[14px])
+                      isCollapsed ? "justify-center h-10 w-10 rounded-[14px] mx-auto" : "gap-3 px-4 py-2.5 rounded-[14px]",
                       isActive
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 font-black scale-[1.02]"
+                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 font-black scale-[1.02]"
                         : "text-muted-foreground font-bold hover:bg-muted/80 hover:text-foreground active:scale-[0.98]"
                     )}
                   >
-                    <item.icon className={cn("transition-transform duration-300", isCollapsed ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]", isActive && !isCollapsed ? "scale-110" : "group-hover:scale-110")} />
+                    <item.icon className={cn("transition-transform duration-300", isCollapsed ? "h-[20px] w-[20px]" : "h-[18px] w-[18px]", isActive && !isCollapsed ? "scale-110" : "group-hover:scale-110")} />
                     {!isCollapsed && <span>{item.name}</span>}
                   </Link>
                 );
@@ -211,7 +209,8 @@ function HeaderContent() {
             </nav>
 
             {/* 3. 設定・管理メニュー（下部に配置） */}
-            <nav className="flex flex-col gap-1.5 mt-auto pt-8">
+            {/* 💡 gap-1.5 を gap-1 に縮小 */}
+            <nav className="flex flex-col gap-1 mt-auto pt-8">
               {!isCollapsed && <div className="px-3 mb-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Settings & Admin</div>}
               {bottomNavItems.map((item) => {
                 if (!item.show) return null;
@@ -221,13 +220,14 @@ function HeaderContent() {
                     key={item.href} href={item.href} title={isCollapsed ? item.name : undefined}
                     className={cn(
                       "flex items-center transition-all duration-300 group",
-                      isCollapsed ? "justify-center h-12 w-12 rounded-[16px] mx-auto" : "gap-3 px-4 py-3.5 rounded-[16px]",
+                      // 💡 py-3.5 を py-2.5 に縮め、丸みも少しシャープに(rounded-[14px])
+                      isCollapsed ? "justify-center h-10 w-10 rounded-[14px] mx-auto" : "gap-3 px-4 py-2.5 rounded-[14px]",
                       isActive
                         ? "bg-primary/10 text-primary font-black"
                         : "text-muted-foreground font-bold hover:bg-muted/80 hover:text-foreground active:scale-[0.98]"
                     )}
                   >
-                    <item.icon className={cn("transition-transform duration-300", isCollapsed ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]", isActive && !isCollapsed ? "scale-110" : "group-hover:scale-110")} />
+                    <item.icon className={cn("transition-transform duration-300", isCollapsed ? "h-[20px] w-[20px]" : "h-[18px] w-[18px]", isActive && !isCollapsed ? "scale-110" : "group-hover:scale-110")} />
                     {!isCollapsed && <span>{item.name}</span>}
                   </Link>
                 );
@@ -239,7 +239,7 @@ function HeaderContent() {
           <div className={cn("mt-auto border-t border-border/40 bg-muted/10 flex flex-col shrink-0 transition-all duration-300", isCollapsed ? "p-3 gap-4 items-center" : "p-5 gap-4")}>
             <div className={cn("flex items-center", isCollapsed ? "justify-center" : "gap-3")}>
               <div
-                className="relative h-12 w-12 rounded-full border border-border/50 shadow-sm bg-background flex items-center justify-center overflow-hidden cursor-pointer group shrink-0 transition-transform hover:border-primary/50 active:scale-95"
+                className="relative h-11 w-11 rounded-full border border-border/50 shadow-sm bg-background flex items-center justify-center overflow-hidden cursor-pointer group shrink-0 transition-transform hover:border-primary/50 active:scale-95"
                 onClick={() => fileInputRef.current?.click()}
                 title={isCollapsed ? "プロフィール画像を変更" : undefined}
               >
@@ -248,7 +248,7 @@ function HeaderContent() {
                 ) : session.user.image ? (
                   <img src={session.user.image} alt={session.user.name} className="h-full w-full object-cover" />
                 ) : (
-                  <UserCircle className="h-8 w-8 text-muted-foreground" />
+                  <UserCircle className="h-7 w-7 text-muted-foreground" />
                 )}
                 {!isUploadingAvatar && (
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
@@ -265,12 +265,12 @@ function HeaderContent() {
             </div>
 
             <div className={cn("flex items-center", isCollapsed ? "flex-col gap-3" : "gap-2")}>
-              <div className={cn("bg-background rounded-[14px] border border-border/50 shadow-sm flex items-center justify-center gap-2 transition-all", isCollapsed ? "h-12 w-12 p-0" : "flex-1 h-[46px] p-1")}>
+              <div className={cn("bg-background rounded-[12px] border border-border/50 shadow-sm flex items-center justify-center gap-2 transition-all", isCollapsed ? "h-11 w-11 p-0" : "flex-1 h-[42px] p-1")}>
                 <ThemeToggle />
                 {!isCollapsed && <span className="text-xs font-bold text-muted-foreground mr-2">テーマ</span>}
               </div>
-              <Button variant="outline" size="icon" onClick={handleLogout} className={cn("shrink-0 rounded-[14px] border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-sm", isCollapsed ? "h-12 w-12" : "h-[46px] w-[46px]")} title="ログアウト">
-                <LogOut className="h-[18px] w-[18px]" />
+              <Button variant="outline" size="icon" onClick={handleLogout} className={cn("shrink-0 rounded-[12px] border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-sm", isCollapsed ? "h-11 w-11" : "h-[42px] w-[42px]")} title="ログアウト">
+                <LogOut className="h-[16px] w-[16px]" />
               </Button>
             </div>
           </div>
@@ -298,13 +298,14 @@ function HeaderContent() {
         </div>
 
         <div className="flex flex-1 flex-col overflow-y-auto py-6">
-          <nav className="flex flex-col gap-2 px-4">
+          {/* 💡 スマホメニューも gap-1, py-3 に縮小 */}
+          <nav className="flex flex-col gap-1 px-4">
             <div className="px-4 mb-1 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Main Menu</div>
             {mainNavItems.map((item) => {
               if (!item.show) return null;
               const isActive = pathname === item.href;
               return (
-                <Link key={item.href} href={item.href} onClick={closeMenu} className={cn("flex items-center gap-3 rounded-[16px] px-4 py-4 text-base font-bold transition-all duration-200", isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 transform scale-[1.02]" : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]")}>
+                <Link key={item.href} href={item.href} onClick={closeMenu} className={cn("flex items-center gap-3 rounded-[14px] px-4 py-3 text-base font-bold transition-all duration-200", isActive ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 transform scale-[1.02]" : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]")}>
                   <item.icon className={cn("h-5 w-5", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
                   {item.name}
                 </Link>
@@ -312,13 +313,13 @@ function HeaderContent() {
             })}
           </nav>
 
-          <nav className="flex flex-col gap-2 px-4 mt-auto pt-8">
+          <nav className="flex flex-col gap-1 px-4 mt-auto pt-8">
             <div className="px-4 mb-1 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Settings & Admin</div>
             {bottomNavItems.map((item) => {
               if (!item.show) return null;
               const isActive = pathname === item.href;
               return (
-                <Link key={item.href} href={item.href} onClick={closeMenu} className={cn("flex items-center gap-3 rounded-[16px] px-4 py-4 text-base font-bold transition-all duration-200", isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]")}>
+                <Link key={item.href} href={item.href} onClick={closeMenu} className={cn("flex items-center gap-3 rounded-[14px] px-4 py-3 text-base font-bold transition-all duration-200", isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]")}>
                   <item.icon className={cn("h-5 w-5", isActive ? "text-primary" : "text-muted-foreground")} />
                   {item.name}
                 </Link>
