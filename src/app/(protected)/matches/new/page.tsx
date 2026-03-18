@@ -6,10 +6,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-// 💡 Timer アイコンを追加
 import { ChevronLeft, CalendarDays, MapPin, Swords, Trophy, Loader2, Flag, ArrowRight, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+interface Tournament {
+  id: string;
+  name: string;
+  season: string;
+}
 
 function NewMatchContent() {
   const router = useRouter();
@@ -27,17 +32,32 @@ function NewMatchContent() {
   const [matchType, setMatchType] = useState("practice");
   const [location, setLocation] = useState("");
   const [battingOrder, setBattingOrder] = useState<"top" | "bottom">("top");
-  // 💡 イニング数のステートを追加（デフォルトを7回に設定）
   const [innings, setInnings] = useState("7");
+
+  // 💡 大会（トーナメント）の選択用ステート
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [selectedTournamentId, setSelectedTournamentId] = useState("");
 
   useEffect(() => {
     const id = searchParams.get("teamId") || localStorage.getItem("iScore_selectedTeamId");
     if (id) {
       setTeamId(id);
+      fetchTournaments(); // 💡 画面を開いた時に大会一覧を取得
     } else {
       router.push("/dashboard");
     }
   }, [searchParams, router]);
+
+  const fetchTournaments = async () => {
+    try {
+      const res = await fetch('/api/tournaments');
+      if (res.ok) {
+        setTournaments(await res.json());
+      }
+    } catch (error) {
+      console.error("大会一覧の取得に失敗しました");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +76,8 @@ function NewMatchContent() {
           matchType,
           location,
           battingOrder,
-          innings: Number(innings), // 💡 数値に変換して送信
+          innings: Number(innings),
+          tournamentId: selectedTournamentId || null, // 💡 ここで紐付けデータを送信！
           status: 'scheduled'
         }),
       });
@@ -132,6 +153,38 @@ function NewMatchContent() {
 
               <div className="h-px w-full bg-border/50" />
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
+                    <Flag className="h-4 w-4 text-primary/70" /> 試合種別
+                  </label>
+                  <select
+                    className="flex h-14 w-full appearance-none rounded-[16px] border border-border/50 bg-background px-4 pr-10 text-base font-black shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%222.5%22%20stroke%3D%22%2371717a%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19%209l-7%207-7-7%22%2F%3E%3C%2Fsvg%3E')] bg-[length:18px_18px] bg-[position:right_16px_center] bg-no-repeat"
+                    value={matchType} onChange={(e) => setMatchType(e.target.value)} disabled={isSubmitting}
+                  >
+                    <option value="practice">練習試合</option>
+                    <option value="official">公式戦</option>
+                    <option value="tournament">大会・トーナメント</option>
+                    <option value="other">紅白戦・その他</option>
+                  </select>
+                </div>
+                {/* 💡 大会の紐付けセレクトボックスを追加 */}
+                <div className="space-y-2">
+                  <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
+                    <Trophy className="h-4 w-4 text-primary/70" /> 大会・トーナメント
+                  </label>
+                  <select
+                    className="flex h-14 w-full appearance-none rounded-[16px] border border-primary/30 bg-primary/5 px-4 pr-10 text-base font-black shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%222.5%22%20stroke%3D%22%2371717a%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19%209l-7%207-7-7%22%2F%3E%3C%2Fsvg%3E')] bg-[length:18px_18px] bg-[position:right_16px_center] bg-no-repeat transition-colors"
+                    value={selectedTournamentId} onChange={(e) => setSelectedTournamentId(e.target.value)} disabled={isSubmitting}
+                  >
+                    <option value="">指定なし (単独の試合)</option>
+                    {tournaments.map(t => (
+                      <option key={t.id} value={t.id}>{t.season}年度: {t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
                   <Swords className="h-4 w-4 text-primary/70" /> 対戦相手
@@ -165,23 +218,7 @@ function NewMatchContent() {
                 </div>
               </div>
 
-              {/* 💡 試合種別とイニング数を横並びに */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
-                    <Flag className="h-4 w-4 text-primary/70" /> 試合種別
-                  </label>
-                  <select
-                    className="flex h-14 w-full appearance-none rounded-[16px] border border-border/50 bg-background px-4 pr-10 text-base font-black shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%222.5%22%20stroke%3D%22%2371717a%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19%209l-7%207-7-7%22%2F%3E%3C%2Fsvg%3E')] bg-[length:18px_18px] bg-[position:right_16px_center] bg-no-repeat"
-                    value={matchType} onChange={(e) => setMatchType(e.target.value)} disabled={isSubmitting}
-                  >
-                    <option value="practice">練習試合</option>
-                    <option value="official">公式戦</option>
-                    <option value="tournament">大会・トーナメント</option>
-                    <option value="other">紅白戦・その他</option>
-                  </select>
-                </div>
-                {/* 💡 復活したイニング数選択 */}
                 <div className="space-y-2">
                   <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
                     <Timer className="h-4 w-4 text-primary/70" /> イニング数
@@ -197,18 +234,16 @@ function NewMatchContent() {
                     <option value="10">10回 (特別)</option>
                   </select>
                 </div>
-              </div>
-
-              {/* 💡 球場・場所を全幅に */}
-              <div className="space-y-2">
-                <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 text-primary/70" /> 球場・場所
-                </label>
-                <Input
-                  type="text" placeholder="例: 川崎市 多摩川丸子橋第1グラウンド"
-                  className="h-14 rounded-[16px] border-border/50 bg-background text-base font-black focus-visible:ring-primary/50 shadow-inner"
-                  value={location} onChange={(e) => setLocation(e.target.value)} disabled={isSubmitting}
-                />
+                <div className="space-y-2">
+                  <label className="text-sm sm:text-base font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-primary/70" /> 球場・場所
+                  </label>
+                  <Input
+                    type="text" placeholder="例: 多摩川河川敷グラウンド"
+                    className="h-14 rounded-[16px] border-border/50 bg-background text-base font-black focus-visible:ring-primary/50 shadow-inner"
+                    value={location} onChange={(e) => setLocation(e.target.value)} disabled={isSubmitting}
+                  />
+                </div>
               </div>
 
               <div className="pt-6">
