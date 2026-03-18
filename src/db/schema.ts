@@ -110,12 +110,26 @@ export const teamMembers = sqliteTable('team_members', {
 });
 
 // ==========================================
+// 💡 大会（トーナメント）テーブル
+// ==========================================
+export const tournaments = sqliteTable("tournaments", {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(), // 例: 第15回 関東秋季大会
+    season: text("season").notNull(), // 例: 2026
+    startDate: text("start_date"),
+    endDate: text("end_date"),
+    createdBy: text('created_by').notNull().references(() => user.id),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(strftime('%s', 'now'))`),
+});
+
+// ==========================================
 // 💡 試合テーブル
 // ==========================================
 export const matches = sqliteTable("matches", {
     id: text("id").primaryKey(),
     teamId: text('team_id').notNull().references(() => teams.id),
     opponentTeamId: text('opponent_team_id').references(() => teams.id),
+    tournamentId: text("tournament_id").references(() => tournaments.id),
     opponent: text("opponent").notNull(),
     season: text('season').notNull(),
     date: text("date").notNull(),
