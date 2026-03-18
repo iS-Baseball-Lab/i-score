@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
 import { canManageTeam } from "@/lib/roles";
 import { toast } from "sonner";
-import { ClipboardList, ShieldAlert, UserCog, Menu, Users } from "lucide-react";
+import { ClipboardList, ShieldAlert, UserCog, Menu, Users, Trophy } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 
