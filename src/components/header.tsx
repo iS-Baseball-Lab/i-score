@@ -80,6 +80,7 @@ function HeaderContent() {
     // 💡 チームメニューに exact: true を指定！
     { name: "チーム", href: "/teams", icon: RiTeamFill, show: !!session, exact: true },
     { name: "選手名簿", href: "/teams/roster", icon: Users, show: !!session },
+    { name: "大会管理", href: "/tournaments", icon: Trophy, show: !!session },
   ];
 
   const bottomNavItems: NavItem[] = [
