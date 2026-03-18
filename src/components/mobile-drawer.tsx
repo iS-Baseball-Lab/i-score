@@ -6,7 +6,7 @@ import Link from "next/link";
 import { LogoIcon } from "@/components/logo";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
-import { UserCircle, LogOut, Camera, Loader2, X } from "lucide-react";
+import { UserCircle, LogOut, Camera, Loader2, X, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavItem } from "./sidebar";
 
