@@ -8,7 +8,6 @@ import { ScoreProvider } from "@/contexts/ScoreContext";
 export default function ScorePage() {
     return (
         <ScoreProvider>
-        // 💡 画面全体。背景色を設定し、下部に固定されるControlPanelの分の余白(pb-[220px])をしっかり確保します。
             <div className="min-h-screen bg-background text-foreground pb-[220px] sm:pb-[260px] relative selection:bg-primary/20">
 
                 {/* 💡 メインコンテンツ領域。幅を制限(max-w-5xl)し、中央寄せにします。 */}

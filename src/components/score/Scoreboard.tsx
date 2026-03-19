@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useScore } from "@/contexts/ScoreContext";
 
 // 💡 チームのスコア情報
 export interface TeamScore {
@@ -57,7 +58,8 @@ export function Scoreboard({
         errors: 1,
     }
 }: ScoreboardProps) {
-
+    // 💡 ここでContextから「現在のイニング」と「得点」を取得！
+    const { currentInning, score } = useScore();
     // 試合種別のラベル変換
     const getMatchTypeLabel = (type: string) => {
         switch (type) {
@@ -69,7 +71,7 @@ export function Scoreboard({
     };
 
     // 💡 描画するイニング列の数を計算 (設定イニングか、現在のイニングの大きい方。延長戦対応)
-    const displayInningsCount = Math.max(matchInfo.totalInnings, matchInfo.currentInning);
+    const displayInningsCount = Math.max(matchInfo.totalInnings, currentInning.num);
     const inningsArray = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
 
     return (
@@ -146,7 +148,7 @@ export function Scoreboard({
                                             {topTeam.innings[idx] ?? "-"}
                                         </td>
                                     ))}
-                                    <td className="px-3 py-3 sm:py-4 border-l border-border/40 bg-muted/10 text-primary text-xl sm:text-2xl">{topTeam.runs}</td>
+                                    <td className="px-3 py-3 sm:py-4 border-l border-border/40 bg-muted/10 text-primary text-xl sm:text-2xl">{score.top}</td>
                                     <td className="px-3 py-3 sm:py-4 bg-muted/10 text-muted-foreground text-base sm:text-lg">{topTeam.hits}</td>
                                     <td className="px-3 py-3 sm:py-4 bg-muted/10 text-muted-foreground text-base sm:text-lg">{topTeam.errors}</td>
                                 </tr>
@@ -168,7 +170,7 @@ export function Scoreboard({
                                             {bottomTeam.innings[idx] ?? "-"}
                                         </td>
                                     ))}
-                                    <td className="px-3 py-3 sm:py-4 border-l border-border/40 bg-muted/10 text-primary text-xl sm:text-2xl">{bottomTeam.runs}</td>
+                                    <td className="px-3 py-3 sm:py-4 border-l border-border/40 bg-muted/10 text-primary text-xl sm:text-2xl">{score.bottom}</td>
                                     <td className="px-3 py-3 sm:py-4 bg-muted/10 text-muted-foreground text-base sm:text-lg">{bottomTeam.hits}</td>
                                     <td className="px-3 py-3 sm:py-4 bg-muted/10 text-muted-foreground text-base sm:text-lg">{bottomTeam.errors}</td>
                                 </tr>
