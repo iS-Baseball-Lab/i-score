@@ -1,46 +1,33 @@
-// src/components/score/PlayArea.tsx
 "use client";
 
-import { User, CircleDot, Zap } from "lucide-react";
+import { User, CircleDot } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+// 💡 Contextをインポート
+import { useScore } from "@/contexts/ScoreContext";
 
-// 💡 現在のプレイ状況の型定義
 export interface PlayAreaProps {
-    currentInning?: {
-        num: number;
-        isTop: boolean;
-    };
-    runners?: {
-        1: boolean; // 1塁
-        2: boolean; // 2塁
-        3: boolean; // 3塁
-    };
-    count?: {
-        ball: number;
-        strike: number;
-        out: number;
-    };
+    // 💡 Contextで管理していないバッターとピッチャーの情報だけPropsで受け取る
     batter?: {
         name: string;
         uniformNumber: string;
-        statsToday: string; // 例: "今日: 2打数1安打"
+        statsToday: string;
     };
     pitcher?: {
         name: string;
         uniformNumber: string;
-        pitchCount: number; // 例: 42 (今日の球数)
+        pitchCount: number;
     };
 }
 
 export function PlayArea({
-    // 💡 確認用にデフォルト値(ダミーデータ)を設定しています
-    currentInning = { num: 3, isTop: false }, // 3回裏
-    runners = { 1: true, 2: false, 3: true }, // 1,3塁
-    count = { ball: 2, strike: 1, out: 1 },   // 2ボール, 1ストライク, 1アウト
     batter = { name: "山田 太郎", uniformNumber: "18", statsToday: "今日: 1打数1安打 1四球" },
     pitcher = { name: "佐藤 一郎", uniformNumber: "11", pitchCount: 42 },
 }: PlayAreaProps) {
+
+    // 💡 ここでContextから「生きた状態（データ）」を受け取る！
+    const { count, currentInning, runners } = useScore();
+
     return (
         <div className="animate-in slide-in-from-top-4 duration-500 delay-100 mb-6 space-y-4 sm:space-y-6">
 
@@ -66,13 +53,13 @@ export function PlayArea({
                     {/* ② ランナー状況: 野球のダイヤモンド (中央) */}
                     <div className="flex flex-col items-center justify-center shrink-0 w-20 sm:w-28 relative">
                         <div className="relative w-12 h-12 sm:w-16 sm:h-16 rotate-45 transform-gpu transition-all duration-300">
-                            {/* 2塁 (Top-Left corner rotated becomes Top) */}
+                            {/* 2塁 */}
                             <div className={cn("absolute top-0 left-0 w-[45%] h-[45%] rounded-sm border-2 transition-all duration-300 shadow-sm", runners[2] ? "bg-primary border-primary shadow-primary/40 scale-110" : "bg-muted/50 border-border/50")} />
-                            {/* 1塁 (Top-Right corner rotated becomes Right) */}
+                            {/* 1塁 */}
                             <div className={cn("absolute top-0 right-0 w-[45%] h-[45%] rounded-sm border-2 transition-all duration-300 shadow-sm", runners[1] ? "bg-primary border-primary shadow-primary/40 scale-110" : "bg-muted/50 border-border/50")} />
-                            {/* 3塁 (Bottom-Left corner rotated becomes Left) */}
+                            {/* 3塁 */}
                             <div className={cn("absolute bottom-0 left-0 w-[45%] h-[45%] rounded-sm border-2 transition-all duration-300 shadow-sm", runners[3] ? "bg-primary border-primary shadow-primary/40 scale-110" : "bg-muted/50 border-border/50")} />
-                            {/* 本塁 (Bottom-Right corner rotated becomes Bottom) */}
+                            {/* 本塁 */}
                             <div className="absolute bottom-0 right-0 w-[45%] h-[45%] rounded-sm border-2 border-border/30 bg-muted/20" />
                         </div>
                     </div>
@@ -117,7 +104,6 @@ export function PlayArea({
             {/* 2. 対決パネル (バッター vs ピッチャー) */}
             {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-
                 {/* バッター */}
                 <Card className="rounded-[20px] sm:rounded-[24px] border-border/50 bg-card overflow-hidden transition-all hover:border-primary/30 group">
                     <CardContent className="p-4 sm:p-5 flex items-center gap-4">
@@ -155,7 +141,6 @@ export function PlayArea({
                         </div>
                     </CardContent>
                 </Card>
-
             </div>
         </div>
     );
