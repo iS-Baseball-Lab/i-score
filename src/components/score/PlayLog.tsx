@@ -9,15 +9,6 @@ import { useScore, PlayEvent } from "@/contexts/ScoreContext";
 // 💡 プレイログ（1球ごとの結果や打席結果）の型定義
 export type PlayResultType = "hit" | "out" | "run" | "walk" | "other";
 
-export interface PlayEvent {
-    id: string;
-    inningText: string; // 例: "3回裏"
-    resultType: PlayResultType;
-    batterName: string;
-    description: string; // 例: "レフト前へのタイムリーヒット！"
-    timestamp: string; // 例: "14:23"
-}
-
 export interface PlayLogProps {
     logs?: PlayEvent[];
 }
