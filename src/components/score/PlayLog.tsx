@@ -4,6 +4,7 @@
 import { Activity, Swords, XCircle, Star, Footprints, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useScore, PlayEvent } from "@/contexts/ScoreContext";
 
 // 💡 プレイログ（1球ごとの結果や打席結果）の型定義
 export type PlayResultType = "hit" | "out" | "run" | "walk" | "other";
@@ -21,57 +22,17 @@ export interface PlayLogProps {
     logs?: PlayEvent[];
 }
 
-export function PlayLog({
-    // 💡 確認用にデフォルト値(ダミーデータ)を設定しています
-    logs = [
-        {
-            id: "1",
-            inningText: "3回裏",
-            resultType: "run",
-            batterName: "山田",
-            description: "レフト線へのツーベースヒット！2塁ランナーが生還し1点を先制！",
-            timestamp: "10:45",
-        },
-        {
-            id: "2",
-            inningText: "3回裏",
-            resultType: "walk",
-            batterName: "佐藤",
-            description: "フルカウントから四球を選んで出塁。",
-            timestamp: "10:42",
-        },
-        {
-            id: "3",
-            inningText: "3回裏",
-            resultType: "out",
-            batterName: "鈴木",
-            description: "外角のスライダーに空振り三振。",
-            timestamp: "10:39",
-        },
-        {
-            id: "4",
-            inningText: "3回表",
-            resultType: "out",
-            batterName: "田中",
-            description: "ショートゴロ。6-3と渡ってスリーアウトチェンジ。",
-            timestamp: "10:35",
-        },
-    ],
-}: PlayLogProps) {
+export function PlayLog() {
+    // 💡 Contextから「生きたログデータ」を取得！
+    const { logs } = useScore();
 
-    // 💡 結果に応じたアイコンとカラーを返すヘルパー関数
-    const getEventStyle = (type: PlayResultType) => {
+    const getEventStyle = (type: PlayEvent["resultType"]) => {
         switch (type) {
-            case "hit":
-                return { icon: Swords, color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20" };
-            case "run":
-                return { icon: Star, color: "text-primary", bg: "bg-primary/10", border: "border-primary/20" };
-            case "out":
-                return { icon: XCircle, color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20" };
-            case "walk":
-                return { icon: Footprints, color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20" };
-            default:
-                return { icon: Info, color: "text-muted-foreground", bg: "bg-muted", border: "border-border/50" };
+            case "hit": return { icon: Swords, color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20" };
+            case "run": return { icon: Star, color: "text-primary", bg: "bg-primary/10", border: "border-primary/20" };
+            case "out": return { icon: XCircle, color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20" };
+            case "walk": return { icon: Footprints, color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20" };
+            default: return { icon: Info, color: "text-muted-foreground", bg: "bg-muted", border: "border-border/50" };
         }
     };
 
@@ -98,8 +59,9 @@ export function PlayLog({
                                 const style = getEventStyle(log.resultType);
                                 const Icon = style.icon;
 
-                                // イニングが変わったタイミングで区切り線を入れるロジック (簡易版)
-                                const showInningDivider = index === 0 || logs[index - 1].inningText !== log.inningText;
+                                // 💡 イニングが変わったタイミングで区切り線を入れるロジック
+                                // (新しいログが配列の先頭に来るため、"次のログ" とイニングが違うかをチェック)
+                                const showInningDivider = index === logs.length - 1 || logs[index + 1].inningText !== log.inningText;
 
                                 return (
                                     <div key={log.id} className="relative group">

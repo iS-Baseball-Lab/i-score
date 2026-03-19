@@ -10,16 +10,31 @@ type Inning = { num: number; isTop: boolean };
 type Runners = { 1: boolean; 2: boolean; 3: boolean };
 type Score = { top: number; bottom: number }; // 💡 追加: 両チームの得点
 
+// 💡 プレイログの型
+export type PlayEvent = {
+    id: string;
+    inningText: string;
+    resultType: "hit" | "out" | "run" | "walk" | "other";
+    batterName: string;
+    description: string;
+    timestamp: string;
+};
+
 interface ScoreContextType {
     count: Count;
     currentInning: Inning;
     runners: Runners;
-    score: Score; // 💡 追加
+    score: Score;
+    logs: PlayEvent[];
     addBall: () => void;
     addStrike: () => void;
     addFoul: () => void;
     addOut: () => void;
-    addPlayResult: (result: string) => void; // 💡 追加: プレイ結果を処理する関数
+    addPlayResult: (result: string) => void; // 💡 プレイ結果を処理する関数
+}
+
+interface ScoreContextType {
+    // ...既存の型...
 }
 
 const ScoreContext = createContext<ScoreContextType | undefined>(undefined);
@@ -29,6 +44,7 @@ export function ScoreProvider({ children }: { children: ReactNode }) {
     const [currentInning, setCurrentInning] = useState<Inning>({ num: 1, isTop: true });
     const [runners, setRunners] = useState<Runners>({ 1: false, 2: false, 3: false });
     const [score, setScore] = useState<Score>({ top: 0, bottom: 0 }); // 💡 得点ステート
+    const [logs, setLogs] = useState<PlayEvent[]>([]);
 
     const lastActionTime = useRef<number>(0);
     const COOLDOWN_MS = 400;
@@ -38,6 +54,27 @@ export function ScoreProvider({ children }: { children: ReactNode }) {
         if (now - lastActionTime.current < COOLDOWN_MS) return false;
         lastActionTime.current = now;
         return true;
+    };
+
+    // 💡 ログを生成して追加する専用ヘルパー
+    const addLog = (resultType: PlayEvent["resultType"], description: string) => {
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        const inningText = `${currentInning.num}回${currentInning.isTop ? "表" : "裏"}`;
+        // 💡 実際のアプリでは現在のバッターの名前を引っ張りますが、今回は仮で固定
+        const batterName = "打者";
+
+        setLogs((prev) => [
+            {
+                id: Math.random().toString(36).substring(7), // 簡易的なユニークID
+                inningText,
+                resultType,
+                batterName,
+                description,
+                timestamp: timeStr,
+            },
+            ...prev, // 新しいログを一番上に追加！
+        ]);
     };
 
     // ⚾️ 3アウトチェンジ
@@ -76,6 +113,7 @@ export function ScoreProvider({ children }: { children: ReactNode }) {
 
             switch (result) {
                 case "1B": // 単打 (全員1つ進塁する簡易ロジック)
+                    addLog("hit", "鮮やかな単打で出塁！");
                     if (prevRunners[3]) runsScored += 1;
                     newRunners[3] = prevRunners[2];
                     newRunners[2] = prevRunners[1];
@@ -103,6 +141,7 @@ export function ScoreProvider({ children }: { children: ReactNode }) {
                     break;
 
                 case "HR": // 本塁打 (全員生還)
+                    addLog("run", "スタンドに叩き込む特大のホームラン！！🔥");
                     if (prevRunners[3]) runsScored += 1;
                     if (prevRunners[2]) runsScored += 1;
                     if (prevRunners[1]) runsScored += 1;
@@ -112,6 +151,7 @@ export function ScoreProvider({ children }: { children: ReactNode }) {
                     break;
 
                 case "OUT": // 通常のアウト
+                    addLog("out", "打ち取られてアウト。");
                 case "FC":  // 野手選択 (とりあえずアウトを1つ追加する簡易版)
                     addOut();
                     break;
@@ -161,6 +201,7 @@ export function ScoreProvider({ children }: { children: ReactNode }) {
         setCount((prev) => {
             if (prev.strike >= 2) {
                 toast.error("バッターアウト！（三振）");
+                addLog("out", "空振り三振！");
                 if (prev.out >= 2) { changeInning(); return { ball: 0, strike: 0, out: 0 }; }
                 return { ball: 0, strike: 0, out: prev.out + 1 };
             }
@@ -171,7 +212,10 @@ export function ScoreProvider({ children }: { children: ReactNode }) {
     const addFoul = () => {
         if (!canExecuteAction()) return;
         setCount((prev) => {
-            if (prev.strike < 2) return { ...prev, strike: prev.strike + 1 };
+            if (prev.strike < 2) {
+                addLog("walk", "四球を選んで出塁。");
+                return { ...prev, strike: prev.strike + 1 };
+            }
             return prev;
         });
     };
