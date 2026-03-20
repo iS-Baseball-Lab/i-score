@@ -1,7 +1,8 @@
+// src/api/matches.ts
 import { Hono } from 'hono'
 import { getAuth } from "@/lib/auth"
 import { drizzle } from 'drizzle-orm/d1'
-import { matches, atBats, pitches } from '@/db/schema'
+import { matches, atBats, pitches, playLogs } from '@/db/schema'
 import { desc, eq, and, isNull } from 'drizzle-orm'
 import { canEditScore } from '@/lib/roles'
 
@@ -168,6 +169,35 @@ app.get('/:id/boxscore', async (c) => {
         const { results } = await c.env.DB.prepare(`SELECT inning, is_top as isTop, batter_name as batterName, result FROM at_bats WHERE match_id = ? AND batter_name IS NOT NULL ORDER BY created_at ASC`).bind(matchId).all();
         return c.json(results);
     } catch (e) { return c.json({ error: '取得に失敗しました' }, 500); }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⚾️ 試合に紐づく実況ログを保存するAPI
+// エンドポイント例: POST /api/matches/:id/logs
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+app.post("/:id/logs", async (c) => {
+    const matchId = c.req.param("id");
+
+    try {
+        const body = await c.req.json();
+        const db = drizzle(c.env.DB);
+
+        // 💡 D1データベースの play_logs テーブルにINSERT！
+        await db.insert(playLogs).values({
+            id: body.id,
+            matchId: matchId,
+            inningText: body.inningText,
+            resultType: body.resultType,
+            batterName: body.batterName || "打者",
+            description: body.description,
+            timestamp: body.timestamp,
+        });
+
+        return c.json({ success: true, message: "🔥 熱い実況をD1に記録しました！" });
+    } catch (error) {
+        console.error("DB保存エラー:", error);
+        return c.json({ success: false, error: "ログの保存に失敗しました" }, 500);
+    }
 });
 
 export default app

@@ -16,6 +16,7 @@ export function ControlPanel() {
     const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
     const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
     const [isSubstitutionModalOpen, setIsSubstitutionModalOpen] = useState(false);
+    const [hitPositionId, setHitPositionId] = useState<number | null>(null);
 
     return (
         <>
@@ -37,7 +38,7 @@ export function ControlPanel() {
                         </Button>
 
                         <Button
-                            onClick={addStrike}
+                            onClick={() => addStrike(false)}
                             className="h-16 sm:h-20 rounded-[20px] bg-amber-500 hover:bg-amber-600 text-white font-black text-xl sm:text-2xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex flex-col gap-0.5"
                         >
                             <span>S</span>
@@ -65,7 +66,7 @@ export function ControlPanel() {
 
                     {/* サブアクション */}
                     <div className="grid grid-cols-5 gap-2 sm:gap-3">
-                        <Button onClick={addStrike} variant="outline" className="h-12 sm:h-14 rounded-[16px] border-border/50 bg-background/50 backdrop-blur-sm font-bold text-[10px] sm:text-xs shadow-sm hover:bg-muted active:scale-95 transition-all text-muted-foreground">
+                        <Button onClick={() => addStrike(true)} variant="outline" className="h-12 sm:h-14 rounded-[16px] border-border/50 bg-background/50 backdrop-blur-sm font-bold text-[10px] sm:text-xs shadow-sm hover:bg-muted active:scale-95 transition-all text-muted-foreground">
                             空振り
                         </Button>
 
@@ -97,6 +98,7 @@ export function ControlPanel() {
                 open={isFieldModalOpen}
                 onOpenChange={setIsFieldModalOpen}
                 onNext={(positionId) => {
+                    setHitPositionId(positionId);
                     setIsFieldModalOpen(false);
                     setTimeout(() => setIsAdvanceModalOpen(true), 150);
                 }}
@@ -106,7 +108,8 @@ export function ControlPanel() {
                 open={isAdvanceModalOpen}
                 onOpenChange={setIsAdvanceModalOpen}
                 onComplete={(resultId) => {
-                    addPlayResult(resultId);
+                    addPlayResult(resultId, hitPositionId);
+                    setHitPositionId(null);
                 }}
             />
 

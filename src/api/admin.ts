@@ -1,3 +1,4 @@
+// src/api/admin.ts
 import { Hono } from 'hono'
 import { getAuth } from "@/lib/auth"
 import { drizzle } from 'drizzle-orm/d1'

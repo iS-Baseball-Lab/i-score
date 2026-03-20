@@ -6,8 +6,11 @@ import { ControlPanel } from "@/components/score/ControlPanel";
 import { ScoreProvider } from "@/contexts/ScoreContext";
 
 export default function ScorePage() {
+    // 💡 本来はURLのパラメータ(params.id)等から取得しますが、今は仮のIDを定義します
+    const currentMatchId = "match_test_001";
+
     return (
-        <ScoreProvider>
+        <ScoreProvider matchId={currentMatchId}>
             <div className="min-h-screen bg-background text-foreground pb-[220px] sm:pb-[260px] relative selection:bg-primary/20">
 
                 {/* 💡 メインコンテンツ領域。幅を制限(max-w-5xl)し、中央寄せにします。 */}

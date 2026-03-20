@@ -1,3 +1,4 @@
+// src/api/auth.ts
 import { Hono } from 'hono'
 import { getAuth } from "@/lib/auth"
 

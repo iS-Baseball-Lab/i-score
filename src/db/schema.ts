@@ -149,6 +149,24 @@ export const matches = sqliteTable("matches", {
 });
 
 // ==========================================
+// 💡 プレイログ・実況テーブル
+// ==========================================
+export const playLogs = sqliteTable("play_logs", {
+    id: text("id").primaryKey(),
+    matchId: text("match_id")
+        .notNull()
+        .references(() => matches.id, { onDelete: "cascade" }), // 既存の matches に紐付け
+    inningText: text("inning_text").notNull(),   // "1回表" など
+    resultType: text("result_type").notNull(),   // hit, out, run, walk, other
+    batterName: text("batter_name"),             // 打者名
+    description: text("description").notNull(),  // 熱い実況テキスト
+    timestamp: text("timestamp").notNull(),      // 発生時刻
+    createdAt: integer("created_at", { mode: "timestamp" })
+        .notNull()
+        .default(sql`(strftime('%s', 'now'))`),  // 既存テーブルと記法を統一
+});
+
+// ==========================================
 // 💡 打席（At Bat）テーブル
 // ==========================================
 export const atBats = sqliteTable("at_bats", {
