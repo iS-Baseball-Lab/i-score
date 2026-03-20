@@ -5,7 +5,6 @@ import { User, CircleDot, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useScore } from "@/contexts/ScoreContext";
-import { Button } from "@/components/ui/button";
 
 export interface PlayAreaProps {
     batter?: {
@@ -30,21 +29,9 @@ export function PlayArea({
     pitcher = { name: "佐藤 一郎", uniformNumber: "11", pitchCount: 42, subStats: "3奪三振 1四球" },
 }: PlayAreaProps) {
 
-    const { count, currentInning, runners, currentBatter, nextBatter, logs, playBall } = useScore();
+    const { count, currentInning, runners, currentBatter, nextBatter } = useScore();
     return (
         <div className="animate-in slide-in-from-top-4 duration-500 delay-100 mb-6 space-y-4 sm:space-y-6">
-
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            {/* ⚾️ 試合開始前のみ出現する特大プレイボールボタン！ */}
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            {logs.length === 0 && (
-                <Button
-                    onClick={playBall}
-                    className="w-full h-16 sm:h-20 text-xl sm:text-2xl font-black bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse shadow-lg"
-                >
-                    ⚾️ プレイボール！！
-                </Button>
-            )}
 
             {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             {/* 1. 状況パネル (イニング・ランナー・BSO) */}
