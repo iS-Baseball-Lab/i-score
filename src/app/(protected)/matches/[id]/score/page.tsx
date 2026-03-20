@@ -1,13 +1,13 @@
-// src/app/(protected)/matches/score/page.tsx
+// src/app/(protected)/matches/[id]/score/page.tsx
 import { Scoreboard } from "@/components/score/Scoreboard";
 import { PlayArea } from "@/components/score/PlayArea";
 import { PlayLog } from "@/components/score/PlayLog";
 import { ControlPanel } from "@/components/score/ControlPanel";
 import { ScoreProvider } from "@/contexts/ScoreContext";
 
-export default function ScorePage() {
-    // 💡 本来はURLのパラメータ(params.id)等から取得しますが、今は仮のIDを定義します
-    const currentMatchId = "ed878c76-5ab8-436f-a1a9-83b12cf49e59";
+export default function ScorePage({ params }: { params: { id: string } }) {
+    // 💡 URLのパラメータ(params.id)から取得
+    const currentMatchId = params.id;
 
     return (
         <ScoreProvider matchId={currentMatchId}>

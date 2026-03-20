@@ -16,13 +16,26 @@ app.get('/', async (c) => {
     return c.json(result)
 })
 
-app.get('/:id', async (c) => {
-    const id = c.req.param('id')
-    const db = drizzle(c.env.DB)
-    const result = await db.select().from(matches).where(eq(matches.id, id)).get()
-    if (!result) return c.json({ error: 'Match not found' }, 404)
-    return c.json(result)
-})
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⚾️ [GET] 試合情報（打順やスコア状態）を取得する
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+app.get("/:id", async (c) => {
+    const matchId = c.req.param("id");
+    const db = drizzle(c.env.DB);
+
+    try {
+        // IDが一致する試合を1件取得
+        const matchData = await db.select().from(matches).where(eq(matches.id, matchId)).get();
+
+        if (!matchData) {
+            return c.json({ success: false, error: "試合が見つかりません" }, 404);
+        }
+
+        return c.json({ success: true, match: matchData });
+    } catch (error) {
+        return c.json({ success: false, error: "試合情報の取得に失敗しました" }, 500);
+    }
+});
 
 app.post('/', async (c) => {
     const auth = getAuth(c.env.DB, c.env)

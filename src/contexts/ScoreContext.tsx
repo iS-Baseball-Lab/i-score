@@ -18,12 +18,17 @@ export type PlayEvent = {
     timestamp: string;
 };
 
+// 💡 選手の型定義
+export type Player = { name: string; uniformNumber: string; statsToday?: string };
+
 interface ScoreContextType {
     count: Count;
     currentInning: Inning;
     runners: Runners;
     score: Score;
     logs: PlayEvent[];
+    currentBatter: Player;  // 今のバッター
+    nextBatter: Player; // 次のバッター
     addBall: () => void;
     addStrike: (isSwinging?: boolean) => void; // 💡 空振り判定
     addFoul: () => void;
@@ -52,6 +57,9 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
     const [runners, setRunners] = useState<Runners>({ 1: false, 2: false, 3: false });
     const [score, setScore] = useState<Score>({ top: 0, bottom: 0, topInnings: [0], bottomInnings: [] });
     const [logs, setLogs] = useState<PlayEvent[]>([]);
+    // 💡 オーダー（打順）と、現在何番バッターか（0〜8）を管理
+    const [lineup, setLineup] = useState<Player[]>(Array(9).fill({ name: "読込中...", uniformNumber: "-" }));
+    const [currentBatterIndex, setCurrentBatterIndex] = useState(0);
 
     const lastActionTime = useRef<number>(0);
     const canExecuteAction = () => {
@@ -69,11 +77,46 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
     useEffect(() => {
         const fetchMatchData = async () => {
             try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+
+                // 1. ログの取得
                 const res = await fetch(`${apiUrl}/api/matches/${matchId}/logs`);
                 if (res.ok) {
                     const data = await res.json() as ScoreContextType;
                     // DBから取得したログを画面にセット！
                     setLogs(data.logs);
+                }
+
+                // 2. 試合情報の取得
+                const matchRes = await fetch(`${apiUrl}/api/matches/${matchId}`);
+                if (matchRes.ok) {
+                    const matchData = await matchRes.json() as {
+                        match: {
+                            battingOrder: string | null;
+                            myScore: number;
+                            opponentScore: number;
+                            myInningScores: string | null;
+                            opponentInningScores: string | null;
+                        };
+                    };
+                    const match = matchData.match;
+
+                    // DBの battingOrder（JSON文字列）をパースして配列にセット
+                    if (match.battingOrder) {
+                        try {
+                            const parsedLineup = JSON.parse(match.battingOrder);
+                            if (parsedLineup.length > 0) setLineup(parsedLineup);
+                        } catch (e) {
+                            console.error("打順のパースエラー", e);
+                        }
+                    }
+
+                    // スコアボードの復元
+                    setScore({
+                        top: match.myScore, bottom: match.opponentScore,
+                        topInnings: match.myInningScores ? JSON.parse(match.myInningScores) : [0],
+                        bottomInnings: match.opponentInningScores ? JSON.parse(match.opponentInningScores) : []
+                    });
                 }
             } catch (error) {
                 console.error("データ取得エラー:", error);
@@ -83,9 +126,17 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
     }, [matchId, apiUrl]);
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 💡 バッターを1人進めるヘルパー関数
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const advanceBatter = () => {
+        setCurrentBatterIndex((prev) => (prev + 1) % 9);
+    };
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // ⚾️ 実況ログを生成し、画面に表示 ＆ DBに保存する！
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     const addLog = async (resultType: PlayEvent["resultType"], description: string) => {
+        const batterName = lineup[currentBatterIndex]?.name || "打者";
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         const inningText = `${currentInning.num}回${currentInning.isTop ? "表" : "裏"}`;
@@ -105,8 +156,6 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
 
         // 3. ☁️ バックエンド (Cloudflare Workers API) へ裏側でこっそり送信！
         try {
-            // ※開発環境のAPIサーバー(localhost:8787等)に向けて送ります。
-            // 本番環境やNext.jsのrewrites設定に合わせてURLは調整してください。
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
             const response = await fetch(`${apiUrl}/api/matches/${matchId}/logs`, {
@@ -239,6 +288,8 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
             if (runsScored > 0) addRuns(runsScored);
             return newRunners;
         });
+
+        advanceBatter(); // 💡 打席完了なので次のバッターへ！
     };
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -251,6 +302,7 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
                 // 事実: フルカウントかそうでないか
                 const prefix = prev.strike === 2 ? "フルカウントから" : "";
                 addLog("walk", `${prefix}フォアボールで出塁。`);
+                advanceBatter(); // 💡 フォアボールなので次のバッターへ！
                 setRunners((r) => {
                     let runs = 0; let newR = { ...r };
                     if (r[1] && r[2] && r[3]) { runs += 1; } else if (r[1] && r[2]) { newR[3] = true; } else if (r[1]) { newR[2] = true; }
@@ -320,6 +372,7 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
                 // 事実: 空振り三振か、見逃し三振か
                 const typeStr = isSwinging ? "空振り三振！" : "見逃し三振！";
                 addLog("out", typeStr);
+                advanceBatter(); // 💡 三振完了なので次のバッターへ！
                 toast.error("アウト！（三振）");
                 if (prev.out >= 2) { changeInning(); return { ball: 0, strike: 0, out: 0 }; }
                 return { ball: 0, strike: 0, out: prev.out + 1 };
@@ -340,13 +393,21 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
 
     const addOut = () => {
         setCount((prev) => {
-            if (prev.out >= 2) { changeInning(); return { ball: 0, strike: 0, out: 0 }; }
+            if (prev.out >= 2) {
+                changeInning();
+                advanceBatter(); // 💡 アウトなので次のバッターへ！
+                return { ball: 0, strike: 0, out: 0 };
+            }
             return { ...prev, out: prev.out + 1 };
         });
     };
 
     return (
-        <ScoreContext.Provider value={{ count, currentInning, runners, score, logs, addBall, addStrike, addFoul, addOut, addPlayResult, undoLastPlay }}>
+        <ScoreContext.Provider value={{
+            count, currentInning, runners, score, logs, addBall, addStrike, addFoul, addOut, addPlayResult, undoLastPlay,
+            currentBatter: lineup[currentBatterIndex],
+            nextBatter: lineup[(currentBatterIndex + 1) % 9]
+        }}>
             {children}
         </ScoreContext.Provider>
     );

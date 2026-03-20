@@ -26,12 +26,10 @@ export interface PlayAreaProps {
 }
 
 export function PlayArea({
-    batter = { name: "山田 太郎", uniformNumber: "18", statsToday: "今日: 1打数1安打 1四球" },
-    nextBatter = { name: "高橋 誠", uniformNumber: "51" }, // 💡 ダミーデータ
     pitcher = { name: "佐藤 一郎", uniformNumber: "11", pitchCount: 42, subStats: "3奪三振 1四球" },
 }: PlayAreaProps) {
 
-    const { count, currentInning, runners } = useScore();
+    const { count, currentInning, runners, currentBatter, nextBatter } = useScore();
 
     return (
         <div className="animate-in slide-in-from-top-4 duration-500 delay-100 mb-6 space-y-4 sm:space-y-6">
@@ -108,11 +106,11 @@ export function PlayArea({
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
                                 <label className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-sm">Batter</label>
-                                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground">{batter.statsToday}</span>
+                                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground">{currentBatter.statsToday}</span>
                             </div>
                             <div className="flex items-center gap-2 mt-1">
-                                <span className="font-mono text-lg sm:text-xl font-black text-muted-foreground">#{batter.uniformNumber}</span>
-                                <span className="text-lg sm:text-xl font-black truncate text-foreground">{batter.name}</span>
+                                <span className="font-mono text-lg sm:text-xl font-black text-muted-foreground">#{currentBatter?.uniformNumber}</span>
+                                <span className="text-lg sm:text-xl font-black truncate text-foreground">{currentBatter?.name}</span>
                             </div>
                         </div>
                     </CardContent>
@@ -123,8 +121,8 @@ export function PlayArea({
                             Next <ChevronRight className="h-3 w-3 -mr-0.5" />
                         </span>
                         <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-xs sm:text-sm font-black text-muted-foreground">#{nextBatter.uniformNumber}</span>
-                            <span className="text-xs sm:text-sm font-black text-foreground/80">{nextBatter.name}</span>
+                            <span className="font-mono text-xs sm:text-sm font-black text-muted-foreground">#{nextBatter?.uniformNumber}</span>
+                            <span className="text-xs sm:text-sm font-black text-foreground/80">{nextBatter?.name}</span>
                         </div>
                     </div>
                 </Card>
