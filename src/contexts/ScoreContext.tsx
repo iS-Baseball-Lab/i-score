@@ -177,6 +177,20 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
     };
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ⚾️ 魂のプレイボール宣言！！！
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const playBall = async () => {
+        // すでにログがある（試合が始まっている）場合は何もしない
+        if (logs.length > 0) {
+            toast.error("すでに試合は始まっています！");
+            return;
+        }
+        // resultType "other" を使って、特別な実況ログを流す！
+        await addLog("other", "⚾️ プレイボール！！！試合開始！");
+        toast.success("プレイボール！");
+    };
+    
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // ⚾️ イニングチェンジ
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     const changeInning = () => {
@@ -404,7 +418,9 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
 
     return (
         <ScoreContext.Provider value={{
-            count, currentInning, runners, score, logs, addBall, addStrike, addFoul, addOut, addPlayResult, undoLastPlay,
+            count, currentInning, runners, score,
+            logs, addBall, addStrike, addFoul, addOut,
+            addPlayResult, undoLastPlay, playBall,
             currentBatter: lineup[currentBatterIndex],
             nextBatter: lineup[(currentBatterIndex + 1) % 9]
         }}>
