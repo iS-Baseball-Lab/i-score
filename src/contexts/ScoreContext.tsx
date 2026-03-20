@@ -85,7 +85,7 @@ export function ScoreProvider({ children, matchId }: ScoreProviderProps) {
         try {
             // ※開発環境のAPIサーバー(localhost:8787等)に向けて送ります。
             // 本番環境やNext.jsのrewrites設定に合わせてURLは調整してください。
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
             const response = await fetch(`${apiUrl}/api/matches/${matchId}/logs`, {
                 method: "POST",
