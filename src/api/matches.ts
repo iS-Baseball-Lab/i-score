@@ -191,7 +191,7 @@ app.post("/:id/logs", async (c) => {
             batterName: body.batterName || "打者",
             description: body.description,
             timestamp: body.timestamp,
-        });
+        }).run();;
 
         return c.json({ success: true, message: "🔥 熱い実況をD1に記録しました！" });
     } catch (error) {
