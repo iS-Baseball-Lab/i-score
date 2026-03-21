@@ -58,7 +58,7 @@ function LineupContent() {
                 // ※ 実際のAPIに合わせてエンドポイントを調整してください（今回は仮のエンドポイント）
                 const res = await fetch(`${apiUrl}/api/teams/${teamId}/players`);
                 if (res.ok) {
-                    const data = await res.json();
+                    const data = await res.json() as { players: Player[] };
                     setTeamPlayers(data.players || []);
                 } else {
                     // APIがまだ無い場合のための仮のダミーデータ（テスト用）
