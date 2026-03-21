@@ -77,7 +77,7 @@ function LineupContent() {
                 // ⚾️ ついにスコア画面（試合本番）へワープ！！
                 router.push(`/matches/score?id=${matchId}`);
             } else {
-                const errorData = await res.json().catch(() => ({}));
+                const errorData = await res.json().catch(() => ({})) as { error?: string };
                 toast.error(errorData.error || "スタメンの保存に失敗しました");
             }
         } catch (error) {
