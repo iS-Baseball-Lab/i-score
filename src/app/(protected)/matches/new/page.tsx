@@ -65,8 +65,10 @@ function NewMatchContent() {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/matches', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      const res = await fetch('${apiUrl}/api/matches', {
         method: "POST",
+        credentials: "include", // 👈 バックエンドの getAuth(c.req.raw.headers) を通すために必須！
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamId,
