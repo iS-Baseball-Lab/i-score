@@ -63,18 +63,50 @@ function LineupContent() {
             router.push("/dashboard");
             return;
         }
-        fetchRoster();
+        fetchData();
     }, [matchId, teamId]);
 
-    const fetchRoster = async () => {
+    const fetchData = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`/api/teams/${teamId}/players`);
-            if (res.ok) {
-                setRoster(await res.json());
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+
+            // ① 自チームの選手名簿（ロースター）を取得
+            const rosterRes = await fetch(`/api/teams/${teamId}/players`);
+            if (rosterRes.ok) {
+                setRoster(await rosterRes.json());
+            }
+
+            // ② 保存済みの試合データ（スタメン）を取得
+            const matchRes = await fetch(`${apiUrl}/api/matches/${matchId}`);
+            if (matchRes.ok) {
+                const matchData = await matchRes.json() as {
+                    match: {
+                        battingOrder: string | null;
+                    };
+                };
+                const match = matchData.match;
+
+                // DBに battingOrder (JSON文字列) があれば復元してセットする！
+                if (match && match.battingOrder) {
+                    try {
+                        const parsedLineup = JSON.parse(match.battingOrder);
+                        if (Array.isArray(parsedLineup) && parsedLineup.length > 0) {
+                            // 足りないプロパティを初期値で補完しながらセット
+                            const mergedLineup = initialLineup.map((initItem, i) => ({
+                                ...initItem,
+                                ...(parsedLineup[i] || {})
+                            }));
+                            setMyLineup(mergedLineup);
+                        }
+                    } catch (e) {
+                        console.error("スタメンのパースエラー:", e);
+                    }
+                }
             }
         } catch (error) {
-            toast.error("名簿データの取得に失敗しました");
+            console.error("データ取得エラー:", error);
+            toast.error("データの取得に失敗しました");
         } finally {
             setIsLoading(false);
         }
