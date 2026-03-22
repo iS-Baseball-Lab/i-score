@@ -67,6 +67,48 @@ function LineupContent() {
     }, [teamId]);
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🚀 APIから既存の試合情報（スタメン）を取得して復元！
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    useEffect(() => {
+        if (!matchId) return;
+        const fetchMatchData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+                // 💡 以前作った「試合情報を1件取得するAPI」を呼び出します
+                const res = await fetch(`${apiUrl}/api/matches/${matchId}`, {
+                    credentials: "include"
+                });
+
+                if (res.ok) {
+                    const data = (await res.json()) as {
+                        match: { battingOrder: string | null }
+                    };
+
+                    if (data.match && data.match.battingOrder) {
+                        try {
+                            // DBに保存されているJSON文字列をオブジェクトに変換
+                            const parsedOrder = JSON.parse(data.match.battingOrder);
+
+                            // 💡 自チームと相手チームのデータがあれば、それぞれStateにセットして復元！
+                            if (parsedOrder.myTeam && parsedOrder.myTeam.length > 0) {
+                                setMyLineup(parsedOrder.myTeam);
+                            }
+                            if (parsedOrder.opponent && parsedOrder.opponent.length > 0) {
+                                setOpponentLineup(parsedOrder.opponent);
+                            }
+                        } catch (e) {
+                            console.error("スタメンデータのパースエラー", e);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("試合情報取得エラー", e);
+            }
+        };
+        fetchMatchData();
+    }, [matchId]);
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 🚀 排他制御ヘルパー（他の打順で選ばれているものを抽出）
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     const getDisabledPositions = (lineup: any[], currentIndex: number) => {
