@@ -10,10 +10,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const POSITIONS = [
-    { id: "1", label: "投" }, { id: "2", label: "捕" }, { id: "3", label: "一" },
-    { id: "4", label: "二" }, { id: "5", label: "三" }, { id: "6", label: "遊" },
-    { id: "7", label: "左" }, { id: "8", label: "中" }, { id: "9", label: "右" },
-    { id: "DH", label: "DH" }, { id: "PH", label: "代打" }, { id: "PR", label: "代走" }
+    { id: "1", label: "1 投手" }, { id: "2", label: "2 捕手" }, { id: "3", label: "3 一塁" },
+    { id: "4", label: "4 二塁" }, { id: "5", label: "5 三塁" }, { id: "6", label: "6 遊撃" },
+    { id: "7", label: "7 左翼" }, { id: "8", label: "8 中堅" }, { id: "9", label: "9 右翼" },
+    { id: "DH", label: "DH 指名打者" }, { id: "PH", label: "PH 代打" }, { id: "PR", label: "PR 代走" }
 ];
 
 interface Player {
