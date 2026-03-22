@@ -43,28 +43,21 @@ function LineupContent() {
     );
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🚀 選手一覧の取得（認証情報を追加して修正！）
+    // 🚀 APIから選手一覧を取得（修正完了！）
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     useEffect(() => {
         if (!teamId) return;
         const fetchPlayers = async () => {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-                // 💡 修正: ここが間違っている場合は、元の正しいエンドポイントURL（例: /api/players?teamId=...）に直してください
                 const res = await fetch(`${apiUrl}/api/teams/${teamId}/players`, {
-                    credentials: "include" // 💡 修正: 認証を通すために必須！
+                    credentials: "include"
                 });
 
                 if (res.ok) {
-                    const data = (await res.json()) as { players: Player[] };
-                    setTeamPlayers(data.players || []);
-                } else {
-                    // 万が一APIが未実装/エラーの場合の保険
-                    setTeamPlayers([
-                        { id: "p1", name: "山田 太郎", uniformNumber: "1" },
-                        { id: "p2", name: "佐藤 次郎", uniformNumber: "2" },
-                        { id: "p3", name: "鈴木 三郎", uniformNumber: "3" },
-                    ]);
+                    // 💡 修正: APIは配列を直接返すので、Player[] として受け取る！
+                    const data = (await res.json()) as Player[];
+                    setTeamPlayers(data || []);
                 }
             } catch (e) {
                 console.error("選手取得エラー", e);
@@ -74,20 +67,18 @@ function LineupContent() {
     }, [teamId]);
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🚀 排他制御のためのヘルパー関数（復活！）
+    // 🚀 排他制御ヘルパー（他の打順で選ばれているものを抽出）
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 現在のインデックス以外で、すでに選択されている「守備位置」のリストを取得
     const getDisabledPositions = (lineup: any[], currentIndex: number) => {
         return lineup.filter((_, i) => i !== currentIndex).map(p => p.position).filter(Boolean);
     };
 
-    // 現在のインデックス以外で、すでに選択されている「選手ID」のリストを取得
     const getDisabledPlayers = (lineup: any[], currentIndex: number) => {
         return lineup.filter((_, i) => i !== currentIndex).map(p => p.playerId).filter(Boolean);
     };
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🚀 入力ハンドラー
+    // 🚀 各種ハンドラー
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     const handleMyTeamPlayerSelect = (index: number, playerId: string) => {
         const player = teamPlayers.find(p => p.id === playerId);
@@ -95,9 +86,8 @@ function LineupContent() {
         newLineup[index].playerId = playerId;
         if (player) {
             newLineup[index].name = player.name;
-            newLineup[index].uniformNumber = player.uniformNumber;
+            newLineup[index].uniformNumber = String(player.uniformNumber);
         } else {
-            // 選択解除時はリセット
             newLineup[index].name = "";
             newLineup[index].uniformNumber = "";
         }
@@ -117,11 +107,8 @@ function LineupContent() {
     };
 
     const handleFillDummyOpponent = () => {
-        // 使われていない守備位置を上から順に割り当てるための処理
         let availablePositions = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-
         const dummyLineup = opponentLineup.map((p, i) => {
-            // 既に手入力で「DH」等が入っていれば維持し、空なら1〜9を割り当て
             let pos = p.position;
             if (!pos && availablePositions.length > 0) {
                 pos = availablePositions.shift() || "";
@@ -140,9 +127,6 @@ function LineupContent() {
     const handleSaveLineup = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!matchId) return;
-
-        // 簡単なバリデーション：ポジションや名前の未入力をチェック（必要に応じて）
-
         setIsSubmitting(true);
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
@@ -212,7 +196,7 @@ function LineupContent() {
                         <form onSubmit={handleSaveLineup} className="space-y-8">
 
                             <div className="space-y-3">
-                                {/* 💡 自チームの表示 */}
+                                {/* 💡 自チーム */}
                                 {activeTab === "myTeam" && myLineup.map((player, index) => {
                                     const disabledPositions = getDisabledPositions(myLineup, index);
                                     const disabledPlayers = getDisabledPlayers(myLineup, index);
@@ -223,28 +207,28 @@ function LineupContent() {
 
                                             <select value={player.position} onChange={(e) => handleFieldChange("myTeam", index, "position", e.target.value)} className="w-20 sm:w-24 h-12 rounded-[12px] bg-background border border-border/50 font-bold text-center appearance-none shadow-inner cursor-pointer focus:ring-2 focus:ring-primary/50">
                                                 <option value="">守備</option>
-                                                {POSITIONS.map(p => (
-                                                    // 💡 既に他の打順で選択されているポジション（DH/代打/代走以外）は disabled に！
-                                                    <option key={p.id} value={p.id} disabled={disabledPositions.includes(p.id) && !["DH", "PH", "PR"].includes(p.id)}>
-                                                        {p.label}
-                                                    </option>
-                                                ))}
+                                                {POSITIONS.map(p => {
+                                                    // 💡 非表示ロジック（重複するポジションはそもそもリストに出さない！）
+                                                    const isSelectedByOther = disabledPositions.includes(p.id) && !["DH", "PH", "PR"].includes(p.id);
+                                                    if (isSelectedByOther) return null;
+                                                    return <option key={p.id} value={p.id}>{p.label}</option>;
+                                                })}
                                             </select>
 
-                                            <select value={player.playerId} onChange={(e) => handleMyTeamPlayerSelect(index, e.target.value)} className="flex-1 h-12 rounded-[12px] bg-background border border-border/50 font-bold px-3 shadow-inner cursor-pointer focus:ring-2 focus:ring-primary/50">
+                                            <select value={player.playerId} onChange={(e) => handleMyTeamPlayerSelect(index, e.target.value)} className="flex-1 h-12 rounded-[12px] bg-background border border-border/50 font-bold px-3 shadow-inner cursor-pointer focus:ring-2 focus:ring-primary/50 text-sm sm:text-base">
                                                 <option value="">選手を選択...</option>
-                                                {teamPlayers.map(p => (
-                                                    // 💡 既に他の打順で選択されている選手は disabled に！
-                                                    <option key={p.id} value={p.id} disabled={disabledPlayers.includes(p.id)}>
-                                                        #{p.uniformNumber} {p.name}
-                                                    </option>
-                                                ))}
+                                                {teamPlayers.map(p => {
+                                                    // 💡 非表示ロジック（重複する選手はそもそもリストに出さない！）
+                                                    const isSelectedByOther = disabledPlayers.includes(p.id);
+                                                    if (isSelectedByOther) return null;
+                                                    return <option key={p.id} value={p.id}>#{p.uniformNumber} {p.name}</option>;
+                                                })}
                                             </select>
                                         </div>
                                     );
                                 })}
 
-                                {/* 💡 相手チームの表示 */}
+                                {/* 💡 相手チーム */}
                                 {activeTab === "opponent" && opponentLineup.map((player, index) => {
                                     const disabledPositions = getDisabledPositions(opponentLineup, index);
 
@@ -254,12 +238,12 @@ function LineupContent() {
 
                                             <select value={player.position} onChange={(e) => handleFieldChange("opponent", index, "position", e.target.value)} className="w-20 sm:w-24 h-12 rounded-[12px] bg-background border border-border/50 font-bold text-center appearance-none shadow-inner cursor-pointer focus:ring-2 focus:ring-red-500/50">
                                                 <option value="">守備</option>
-                                                {POSITIONS.map(p => (
-                                                    // 💡 相手チームも同様にポジションの重複を禁止！
-                                                    <option key={p.id} value={p.id} disabled={disabledPositions.includes(p.id) && !["DH", "PH", "PR"].includes(p.id)}>
-                                                        {p.label}
-                                                    </option>
-                                                ))}
+                                                {POSITIONS.map(p => {
+                                                    // 💡 非表示ロジック
+                                                    const isSelectedByOther = disabledPositions.includes(p.id) && !["DH", "PH", "PR"].includes(p.id);
+                                                    if (isSelectedByOther) return null;
+                                                    return <option key={p.id} value={p.id}>{p.label}</option>;
+                                                })}
                                             </select>
 
                                             <Input placeholder="背番" value={player.uniformNumber} onChange={(e) => handleFieldChange("opponent", index, "uniformNumber", e.target.value)} className="w-16 sm:w-20 h-12 rounded-[12px] font-mono text-center font-bold bg-background shadow-inner" />
