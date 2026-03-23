@@ -35,9 +35,9 @@ export const getAuth = (d1: D1Database, env?: any) => {
     session: {
       // セッションの有効期限: 30日 (秒計算: 60秒 * 60分 * 24時間 * 30日)
       // ※半年(180日)にしたい場合は 60 * 60 * 24 * 180 にします
-      expiresIn: 60 * 60 * 24 * 180, 
+      expiresIn: 60 * 60 * 24 * 180,
       // セッションの更新頻度: 1日 (1日1回アクセスがあれば、そこからまた30日延長される)
-      updateAge: 60 * 60 * 24, 
+      updateAge: 60 * 60 * 24,
     },
     plugins: [
       admin(),
