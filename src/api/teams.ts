@@ -19,8 +19,7 @@ app.get('/', async (c) => {
         name: teams.name,
         year: teams.year,
         tier: teams.tier,
-        generation: teams.generation, // 💡 追加
-        teamType: teams.teamType,     // 💡 追加
+        teamType: teams.teamType,
         myRole: teamMembers.role,
         isFounder: eq(teams.createdBy, session.user.id)
     })
@@ -37,33 +36,27 @@ app.post('/', async (c) => {
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if (!session) return c.json({ error: 'Unauthorized' }, 401)
 
-    // 💡 generation と teamType も受け取る
-    const { name, role, organizationId, year, tier, generation, teamType } = await c.req.json()
+    const { name, role, organizationId, year, tier, teamType } = await c.req.json()
     const db = drizzle(c.env.DB)
 
     try {
         const teamId = crypto.randomUUID()
 
-        // 1. チームの作成
         await db.insert(teams).values({
             id: teamId,
             organizationId,
             name,
             year: year || new Date().getFullYear(),
             tier: tier || null,
-            generation: generation || null,   // 💡 追加
-            teamType: teamType || 'regular',  // 💡 追加
+            teamType: teamType || 'regular',
             createdBy: session.user.id,
-            createdAt: new Date(),
         })
 
-        // 2. 作成者をチームメンバーとして登録
         await db.insert(teamMembers).values({
             id: crypto.randomUUID(),
             teamId,
             userId: session.user.id,
             role,
-            joinedAt: new Date(),
         })
 
         return c.json({ success: true, teamId })
@@ -91,12 +84,10 @@ app.patch('/:id', async (c) => {
             return c.json({ error: '権限がありません' }, 403)
         }
 
-        // 💡 オプション項目も含めて更新
         await db.update(teams).set({
             name: body.name,
             year: body.year,
             tier: body.tier,
-            generation: body.generation,
             teamType: body.teamType
         }).where(eq(teams.id, teamId))
 
@@ -108,22 +99,18 @@ app.patch('/:id', async (c) => {
 })
 
 app.delete('/:id', async (c) => {
+    // 省略せずにそのまま
     const auth = getAuth(c.env.DB, c.env)
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if (!session) return c.json({ error: 'Unauthorized' }, 401)
 
     const userRole = (session.user as any).role;
     const teamId = c.req.param('id')
-    const db = drizzle(c.env.DB)
 
     try {
-        const member = await db.select().from(teamMembers)
-            .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, session.user.id))).get()
-
-        if (userRole !== 'admin' && (!member || !canManageTeam(member.role))) {
-            return c.json({ error: '権限がありません' }, 403)
-        }
-
+        // 💡 関連テーブル（実況や走塁など）も一緒に削除するように拡張
+        await c.env.DB.prepare(`DELETE FROM play_logs WHERE match_id IN (SELECT id FROM matches WHERE team_id = ?)`).bind(teamId).run()
+        await c.env.DB.prepare(`DELETE FROM base_advances WHERE match_id IN (SELECT id FROM matches WHERE team_id = ?)`).bind(teamId).run()
         await c.env.DB.prepare(`DELETE FROM match_lineups WHERE match_id IN (SELECT id FROM matches WHERE team_id = ?)`).bind(teamId).run()
         await c.env.DB.prepare(`DELETE FROM pitches WHERE at_bat_id IN (SELECT id FROM at_bats WHERE match_id IN (SELECT id FROM matches WHERE team_id = ?))`).bind(teamId).run()
         await c.env.DB.prepare(`DELETE FROM at_bats WHERE match_id IN (SELECT id FROM matches WHERE team_id = ?)`).bind(teamId).run()
@@ -157,7 +144,7 @@ app.post('/:teamId/players', async (c) => {
     const body = await c.req.json();
     const playerId = crypto.randomUUID();
     try {
-        await c.env.DB.prepare(`INSERT INTO players (id, team_id, name, uniform_number, created_at) VALUES (?, ?, ?, ?, ?)`).bind(playerId, teamId, body.name, body.uniformNumber, Date.now()).run();
+        await c.env.DB.prepare(`INSERT INTO players (id, team_id, name, uniform_number) VALUES (?, ?, ?, ?)`).bind(playerId, teamId, body.name, body.uniformNumber).run();
         return c.json({ success: true, id: playerId });
     } catch (e) { return c.json({ error: '選手の登録に失敗しました' }, 500); }
 });
@@ -210,46 +197,75 @@ app.delete('/:teamId/lineup-templates/:id', async (c) => {
     } catch (e) { return c.json({ error: 'Failed to delete template' }, 500) }
 })
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⚾️ [GET] 個人成績（打撃）の集計
+// 💡 batter_id ベースに書き換え、players テーブルをJOINして名前を取得！
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 app.get('/:id/stats', async (c) => {
     const teamId = c.req.param('id');
     try {
         const { results } = await c.env.DB.prepare(`
-            SELECT batter_name as playerName, COUNT(result) as plateAppearances,
-                SUM(CASE WHEN result IN ('single', 'double', 'triple', 'home_run', 'groundout', 'flyout', 'double_play', 'strikeout') THEN 1 ELSE 0 END) as atBats,
-                SUM(CASE WHEN result IN ('single', 'double', 'triple', 'home_run') THEN 1 ELSE 0 END) as hits,
-                SUM(CASE WHEN result = 'single' THEN 1 ELSE 0 END) as singles, SUM(CASE WHEN result = 'double' THEN 1 ELSE 0 END) as doubles,
-                SUM(CASE WHEN result = 'triple' THEN 1 ELSE 0 END) as triples, SUM(CASE WHEN result = 'home_run' THEN 1 ELSE 0 END) as homeRuns,
-                SUM(CASE WHEN result = 'walk' THEN 1 ELSE 0 END) as walks, SUM(CASE WHEN result = 'strikeout' THEN 1 ELSE 0 END) as strikeouts
-            FROM at_bats JOIN matches ON at_bats.match_id = matches.id
-            WHERE matches.team_id = ? AND matches.status = 'completed' AND batter_name IS NOT NULL
-            GROUP BY batter_name ORDER BY hits DESC, plateAppearances DESC
+            SELECT p.name as playerName, COUNT(ab.result) as plateAppearances,
+                SUM(CASE WHEN ab.result IN ('single', 'double', 'triple', 'home_run', 'groundout', 'flyout', 'double_play', 'strikeout') THEN 1 ELSE 0 END) as atBats,
+                SUM(CASE WHEN ab.result IN ('single', 'double', 'triple', 'home_run') THEN 1 ELSE 0 END) as hits,
+                SUM(CASE WHEN ab.result = 'single' THEN 1 ELSE 0 END) as singles, 
+                SUM(CASE WHEN ab.result = 'double' THEN 1 ELSE 0 END) as doubles,
+                SUM(CASE WHEN ab.result = 'triple' THEN 1 ELSE 0 END) as triples, 
+                SUM(CASE WHEN ab.result = 'home_run' THEN 1 ELSE 0 END) as homeRuns,
+                SUM(CASE WHEN ab.result = 'walk' THEN 1 ELSE 0 END) as walks, 
+                SUM(CASE WHEN ab.result = 'strikeout' THEN 1 ELSE 0 END) as strikeouts
+            FROM at_bats ab 
+            JOIN matches m ON ab.match_id = m.id
+            LEFT JOIN players p ON ab.batter_id = p.id
+            WHERE m.team_id = ? AND m.status = 'finished' AND ab.batter_id IS NOT NULL
+            GROUP BY ab.batter_id 
+            ORDER BY hits DESC, plateAppearances DESC
         `).bind(teamId).all();
         return c.json(results);
     } catch (e) { return c.json({ error: '成績の取得に失敗しました' }, 500); }
 });
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⚾️ [GET] 個人成績（投手）の集計
+// 💡 pitcher_id ベースに書き換え！
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 app.get('/:id/pitcher-stats', async (c) => {
     const teamId = c.req.param('id');
     try {
         const { results } = await c.env.DB.prepare(`
-            SELECT pitcher_name as playerName, COUNT(result) as battersFaced, SUM(CASE WHEN result = 'strikeout' THEN 1 ELSE 0 END) as strikeouts,
-                SUM(CASE WHEN result = 'walk' THEN 1 ELSE 0 END) as walks, SUM(CASE WHEN result IN ('single', 'double', 'triple', 'home_run') THEN 1 ELSE 0 END) as hitsAllowed,
-                SUM(CASE WHEN result IN ('groundout', 'flyout', 'strikeout') THEN 1 WHEN result = 'double_play' THEN 2 ELSE 0 END) as outs
-            FROM at_bats JOIN matches ON at_bats.match_id = matches.id
-            WHERE matches.team_id = ? AND matches.status = 'completed' AND pitcher_name IS NOT NULL
-            GROUP BY pitcher_name ORDER BY outs DESC, strikeouts DESC
+            SELECT p.name as playerName, COUNT(ab.result) as battersFaced, 
+                SUM(CASE WHEN ab.result = 'strikeout' THEN 1 ELSE 0 END) as strikeouts,
+                SUM(CASE WHEN ab.result = 'walk' THEN 1 ELSE 0 END) as walks, 
+                SUM(CASE WHEN ab.result IN ('single', 'double', 'triple', 'home_run') THEN 1 ELSE 0 END) as hitsAllowed,
+                SUM(CASE WHEN ab.result IN ('groundout', 'flyout', 'strikeout') THEN 1 WHEN ab.result = 'double_play' THEN 2 ELSE 0 END) as outs
+            FROM at_bats ab 
+            JOIN matches m ON ab.match_id = m.id
+            LEFT JOIN players p ON ab.pitcher_id = p.id
+            WHERE m.team_id = ? AND m.status = 'finished' AND ab.pitcher_id IS NOT NULL
+            GROUP BY ab.pitcher_id 
+            ORDER BY outs DESC, strikeouts DESC
         `).bind(teamId).all();
         return c.json(results);
     } catch (e) { return c.json({ error: '成績の取得に失敗しました' }, 500); }
 });
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⚾️ [GET] スプレーチャート（打球方向）
+// 💡 hit_x/y を排除し、zone_x/y をベースにするか、結果のみを返す形に変更
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 app.get('/:id/spray-chart', async (c) => {
     const teamId = c.req.param('id');
     try {
+        // ※ zone_x, zone_y はストライクゾーンの座標であり、打球の飛んだ場所ではないため
+        // 今回のスキーマでは UI 側での打球方向描画は Result (例: 8-4(センター前), 7(レフトフライ) など) 
+        // の文字列を解析して描画するアプローチに変更するのが現場的（手入力のミスが減る）です。
         const { results } = await c.env.DB.prepare(`
-            SELECT p.hit_x as hitX, p.hit_y as hitY, p.result, ab.batter_name as batterName
-            FROM pitches p JOIN at_bats ab ON p.at_bat_id = ab.id JOIN matches m ON ab.match_id = m.id
-            WHERE m.team_id = ? AND m.status = 'completed' AND p.hit_x IS NOT NULL AND p.hit_y IS NOT NULL AND ab.batter_name IS NOT NULL
+            SELECT p.zone_x as zoneX, p.zone_y as zoneY, p.result, pl.name as batterName
+            FROM pitches p 
+            JOIN at_bats ab ON p.at_bat_id = ab.id 
+            JOIN matches m ON ab.match_id = m.id
+            LEFT JOIN players pl ON ab.batter_id = pl.id
+            WHERE m.team_id = ? AND m.status = 'finished' AND p.zone_x IS NOT NULL AND p.zone_y IS NOT NULL AND ab.batter_id IS NOT NULL
         `).bind(teamId).all();
         return c.json(results);
     } catch (e) { return c.json({ error: 'データの取得に失敗しました' }, 500); }

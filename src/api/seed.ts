@@ -64,17 +64,18 @@ app.post('/', async (c) => {
 
         // ----------------------------------------------------
         // 3. 選手データ（川崎中央シニア 1年生チーム）の作成
+        // 💡 拡張カラム（ポジションや投打）を追加してテストをリッチに！
         // ----------------------------------------------------
         const dummyPlayers = [
-            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '山田 太郎', uniformNumber: '1', createdAt: new Date() },
-            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '佐藤 次郎', uniformNumber: '2', createdAt: new Date() },
-            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '鈴木 三郎', uniformNumber: '3', createdAt: new Date() },
-            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '高橋 健太', uniformNumber: '4', createdAt: new Date() },
-            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '田中 翔太', uniformNumber: '5', createdAt: new Date() },
-            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '伊藤 翼', uniformNumber: '6', createdAt: new Date() },
-            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '渡辺 陸', uniformNumber: '7', createdAt: new Date() },
-            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '山本 海', uniformNumber: '8', createdAt: new Date() },
-            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '中村 空', uniformNumber: '9', createdAt: new Date() },
+            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '山田 太郎', uniformNumber: '1', primaryPosition: '1', throws: 'R', bats: 'R', createdAt: new Date() },
+            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '佐藤 次郎', uniformNumber: '2', primaryPosition: '2', throws: 'R', bats: 'R', createdAt: new Date() },
+            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '鈴木 三郎', uniformNumber: '3', primaryPosition: '3', throws: 'R', bats: 'L', createdAt: new Date() },
+            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '高橋 健太', uniformNumber: '4', primaryPosition: '4', throws: 'R', bats: 'R', createdAt: new Date() },
+            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '田中 翔太', uniformNumber: '5', primaryPosition: '5', throws: 'R', bats: 'R', createdAt: new Date() },
+            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '伊藤 翼', uniformNumber: '6', primaryPosition: '6', throws: 'R', bats: 'L', createdAt: new Date() },
+            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '渡辺 陸', uniformNumber: '7', primaryPosition: '7', throws: 'R', bats: 'R', createdAt: new Date() },
+            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '山本 海', uniformNumber: '8', primaryPosition: '8', throws: 'L', bats: 'L', createdAt: new Date() },
+            { id: crypto.randomUUID(), teamId: myTeam1_id, name: '中村 空', uniformNumber: '9', primaryPosition: '9', throws: 'R', bats: 'R', createdAt: new Date() },
         ];
         await db.insert(players).values(dummyPlayers);
 
@@ -85,19 +86,20 @@ app.post('/', async (c) => {
             {
                 id: crypto.randomUUID(),
                 teamId: myTeam1_id,
-                opponentTeamId: oppTeam1_id,
+                // 💡 opponentTeamId は廃止されたため削除
                 opponent: '横浜青葉シニア',
-                season: '2026',
+                // 💡 season は廃止されたため削除
                 date: '2026-03-10',
-                location: '多摩川河川敷グラウンド',
-                matchType: 'practice', // 練習試合
-                battingOrder: 'normal',
+                surfaceDetails: '多摩川河川敷グラウンド', // 💡 location から変更
+                matchType: 'practice',
+                battingOrder: 'first', // 💡 'normal' を先攻の 'first' に変更
                 innings: 7,
-                status: 'completed', // 試合終了
+                status: 'finished', // 💡 'completed' を 'finished' に変更
                 myScore: 5,
                 opponentScore: 3,
                 myInningScores: JSON.stringify([1, 0, 2, 0, 0, 0, 2]),
                 opponentInningScores: JSON.stringify([0, 1, 0, 0, 2, 0, 0]),
+                createdAt: new Date(),
             }
         ]);
 

@@ -28,21 +28,18 @@ app.post('/', async (c) => {
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if (!session) return c.json({ error: 'Unauthorized' }, 401)
 
-    // ※ 本来はここで権限チェック(canManageTeam等)を入れるとさらに安全です
-
     const body = await c.req.json()
     const db = drizzle(c.env.DB)
     const tournamentId = crypto.randomUUID()
 
     try {
+        // 💡 新スキーマに合わせて category と createdBy は除外
         await db.insert(tournaments).values({
             id: tournamentId,
             name: body.name,
             season: body.season,
-            category: body.category || 'other', // 💡 2. カテゴリーを保存
             startDate: body.startDate || null,
             endDate: body.endDate || null,
-            createdBy: session.user.id,
         })
         return c.json({ success: true, id: tournamentId })
     } catch (e) {
@@ -61,7 +58,6 @@ app.delete('/:id', async (c) => {
     const db = drizzle(c.env.DB)
 
     try {
-        // 紐づく試合の tournamentId を null にして保護する (必要に応じて)
         await db.update(matches).set({ tournamentId: null }).where(eq(matches.tournamentId, id));
         await db.delete(tournaments).where(eq(tournaments.id, id));
         return c.json({ success: true })
