@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, Users, Loader2, UserCheck, UserX, Shield, UserPlus, MailQuestion } from "lucide-react";
+import { ChevronLeft, Users, Loader2, UserCheck, UserX, Shield, UserPlus, MailQuestion, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -70,6 +70,16 @@ export default function RosterPage() {
     };
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🚀 招待コード（チームID）をコピーする
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const handleCopyInviteCode = () => {
+        if (!teamId) return;
+        navigator.clipboard.writeText(teamId)
+            .then(() => toast.success("📋 招待コードをコピーしました！LINE等で保護者に共有してください。"))
+            .catch(() => toast.error("コピーに失敗しました"));
+    };
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 🚀 参加申請の承認・拒否処理
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     const handleRequestAction = async (memberId: string, action: 'approve' | 'reject') => {
@@ -110,14 +120,23 @@ export default function RosterPage() {
                 <Button variant="ghost" onClick={() => router.back()} className="rounded-full pl-2 pr-4 hover:bg-muted text-muted-foreground font-extrabold -ml-2 transition-transform active:scale-95">
                     <ChevronLeft className="h-5 w-5 mr-1" /> 戻る
                 </Button>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-3">
-                    <div className="p-2.5 bg-primary/10 rounded-2xl text-primary shadow-sm border border-primary/20">
-                        <Users className="h-6 w-6 sm:h-7 sm:w-7" />
-                    </div>
-                    名簿・メンバー管理
-                </h1>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-2xl text-primary shadow-sm border border-primary/20">
+                            <Users className="h-6 w-6 sm:h-7 sm:w-7" />
+                        </div>
+                        名簿・メンバー管理
+                    </h1>
+                    {/* 💡 コピーボタンを追加！ */}
+                    <Button
+                        onClick={handleCopyInviteCode}
+                        variant="outline"
+                        className="h-10 sm:h-12 rounded-full font-black text-primary border-primary/30 bg-primary/5 hover:bg-primary/10 shadow-sm shrink-0"
+                    >
+                        <Copy className="h-4 w-4 mr-2" /> 招待コードを共有する
+                    </Button>
+                </div>
             </div>
-
             {/* 💡 タブ切り替えUI */}
             <div className="flex bg-muted/30 p-1.5 rounded-[20px] border border-border/50 shadow-inner mb-6">
                 <button
