@@ -49,6 +49,18 @@ interface DashboardData {
   };
 }
 
+// 💡 Gemini API レスポンスの型定義
+interface GeminiAnalysisResponse {
+  candidates?: {
+    content?: {
+      parts?: {
+        text?: string;
+      }[];
+    };
+  }[];
+  error?: { message: string };
+}
+
 /**
  * ⚾️ プロフェッショナル・ハイブリッド・ダッシュボード
  * ライト/ダーク両モードで「プロの風格」を維持する、セマンティック・デザイン。
@@ -69,6 +81,7 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
       try {
         const res = await fetch('/api/dashboard/summary');
+        // 💡 型安全プロトコル: キャストを行い 'unknown' エラーを防止
         const result = (await res.json()) as DashboardData;
         if (result.success) setData(result);
         else setMockData();
@@ -104,7 +117,8 @@ export default function DashboardPage() {
           contents: [{ parts: [{ text: "野球の監督として短い激励を。" }] }],
         })
       });
-      const result = await res.json();
+      // 💡 修正ポイント: 'unknown' 型エラーを回避するため、定義したインターフェースへキャスト
+      const result = (await res.json()) as GeminiAnalysisResponse;
       const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
       if (text) setAiTip(text.trim());
     } catch (e) {
@@ -135,7 +149,7 @@ export default function DashboardPage() {
 
       <main className="max-w-6xl mx-auto px-6 py-10 space-y-10">
 
-        {/* HEADER: モードに関わらず「白文字」が映えるスタイルから、セマンティックへ */}
+        {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -166,7 +180,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* AI INSIGHT: ライト/ダークで背景透過度を調整 */}
+        {/* AI INSIGHT */}
         <section
           className="relative group cursor-pointer"
           onClick={!aiTip ? generateAiTip : undefined}
@@ -191,7 +205,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* STATS: グラデーションの色調を調整 */}
+          {/* STATS */}
           <div className="lg:col-span-1 space-y-6">
             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground pl-2">Season Stats</h2>
 
@@ -253,7 +267,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* MATCH LIST: モードでホバー時の挙動を調整 */}
+          {/* MATCH LIST */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between px-2">
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">Match History</h2>
