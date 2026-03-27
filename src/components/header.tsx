@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
 import { canManageTeam } from "@/lib/roles";
 import { toast } from "sonner";
-import { ClipboardList, ShieldAlert, UserCog, Menu, Users, Trophy } from "lucide-react";
+import { ClipboardList, ShieldAlert, UserCog, Menu, Users, Trophy, History, PlusSquare, UserCheck, Settings } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 
@@ -81,11 +81,15 @@ function HeaderContent() {
     { name: "チーム", href: "/teams", icon: RiTeamFill, show: !!session, exact: true },
     { name: "選手名簿", href: "/teams/roster", icon: Users, show: !!session },
     { name: "大会管理", href: "/tournaments", icon: Trophy, show: !!session },
+    { name: "試合記録", href: "/matches/history", icon: History, show: !!session },
   ];
 
   const bottomNavItems: NavItem[] = [
     { name: "アカウント設定", href: "/user", icon: UserCog, show: !!session },
     { name: "システム管理", href: "/admin", icon: ShieldAlert, show: !!session && isManager },
+    { name: "大会管理", href: "/tournaments/register", icon: PlusSquare, show: !!session },
+    { name: "参加申請", href: "/teams/requests", icon: UserCheck, show: !!session, badge: 1 },
+    { name: "設定", href: "/settings", icon: Settings, show: !!session },
   ];
 
   const handleLogout = async () => {
