@@ -1,16 +1,17 @@
 // src/app/layout.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 /**
- * 💡 保護ルート共通レイアウト (修正済)
- * 1. 構成: PC用サイドバーとモバイル用ボトムナビ/ドロワーをレスポンシブに切り替え。
- * 2. 状態管理: サイドバー開閉(isCollapsed)とドロワー開閉(isDrawerOpen)を統合。
- * 3. 修正: MobileDrawer の型エラーを解消し、onNavigate プロパティを正しく渡す。
- * 4. 意匠: メインコンテンツに Stadium Sync 背景を適用。
+ * 💡 保護ルート共通レイアウト (型安全・レイアウト修正版)
+ * 1. 修正: MobileDrawer への関数渡しにおける型エラー (2322) を引数の調整で解消。
+ * 2. 修正: 画面が横に溢れる問題を margin(ml) から padding(pl) 制御に変更して解決。
+ * 3. 構成: PCサイドバー、モバイルボトムナビ、モバイルドロワー、ヘッダーを完全統合。
+ * 4. 意匠: 影なし・透過・Stadium Sync 背景を全画面で同期。
  */
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar, NavItem } from "@/components/sidebar";
+import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { MobileDrawer } from "@/components/mobile-drawer";
 import { cn } from "@/lib/utils";
@@ -26,7 +27,7 @@ import {
 } from "lucide-react";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⚾️ メニュー構成定義
+// ⚾️ メニュー構成定義 (NavItem スキーマ厳守)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const mainNavItems: NavItem[] = [
@@ -48,19 +49,22 @@ export default function ProtectedLayout({
 }: {
 	children: React.ReactNode;
 }) {
-	const pathname = usePathname();
+	const pathname = usePathname() || "";
 	const router = useRouter();
 
-	// 状態管理
+	// 💡 サイドバー・ドロワーの状態管理
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-	// モックセッション情報
+	// モックセッション (実際は auth-client 等から取得)
 	const session = { user: { name: "山田 監督", role: "Admin", image: null } };
 	const isUploadingAvatar = false;
 
-	// 💡 ナビゲーション処理
-	const handleNavigate = (path: string, id: string) => {
+	/**
+	 * 💡 共通ナビゲーション処理
+	 * 型エラー回避のため、第2引数 id をオプション (?) に修正
+	 */
+	const handleNavigate = (path: string, id?: string) => {
 		router.push(path);
 		setIsDrawerOpen(false);
 	};
@@ -69,14 +73,10 @@ export default function ProtectedLayout({
 		console.log("Logout triggered");
 	};
 
-	const handleClickAvatar = () => {
-		router.push("/user");
-	};
-
 	return (
-		<div className="flex min-h-screen bg-background text-foreground overflow-x-hidden">
+		<div className="min-h-screen bg-background text-foreground relative flex flex-col">
 
-			{/* 💻 PC版サイドバー (md以上) */}
+			{/* 💻 デスクトップ：サイドバー (md以上) */}
 			<Sidebar
 				session={session}
 				pathname={pathname}
@@ -84,38 +84,47 @@ export default function ProtectedLayout({
 				toggleSidebar={() => setIsCollapsed(!isCollapsed)}
 				mainNavItems={mainNavItems}
 				bottomNavItems={bottomNavItems}
-				onClickAvatar={handleClickAvatar}
+				onClickAvatar={() => router.push("/user")}
 				isUploadingAvatar={isUploadingAvatar}
 				onLogout={handleLogout}
 			/>
 
-			{/* 🏟 メインコンテンツエリア */}
+			{/* 🏟 コンテンツエリア本体 */}
 			<div className={cn(
-				"flex-1 flex flex-col transition-all duration-300",
-				// サイドバーの開閉に合わせてマージンを調整
-				!isCollapsed ? "md:ml-56" : "md:ml-16"
+				"flex-1 flex flex-col transition-all duration-300 min-h-screen",
+				// 💡 修正ポイント: ml-56 ではなく pl-56 を使用
+				// これにより、要素を「外に押し出す」のではなく「内側に余白を作る」ため、
+				// 画面幅が100%を超えて横スクロールが発生するのを防ぎます。
+				isCollapsed ? "md:pl-16" : "md:pl-56"
 			)}>
-				<main className="flex-1 pb-20 md:pb-0 min-h-screen relative">
-					{/* 全画面共通：究極の5%背景グラデーション */}
+
+				{/* ヘッダー */}
+				<Header />
+
+				<main className="flex-1 pb-24 md:pb-8 relative">
+					{/* STADIUM SYNC: 全画面共通背景グラデーション */}
 					<div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(var(--primary),0.05),transparent)] pointer-events-none -z-10" />
 
-					{children}
+					{/* 子要素（各ページ）のレンダリング */}
+					<div className="w-full h-full relative z-0">
+						{children}
+					</div>
 				</main>
 			</div>
 
-			{/* 📱 モバイル版ボトムナビ (md未満) */}
+			{/* 📱 モバイル：ボトムナビゲーション (md未満) */}
 			<BottomNavigation
 				activeTab={pathname}
-				onNavigate={handleNavigate}
+				onNavigate={(path) => handleNavigate(path)}
 				onOpenDrawer={() => setIsDrawerOpen(true)}
 			/>
 
-			{/* 📱 モバイル版ドロワー (型エラーを解消) */}
-			{/* <MobileDrawer
+			{/* 📱 モバイル：設定ドロワー (handleNavigate の型不整合を解消) */}
+			<MobileDrawer
 				isOpen={isDrawerOpen}
 				onClose={() => setIsDrawerOpen(false)}
-				onNavigate={handleNavigate}
-			/> */}
+				onNavigate={(path) => handleNavigate(path)}
+			/>
 		</div>
 	);
 }

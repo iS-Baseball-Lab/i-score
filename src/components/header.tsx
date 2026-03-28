@@ -1,175 +1,159 @@
 // src/components/header.tsx
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { LogoIcon } from "@/components/logo";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { authClient } from "@/lib/auth-client";
-import { canManageTeam } from "@/lib/roles";
-import { toast } from "sonner";
-import { ClipboardList, ShieldAlert, UserCog, Menu, Users, Trophy, History, PlusSquare, UserCheck, Settings } from "lucide-react";
-import { RiTeamFill } from "react-icons/ri";
+import React, { useEffect, useState } from "react";
+/**
+ * 💡 グローバルヘッダー・コンポーネント (Type-Safe 厳格版)
+ * 1. デザイン: NO SHADOW ルールを厳守。透過・ブラー・微細ボーダーで構成。
+ * 2. 型安全: anyを排除し、APIレスポンスやパス名のnullチェックを徹底。
+ * 3. 機能: 現在のパスから動的にページタイトルとパンくずリストを生成。
+ * 4. 連携: ログイン中のチーム情報をD1からフェッチし表示。
+ */
+import { usePathname } from "next/navigation";
+import {
+  ChevronRight,
+  Search,
+  Bell,
+  Command,
+  Shield,
+  Zap
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { Sidebar, NavItem } from "./sidebar";
-import { MobileDrawer } from "./mobile-drawer";
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⚾️ 型定義 (Schema Protocol)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-export function Header() {
-  const [mounted, setMounted] = React.useState(false);
-  const pathname = usePathname();
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (pathname?.includes("/matches/score")) return null;
-
-  if (!mounted) {
-    return (
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md text-foreground">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-4">
-            <div className="md:hidden h-10 w-10" />
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="font-extrabold italic text-2xl tracking-tighter text-primary">i-Score</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-    );
-  }
-
-  return <HeaderContent />;
+// APIレスポンス用の型定義
+interface UserProfileResponse {
+  organizationName?: string;
+  name?: string;
+  role?: string;
+  image?: string | null;
 }
 
-function HeaderContent() {
-  const { data: session } = authClient.useSession();
-  const router = useRouter();
-  const pathname = usePathname();
+// ページ名マッピングの型定義
+const routeMap: Record<string, string> = {
+  "dashboard": "ダッシュボード",
+  "teams": "チーム管理",
+  "profile": "プロフィール",
+  "players": "選手名簿",
+  "tournaments": "大会マップ",
+  "map": "大会マップ",
+  "register": "大会管理",
+  "requests": "参加申請",
+  "matches": "試合記録",
+  "history": "試合履歴",
+  "score": "スコア入力",
+  "result": "試合結果",
+  "stats": "成績分析",
+  "settings": "設定",
+  "user": "アカウント"
+};
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [isUploadingAvatar, setIsUploadingAvatar] = React.useState(false);
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
+export function Header() {
+  // 💡 修正: usePathname() は null を返す可能性があるため空文字でフォールバック
+  const pathname = usePathname() || "";
+  const [teamName, setTeamName] = useState<string>("Loading Team...");
 
-  const userRole = (session?.user as unknown as { role?: string })?.role;
-  const isManager = canManageTeam(userRole);
-  const isSaaSMode = !!session;
+  // パスを分割してパンくずリストを生成
+  const pathSegments = pathname.split("/").filter(Boolean).filter(s => s !== "(protected)");
 
-  React.useEffect(() => {
-    const saved = localStorage.getItem("iScore_sidebarCollapsed");
-    if (saved === "true") {
-      setIsCollapsed(true);
-      document.documentElement.style.setProperty('--sidebar-width', '84px');
-    } else {
-      document.documentElement.style.setProperty('--sidebar-width', '300px');
-    }
+  // 現在のページタイトルを決定
+  const currentKey = pathSegments[pathSegments.length - 1] || "dashboard";
+  const pageTitle = routeMap[currentKey] || "i-Score";
+
+  useEffect(() => {
+    /**
+     * 🚀 D1データベースから所属チーム名を取得
+     */
+    const fetchTeamInfo = async () => {
+      try {
+        const res = await fetch("/api/user/profile");
+        if (res.ok) {
+          // 💡 修正: res.json() を UserProfileResponse でキャストして any を排除
+          const data = (await res.json()) as UserProfileResponse;
+          setTeamName(data.organizationName || "プライム・ベアーズ");
+        }
+      } catch (e) {
+        console.error("Header data fetch failed:", e);
+        setTeamName("プライム・ベアーズ");
+      }
+    };
+    fetchTeamInfo();
   }, []);
 
-  const toggleSidebar = () => {
-    const next = !isCollapsed;
-    setIsCollapsed(next);
-    localStorage.setItem("iScore_sidebarCollapsed", String(next));
-    document.documentElement.style.setProperty('--sidebar-width', next ? '84px' : '300px');
-  };
-
-  const mainNavItems: NavItem[] = [
-    { name: "ダッシュボード", href: "/dashboard", icon: ClipboardList, show: !!session },
-    // 💡 チームメニューに exact: true を指定！
-    { name: "チーム", href: "/teams", icon: RiTeamFill, show: !!session, exact: true },
-    { name: "選手名簿", href: "/teams/roster", icon: Users, show: !!session },
-    { name: "大会管理", href: "/tournaments", icon: Trophy, show: !!session },
-    { name: "試合記録", href: "/matches/history", icon: History, show: !!session },
-  ];
-
-  const bottomNavItems: NavItem[] = [
-    { name: "大会管理", href: "/tournaments/register", icon: PlusSquare, show: !!session },
-    { name: "参加申請", href: "/teams/requests", icon: UserCheck, show: !!session, badge: 1 },
-    { name: "設定", href: "/settings", icon: Settings, show: !!session },
-    { name: "アカウント", href: "/user", icon: UserCog, show: !!session },
-    { name: "システム管理", href: "/admin", icon: ShieldAlert, show: !!session && isManager },
-  ];
-
-  const handleLogout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          setIsMobileMenuOpen(false);
-          router.push("/login");
-          router.refresh();
-        },
-      },
-    });
-  };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("画像サイズは5MB以下にしてください");
-      return;
-    }
-
-    setIsUploadingAvatar(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch('/api/images/upload', { method: 'POST', body: formData });
-      const data = await res.json() as { success: boolean; imageUrl?: string; error?: string };
-
-      if (res.ok && data.success && data.imageUrl) {
-        await authClient.updateUser({ image: data.imageUrl });
-        toast.success('プロフィール画像を更新しました！');
-        router.refresh();
-      } else {
-        toast.error(data.error || '画像のアップロードに失敗しました');
-      }
-    } catch (error) {
-      toast.error('通信エラーが発生しました');
-    } finally {
-      setIsUploadingAvatar(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
   return (
-    <>
-      <input type="file" accept="image/jpeg, image/png, image/webp" className="hidden" ref={fileInputRef} onChange={handleAvatarUpload} />
+    <header className="sticky top-0 z-40 w-full bg-background/40 backdrop-blur-md border-b border-border/40 transition-all duration-300">
+      <div className="flex h-16 items-center justify-between px-4 sm:px-8">
 
-      <header className={cn(
-        "sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md text-foreground transition-all duration-300",
-        isSaaSMode ? "md:hidden" : "block"
-      )}>
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 -ml-2 rounded-full hover:bg-muted/80 active:scale-95"><Menu className="h-6 w-6" /></button>
-            <Link href="/" className="flex items-center gap-1 group transition-opacity hover:opacity-80">
-              <LogoIcon className="h-10 w-10 transition-transform group-hover:scale-110 duration-300" />
-              <span className="font-black italic text-2xl tracking-tighter text-foreground group-hover:text-primary transition-colors">i-Score</span>
-            </Link>
+        {/* 1. 左側：タイトル & パンくず */}
+        <div className="flex items-center gap-4 overflow-hidden">
+          {/* モバイル用ロゴ（サイドバー非表示時） */}
+          <div className="md:hidden flex h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 items-center justify-center shrink-0">
+            <img src="/logo.png" alt="logo" className="h-5 w-5 object-contain" />
           </div>
-          <div className="flex items-center gap-2 sm:gap-4"><ThemeToggle /></div>
+
+          <div className="flex flex-col min-w-0">
+            {/* パンくずリスト */}
+            <nav className="hidden sm:flex items-center gap-1.5 text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60 mb-0.5">
+              <span>i-Score</span>
+              {pathSegments.map((seg, i) => (
+                <React.Fragment key={seg + i}>
+                  <ChevronRight className="h-2.5 w-2.5 opacity-40" />
+                  <span className={cn(i === pathSegments.length - 1 && "text-primary/80")}>
+                    {routeMap[seg] || seg}
+                  </span>
+                </React.Fragment>
+              ))}
+            </nav>
+            {/* メインタイトル */}
+            <h1 className="text-xl sm:text-2xl font-black italic tracking-tighter text-foreground truncate uppercase">
+              {pageTitle}
+            </h1>
+          </div>
         </div>
-      </header>
 
-      {isSaaSMode && (
-        <Sidebar
-          session={session} pathname={pathname} isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}
-          mainNavItems={mainNavItems} bottomNavItems={bottomNavItems}
-          onClickAvatar={() => fileInputRef.current?.click()} isUploadingAvatar={isUploadingAvatar} onLogout={handleLogout}
-        />
-      )}
+        {/* 2. 右側：ツール & ステータス */}
+        <div className="flex items-center gap-2 sm:gap-4">
 
-      <MobileDrawer
-        isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)}
-        session={session} pathname={pathname}
-        mainNavItems={mainNavItems} bottomNavItems={bottomNavItems}
-        onClickAvatar={() => fileInputRef.current?.click()} isUploadingAvatar={isUploadingAvatar} onLogout={handleLogout}
-      />
-    </>
+          {/* 検索 (Desktop) */}
+          <div className="hidden lg:flex items-center relative group">
+            <Search className="absolute left-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <input
+              type="text"
+              placeholder="Search data..."
+              className="h-10 w-64 pl-10 pr-4 rounded-full bg-muted/30 border border-border/40 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-background/60 transition-all"
+            />
+            <div className="absolute right-3 hidden xl:flex items-center gap-1 px-1.5 py-0.5 rounded border border-border/60 bg-muted/50 text-[9px] font-black text-muted-foreground">
+              <Command className="h-2.5 w-2.5" /> K
+            </div>
+          </div>
+
+          {/* チーム表示バッジ */}
+          <div className="hidden sm:flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-primary">
+            <Shield className="h-3.5 w-3.5" />
+            <span className="text-[11px] font-black tracking-tight">{teamName}</span>
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse ml-1" />
+          </div>
+
+          {/* 通知・クイックアクション */}
+          <div className="flex items-center gap-1">
+            <button className="relative p-2.5 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors group" aria-label="Notifications">
+              <Bell className="h-5 w-5 group-hover:scale-110 transition-transform" />
+              <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-red-500 border-2 border-background" />
+            </button>
+            <button className="p-2.5 rounded-full hover:bg-primary/10 text-primary transition-colors lg:hidden" aria-label="Quick Action">
+              <Zap className="h-5 w-5" />
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* STADIUM SYNC: ヘッダー直下の装飾ライン */}
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+    </header>
   );
 }
