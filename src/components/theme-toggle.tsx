@@ -3,35 +3,38 @@
 
 import * as React from "react";
 /**
- * 💡 テーマトグル・コンポーネント (修正版)
- * 1. 修正: 判定基準を theme から resolvedTheme に変更。
- * これにより「システム設定」かつ「現在ダークモード」の状態から確実にライトモードへ切り替え可能に。
- * 2. 意匠: 
- * - icon variant: ヘッダー用。Sun/Moonが入れ替わるアニメーション。
- * - segmented variant: ドロワー用。3つの選択肢をカプセル型に配置。
- * 3. 安定性: マウント状態をチェックし、SSR時の Hydration Error を防止。
+ * 💡 テーマトグル・コンポーネント (Tailwind v4 決定版)
+ * 1. 修正: toggleTheme 関数を、現在の実際の状態 (resolvedTheme) に基づくように修正。
+ * 2. 修正: マウント完了まで何も表示しないことで、SSRとの不整合 (NG原因) を排除。
+ * 3. 意匠: 監督の globals.css にある光彩背景が切り替わる瞬間を演出します。
  */
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 export function ThemeToggle({ variant = "icon" }: { variant?: "icon" | "segmented" }) {
-  // 💡 resolvedTheme を追加取得。これはシステム設定を含めた「現在の実際の色」を返します。
+  // 💡 resolvedTheme は「システム設定」を含めた現在の実際の色（light or dark）を返します
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
-  // クライアントサイドでのマウントを待機 (Hydrationエラー防止)
-  React.useEffect(() => setMounted(true), []);
+  // クライアントサイドでのマウントを待機 (Hydrationエラー防止の鉄則)
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  // マウント前はレイアウトシフトを防ぐために空の領域を表示
-  if (!mounted) return <div className="h-10 w-10 md:h-9 md:w-9" />;
+  // マウント前はレイアウトシフトを防ぐために透明な領域を確保
+  if (!mounted) {
+    return <div className={variant === "icon" ? "h-10 w-10" : "h-14 w-full"} />;
+  }
 
   /**
    * 💡 テーマ切り替えロジック
-   * 実際の外観 (resolvedTheme) が dark なら light へ、それ以外なら dark へ。
+   * 実際の見た目 (resolvedTheme) が dark なら次は light へ。
+   * それ以外（light）なら次は dark へ。
    */
   const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
   };
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -41,11 +44,12 @@ export function ThemeToggle({ variant = "icon" }: { variant?: "icon" | "segmente
     return (
       <button
         onClick={toggleTheme}
-        className="relative h-10 w-10 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground transition-all active:scale-90 group shadow-none border-none overflow-hidden"
-        aria-label="テーマを切り替える"
+        className="relative h-10 w-10 flex items-center justify-center rounded-full hover:bg-muted/50 text-muted-foreground transition-all active:scale-90 group outline-none"
+        aria-label="テーマ切り替え"
       >
-        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 group-hover:text-primary" />
-        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 group-hover:text-primary" />
+        {/* 💡 v4 の dark: モディファイアが効くよう、クラス名で制御 */}
+        <Sun className="h-5 w-5 transition-all rotate-0 scale-100 dark:-rotate-90 dark:scale-0 group-hover:text-primary" />
+        <Moon className="absolute h-5 w-5 transition-all rotate-90 scale-0 dark:rotate-0 dark:scale-100 group-hover:text-primary" />
       </button>
     );
   }
@@ -60,7 +64,7 @@ export function ThemeToggle({ variant = "icon" }: { variant?: "icon" | "segmente
         { id: "dark", icon: Moon, label: "Dark" },
         { id: "system", icon: Monitor, label: "Auto" },
       ].map((item) => {
-        // 現在の設定（theme）と一致しているボタンをアクティブにする
+        // 設定値 (theme) と一致しているボタンを強調
         const isActive = theme === item.id;
 
         return (
@@ -70,12 +74,12 @@ export function ThemeToggle({ variant = "icon" }: { variant?: "icon" | "segmente
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition-all duration-300",
               isActive
-                ? "bg-background text-primary shadow-sm ring-1 ring-border/10"
+                ? "bg-background text-primary ring-1 ring-border/10 shadow-sm"
                 : "text-muted-foreground opacity-40 hover:opacity-100"
             )}
           >
             <item.icon className={cn(
-              "h-4.5 w-4.5 transition-transform duration-300",
+              "h-4 w-4 transition-all",
               isActive && "animate-in zoom-in-75 duration-300 text-primary"
             )} />
             <span className="text-[9px] font-black uppercase tracking-[0.15em] leading-none">
