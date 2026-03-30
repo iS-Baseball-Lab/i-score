@@ -3,153 +3,110 @@
 
 import React, { useState } from "react";
 /**
- * 💡 究極のログイン画面
- * 1. 意匠: bg-card/30, backdrop-blur-2xl, rounded-[40px], border-border/40。
- * 2. 演出: 野球の「プレイ開始」を彷彿とさせるシャープなタイポグラフィ。
- * 3. 規則: 影なし (No Shadow)。OKLCHカラーのアクセント。
+ * 💡 究極のソーシャルログイン・インターフェース (ロジック接続版)
+ * 1. 連携: AuthContext の loginWithGoogle / loginWithLine を呼び出し。
+ * 2. 意匠: 監督の「整理整頓」に基づき、メールログインを廃した純粋なソーシャルゲート。
  */
 import { useRouter } from "next/navigation";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader 
-} from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ShieldCheck, 
-  LogIn, 
-  Mail, 
-  Lock, 
-  ChevronRight, 
-  Loader2,
-  Zap
-} from "lucide-react";
+import { ShieldCheck, ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+const LineIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" xmlns="http://www.w3.org/2000/svg">
+    <path d="M21 10.354c0-4.062-4.038-7.354-9-7.354s-9 3.292-9 7.354c0 3.642 3.203 6.69 7.531 7.234.293.063.692.193.791.443.09.227.059.582.029.81l-.128.771c-.039.234-.18 1.055.776.575 1.042-.524 5.617-3.385 7.662-5.802.434-.543.339-1.031.339-4.031z"/>
+  </svg>
+);
 
 export default function LoginPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const { loginWithGoogle, loginWithLine } = useAuth();
+  const [loadingType, setLoadingType] = useState<"google" | "line" | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // 💡 認証ロジック (実際には Firebase Auth / NextAuth 等を呼び出し)
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("プレイボール！ログインに成功しました。");
+  const handleLogin = async (type: "google" | "line") => {
+    setLoadingType(type);
+    try {
+      if (type === "google") {
+        await loginWithGoogle();
+      } else {
+        await loginWithLine();
+      }
+      toast.success("認証に成功しました。グラウンドへ入場します。");
       router.push("/dashboard");
-    }, 1500);
+    } catch (error) {
+      toast.error("認証中にエラーが発生しました。");
+      console.error(error);
+    } finally {
+      setLoadingType(null);
+    }
   };
 
   return (
-    <Card className="bg-card/30 backdrop-blur-2xl border-border/40 rounded-[40px] shadow-none overflow-hidden relative group">
-      {/* カード上部の Stadium Sync 装飾線 */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+    <Card className="bg-card/30 backdrop-blur-3xl border-border/40 rounded-[40px] shadow-none overflow-hidden relative">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       
-      <CardHeader className="pt-12 pb-8 flex flex-col items-center text-center space-y-4">
-        <div className="h-16 w-16 rounded-[24px] bg-primary/10 border border-primary/20 flex items-center justify-center mb-2 shadow-inner">
-          <img src="/logo.png" alt="i-Score" className="h-10 w-10 object-contain" />
+      <CardHeader className="pt-16 pb-10 flex flex-col items-center text-center space-y-4 px-8">
+        <div className="h-20 w-20 rounded-[28px] bg-primary/10 border border-primary/20 flex items-center justify-center mb-2 shadow-inner overflow-hidden">
+          <img src="/logo.png" alt="i-Score" className="h-12 w-12 object-contain" />
         </div>
         
         <div className="space-y-1">
-          <div className="flex items-center justify-center gap-2">
-            <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 rounded-full px-3 py-0.5 text-[9px] font-black tracking-widest uppercase">
-              Secure Access
-            </Badge>
-          </div>
-          <h1 className="text-4xl font-black italic tracking-tighter text-foreground uppercase leading-none">
-            Welcome <span className="text-primary">Back</span>
+          <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 rounded-full px-4 py-1 text-[10px] font-black tracking-widest uppercase">
+            Authentication Portal
+          </Badge>
+          <h1 className="text-4xl sm:text-5xl font-black italic tracking-tighter text-foreground uppercase leading-none mt-2">
+            Game <span className="text-primary">Entry</span>
           </h1>
-          <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
-            Enter the tactical hub
+          <p className="text-[11px] font-bold text-muted-foreground/50 uppercase tracking-[0.3em] mt-2">
+            Tactical Hub Access
           </p>
         </div>
       </CardHeader>
 
-      <CardContent className="px-8 pb-12">
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-4">
-            {/* メールアドレス入力 */}
-            <div className="space-y-2 group">
-              <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest pl-2 flex items-center gap-2">
-                <Mail className="h-3 w-3" /> Email Address
-              </label>
-              <Input 
-                type="email" 
-                placeholder="manager@example.com"
-                required
-                className="h-14 rounded-2xl bg-muted/20 border-border/40 focus:border-primary/40 focus:ring-primary/10 transition-all shadow-none font-bold placeholder:text-muted-foreground/30 px-6"
-              />
-            </div>
+      <CardContent className="px-10 pb-16 space-y-8">
+        <div className="space-y-4">
+          {/* LINEログイン */}
+          <Button 
+            onClick={() => handleLogin("line")}
+            disabled={!!loadingType}
+            className="w-full h-16 rounded-2xl bg-[#06C755] hover:bg-[#05b34d] text-white border-none font-black text-lg tracking-tight transition-all active:scale-95 flex items-center justify-center gap-4 group"
+          >
+            {loadingType === "line" ? <Loader2 className="h-6 w-6 animate-spin" /> : (
+              <>
+                <LineIcon />
+                <span className="flex-1 text-center pr-8">LINE でログイン</span>
+                <ChevronRight className="h-5 w-5 opacity-40 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </Button>
 
-            {/* パスワード入力 */}
-            <div className="space-y-2 group">
-              <div className="flex items-center justify-between pl-2 pr-2">
-                <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest flex items-center gap-2">
-                  <Lock className="h-3 w-3" /> Password
-                </label>
-                <button type="button" className="text-[9px] font-black text-primary/60 hover:text-primary transition-colors uppercase tracking-widest">Forgot?</button>
-              </div>
-              <Input 
-                type="password" 
-                placeholder="••••••••"
-                required
-                className="h-14 rounded-2xl bg-muted/20 border-border/40 focus:border-primary/40 focus:ring-primary/10 transition-all shadow-none font-bold placeholder:text-muted-foreground/30 px-6"
-              />
-            </div>
-          </div>
+          {/* Googleログイン */}
+          <Button 
+            onClick={() => handleLogin("google")}
+            disabled={!!loadingType}
+            variant="outline"
+            className="w-full h-16 rounded-2xl border-border/60 bg-white/80 dark:bg-zinc-900/40 text-foreground font-black text-lg tracking-tight hover:bg-muted/50 transition-all flex items-center justify-center gap-4 active:scale-95 group"
+          >
+            {loadingType === "google" ? <Loader2 className="h-6 w-6 animate-spin" /> : (
+              <>
+                <img src="https://www.google.com/favicon.ico" alt="" className="h-5 w-5" />
+                <span className="flex-1 text-center pr-8">Google でログイン</span>
+                <ChevronRight className="h-5 w-5 opacity-20 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </Button>
+        </div>
 
-          <div className="pt-4 space-y-4">
-            <Button 
-              type="submit" 
-              disabled={isLoading}
-              className="w-full h-16 rounded-[24px] bg-primary text-primary-foreground font-black text-xl shadow-lg shadow-primary/10 hover:bg-primary/90 transition-all flex items-center justify-center gap-3 active:scale-95 group"
-            >
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <>
-                  <LogIn className="h-6 w-6 stroke-[3px]" />
-                  <span>SIGN IN</span>
-                  <ChevronRight className="h-5 w-5 opacity-40 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </Button>
-
-            <div className="relative py-4 flex items-center">
-              <div className="flex-grow border-t border-border/20"></div>
-              <span className="flex-shrink mx-4 text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">Or Continue With</span>
-              <div className="flex-grow border-t border-border/20"></div>
-            </div>
-
-            <Button 
-              type="button"
-              variant="outline"
-              className="w-full h-14 rounded-2xl border-border/40 bg-muted/10 font-black text-sm tracking-tight hover:bg-muted/20 transition-all flex items-center gap-3 active:scale-95"
-            >
-              <img src="https://www.google.com/favicon.ico" alt="" className="h-4 w-4 grayscale opacity-60 group-hover:grayscale-0 transition-all" />
-              Google でログイン
-            </Button>
-          </div>
-        </form>
-
-        <div className="mt-10 flex flex-col items-center gap-4 border-t border-border/20 pt-8 text-center">
-          <p className="text-xs font-bold text-muted-foreground">
-            アカウントをお持ちでないですか？
-            <button className="text-primary hover:underline ml-1">新規登録（監督用）</button>
-          </p>
-          <div className="flex items-center gap-2 text-muted-foreground/30">
-            <ShieldCheck className="h-3 w-3" />
-            <span className="text-[8px] font-black uppercase tracking-widest">Biometric Support Ready</span>
+        <div className="pt-8 border-t border-border/10 flex flex-col items-center gap-4">
+          <div className="flex items-center gap-2 text-muted-foreground/20">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span className="text-[9px] font-black uppercase tracking-[0.2em]">Authorized Access Only</span>
           </div>
         </div>
       </CardContent>
-
-      {/* 装飾: 背景の微細な光彩 */}
-      <div className="absolute -bottom-20 -right-20 h-40 w-40 bg-primary/10 blur-[80px] rounded-full pointer-events-none" />
     </Card>
   );
 }
