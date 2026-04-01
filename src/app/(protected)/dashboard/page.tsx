@@ -31,7 +31,10 @@ import {
   CalendarDays,
   Target,
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  Flame,
+  Clock,
+  CloudSun
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -80,6 +83,21 @@ function DashboardContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiTip, setAiTip] = useState<string | null>(null);
+
+  // 💡 リアルタイム時計と、Hydrationエラー防止用のステートを追加
+  const [mounted, setMounted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    setMounted(true);
+    // 1秒ごとに時刻を更新
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 日付と時刻のフォーマット
+  const formattedDate = currentTime.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
+  const formattedTime = currentTime.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
 
   useEffect(() => {
     // 💡 データの取得 (実際には D1/Firestore から)
@@ -151,7 +169,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent p-6 md:p-10 space-y-12 animate-in fade-in duration-1000">
+    <div className="min-h-screen bg-transparent p-3 sm:p-6 md:p-10 space-y-8 md:space-y-12 animate-in fade-in duration-1000">
 
       {/* 1. ヒーローセクション: 司令塔のタイトル */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-border/40 pb-10">
