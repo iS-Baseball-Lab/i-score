@@ -64,7 +64,7 @@
    ⚾️ 3. BASE VARIABLES (LIGHT MODE)
    ======================================================= */
 :root {
-    --background: oklch(0.97 0 0); /* 上品なライトグレー */
+    --background: oklch(0.94 0.01 240);
     --foreground: oklch(0.145 0 0);
     
     --card: oklch(1 0 0);
