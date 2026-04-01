@@ -270,7 +270,7 @@ function DashboardContent() {
         <div className="xl:col-span-4 space-y-10">
 
           {/* シーズン勝率カード */}
-          <Card className="bg-card/30 backdrop-blur-xl border-border/40 rounded-[40px] overflow-hidden shadow-none transition-all hover:border-primary/30">
+          <Card className="p-0 gap-0 bg-card/30 backdrop-blur-xl border-border/40 rounded-[40px] overflow-hidden shadow-none transition-all hover:border-primary/30">
             <CardContent className="p-10 flex flex-col items-center text-center space-y-8">
               <div className="relative w-40 h-40 flex items-center justify-center">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -339,7 +339,7 @@ function DashboardContent() {
 
           {/* AI 監督: 戦術指南セクション */}
           <section
-            className="cursor-pointer group relative"
+            className="p-0 gap-0 cursor-pointer group relative"
             onClick={!aiTip ? generateAiTip : undefined}
           >
             <div className="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -389,6 +389,7 @@ function DashboardContent() {
                   key={match.id}
                   onClick={() => router.push(match.status === 'finished' ? `/matches/result?id=${match.id}` : `/matches/score?id=${match.id}`)} // 💡 爆速遷移！
                   className={cn(
+                    "p-0 gap-0",
                     "bg-card/20 dark:bg-zinc-900/10 backdrop-blur-md border-border/40 rounded-[40px] overflow-hidden transition-all duration-300 group hover:bg-card/40 hover:border-primary/30 cursor-pointer shadow-none",
                     match.status === 'ongoing' ? "ring-1 ring-primary/40 bg-card/40" : ""
                   )}
