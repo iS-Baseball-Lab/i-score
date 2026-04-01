@@ -270,7 +270,7 @@ function DashboardContent() {
         <div className="xl:col-span-4 space-y-10">
 
           {/* シーズン勝率カード */}
-          <Card className="p-0 gap-0 bg-card/30 backdrop-blur-xl border-border/40 rounded-[40px] overflow-hidden shadow-none transition-all hover:border-primary/30">
+          <Card className="p-0 gap-0 bg-card/30 backdrop-blur-xl border-border/40 rounded-[40px] overflow-hidden shadow-sm hover:shadow-md dark:shadow-none transition-all hover:border-primary/30">
             <CardContent className="p-10 flex flex-col items-center text-center space-y-8">
               <div className="relative w-40 h-40 flex items-center justify-center">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -317,7 +317,7 @@ function DashboardContent() {
               <button
                 key={idx}
                 onClick={() => router.push(item.path)} // 💡 爆速遷移！
-                className="flex items-center gap-5 p-6 rounded-[32px] bg-card/20 border border-border/40 hover:bg-card/40 hover:border-primary/40 transition-all group shadow-none text-left w-full"
+                className="flex items-center gap-5 p-6 rounded-[32px] bg-card/20 border border-border/40 hover:bg-card/40 hover:border-primary/40 transition-all group shadow-sm hover:shadow-md dark:shadow-none text-left w-full"
               >
                 <div className="p-4 rounded-2xl bg-muted/40 group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
                   <item.icon className="h-6 w-6" />
@@ -343,7 +343,7 @@ function DashboardContent() {
             onClick={!aiTip ? generateAiTip : undefined}
           >
             <div className="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Card className="relative bg-primary/5 border-primary/20 rounded-[32px] overflow-hidden border-dashed border-2 hover:bg-primary/10 transition-colors shadow-none">
+            <Card className="relative bg-primary/5 border-primary/20 rounded-[32px] overflow-hidden border-dashed border-2 hover:bg-primary/10 transition-colors shadow-sm hover:shadow-md dark:shadow-none">
               <CardContent className="p-8 flex flex-col sm:flex-row items-center gap-8">
                 <div className="relative shrink-0">
                   <div className="h-20 w-20 rounded-3xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
@@ -390,7 +390,7 @@ function DashboardContent() {
                   onClick={() => router.push(match.status === 'finished' ? `/matches/result?id=${match.id}` : `/matches/score?id=${match.id}`)} // 💡 爆速遷移！
                   className={cn(
                     "p-0 gap-0",
-                    "bg-card/20 dark:bg-zinc-900/10 backdrop-blur-md border-border/40 rounded-[40px] overflow-hidden transition-all duration-300 group hover:bg-card/40 hover:border-primary/30 cursor-pointer shadow-none",
+                    "bg-card/20 dark:bg-zinc-900/10 backdrop-blur-md border-border/40 rounded-[40px] overflow-hidden transition-all duration-300 group hover:bg-card/40 hover:border-primary/30 cursor-pointer shadow-sm hover:shadow-md dark:shadow-none",
                     match.status === 'ongoing' ? "ring-1 ring-primary/40 bg-card/40" : ""
                   )}
                 >
