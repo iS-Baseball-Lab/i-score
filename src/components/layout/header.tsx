@@ -171,18 +171,20 @@ export function Header() {
                     <DropdownMenuSeparator className="bg-border/50" />
 
                     {/* ✨ 修正: ADMIN用メニュー表示の分岐 */}
-                    {user.systemRole === 'SYSTEM_ADMIN' ? (
+                    {isAdmin ? (
                       <div className="px-3 sm:px-2 py-3 sm:py-1.5 text-sm sm:text-xs">
+                        <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                         <span className="font-semibold text-amber-600 dark:text-amber-400">システム管理者</span>
                         <span className="ml-2 text-muted-foreground">(i-Score運営)</span>
                       </div>
                     ) : activeTeam ? (
                       <div className="px-3 sm:px-2 py-3 sm:py-1.5 text-sm sm:text-xs">
+                        <Shield className="h-4 w-4 text-primary shrink-0" />
                         <span className="font-semibold text-primary">{activeTeam.teamName}</span>
                         <span className="ml-2 text-muted-foreground">({activeTeam.roleLabel})</span>
                       </div>
                     ) : null}
-                    <DropdownMenuSeparator className="bg-border/50" />
+                    {isAdmin || activeTeam ? <DropdownMenuSeparator className="bg-border/50" /> : null}
                   </>
                 )}
 
