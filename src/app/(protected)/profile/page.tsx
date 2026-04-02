@@ -70,7 +70,7 @@ export default function ProfilePage() {
   if (!user) return null;
 
   // Headerと同じく権限を判定
-  const isAdmin = user.role === 'SYSTEM_ADMIN' || user.systemRole === 'SYSTEM_ADMIN';
+  const isAdmin = (user as any)?.role === 'SYSTEM_ADMIN' || (user as any)?.systemRole === 'SYSTEM_ADMIN';
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
