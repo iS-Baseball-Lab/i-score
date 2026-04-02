@@ -26,7 +26,6 @@ app.get('/me', async (c) => {
       id: session.user.id,
       name: session.user.name,
       email: session.user.email,
-      systemRole: 'USER',
       // 💡 R2アバターAPI連携: ユーザーの画像URLをセット！
       // (Better Auth 標準の image フィールドにURLが入っている想定、なければ R2 のパスを組み立てる)
       avatarUrl: session.user.image || `/api/images/avatars/${session.user.id}.png`,
