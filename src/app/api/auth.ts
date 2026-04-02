@@ -29,7 +29,8 @@ app.get('/me', async (c) => {
       // 💡 R2アバターAPI連携: ユーザーの画像URLをセット！
       // (Better Auth 標準の image フィールドにURLが入っている想定、なければ R2 のパスを組み立てる)
       avatarUrl: session.user.image || `/api/images/avatars/${session.user.id}.png`,
-
+      role: session.user.role, 
+      systemRole: session.user.role,
       // ※チーム情報は別途D1から引くか、一旦空配列(またはモック)でエラーを防ぎます
       memberships: [],
     }
