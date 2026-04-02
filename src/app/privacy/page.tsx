@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30 pb-20">
+    <div className="min-h-screen text-foreground selection:bg-primary/30 pb-20">
 
       {/* 🌟 シンプルで美しいヘッダー */}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
@@ -28,12 +28,12 @@ export default function PrivacyPage() {
           </div>
           <div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight">プライバシーポリシー</h1>
-            <p className="text-muted-foreground font-medium mt-1">2026年4月3日 制定</p>
+            <p className="text-muted-foreground font-medium mt-1">2026年4月1日 制定</p>
           </div>
         </div>
 
         {/* 💡 テキストを美しいカード内に収める */}
-        <div className="p-6 md:p-10 rounded-[32px] bg-card/40 backdrop-blur-xl border border-border/50 shadow-xl space-y-10 leading-relaxed">
+        <div className="p-6 md:p-10 rounded-[32px] bg-card/40 backdrop-blur-xl border border-border/50 shadow-md space-y-10 leading-relaxed">
 
           <section className="space-y-4">
             <p className="text-muted-foreground">
