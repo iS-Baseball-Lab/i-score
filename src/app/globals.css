@@ -13,202 +13,284 @@
    ⚾️ 2. TAILWIND THEME MAPPING (v4)
    ======================================================= */
 @theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-primary: var(--primary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-border: var(--border);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-destructive: var(--destructive);
-    
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-destructive: var(--destructive);
 
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 
-    --color-popover: var(--popover);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-secondary: var(--secondary);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-accent: var(--accent);
-    --color-accent-foreground: var(--accent-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 
-    --font-sans: var(--font-sans);
-    --font-mono: var(--font-geist-mono);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: var(--radius);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 /* =======================================================
    ⚾️ 3. BASE VARIABLES (LIGHT MODE)
    ======================================================= */
 :root {
-    --background: oklch(0.94 0.01 240);
-    --foreground: oklch(0.145 0 0);
-    
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.97 0 0);
-    --ring: oklch(0.708 0 0);
-    --radius: 0.625rem;
+  --background: oklch(0.98 0 0);
+  /* 少し明るくしてクリアに */
+  --foreground: oklch(0.145 0 0);
 
-    /* 💡 究極UI: 円の波線（Wavy）と光彩の設定 */
-    --bg-glow: 3%;
-    --wavy-color: color-mix(in srgb, #616670 10%, transparent);
-    --wavy-size: 5px;
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
 
-    /* 📊 チャート用カラー */
-    --chart-1: oklch(0.809 0.105 251.813);
-    --chart-2: oklch(0.623 0.214 259.815);
-    --chart-3: oklch(0.546 0.245 262.881);
-    --chart-4: oklch(0.488 0.243 264.376);
-    --chart-5: oklch(0.424 0.199 265.638);
+  /* 🔥 デフォルトをSaaSブルーに変更！ */
+  --primary: oklch(0.58 0.15 250);
+  /* #0284c7 に近い鮮やかなブルー */
+  --primary-foreground: oklch(0.985 0 0);
+  /* 白 */
 
-    /* 🧭 サイドバー用カラー */
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.97 0 0);
+  --ring: oklch(0.58 0.15 250);
+  /* ringもPrimaryに合わせてブルーに */
+  --radius: 0.625rem;
+
+  /* 💡 究極UI: 円の波線（Wavy）と光彩の設定 */
+  --bg-glow: 3%;
+  --wavy-color: color-mix(in srgb, #616670 10%, transparent);
+  --wavy-size: 5px;
+
+  /* 📊 チャート用カラー */
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+
+  /* 🧭 サイドバー用カラー */
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.58 0.15 250);
+  /* サイドバーのアクティブ色もブルーに */
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.58 0.15 250);
 }
 
 /* =======================================================
    ⚾️ 4. DARK MODE VARIABLES
    ======================================================= */
 .dark {
-    --background: oklch(0.205 0 0);
-    --foreground: oklch(0.985 0 0);
-    
-    --card: oklch(0 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+  --background: oklch(0.145 0 0);
+  /* 真っ黒より少し浮かせた高級な黒に */
+  --foreground: oklch(0.985 0 0);
 
-    /* 💡 究極UI: 円の波線（Wavy）と光彩の設定 */
-    --bg-glow: 3%;
-    --wavy-color: color-mix(in srgb, #9ca3af 10%, transparent);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
 
-    /* 📊 チャート用カラー */
-    --chart-1: oklch(0.809 0.105 251.813);
-    --chart-2: oklch(0.623 0.214 259.815);
-    --chart-3: oklch(0.546 0.245 262.881);
-    --chart-4: oklch(0.488 0.243 264.376);
-    --chart-5: oklch(0.424 0.199 265.638);
+  /* 🔥 ダークモードで輝くSaaSブルー！ */
+  --primary: oklch(0.7 0.15 250);
+  /* #0ea5e9 に近い、暗闇で発光するブルー */
+  --primary-foreground: oklch(0.145 0 0);
 
-    /* 🧭 サイドバー用カラー */
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.7 0.15 250);
+
+  /* 💡 究極UI: 円の波線（Wavy）と光彩の設定 */
+  --bg-glow: 8%;
+  /* ダークモード時は光彩を強めに */
+  --wavy-color: color-mix(in srgb, #9ca3af 10%, transparent);
+
+  /* 📊 チャート用カラー */
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+
+  /* 🧭 サイドバー用カラー */
+  --sidebar: oklch(0.145 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.7 0.15 250);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.7 0.15 250);
 }
 
 /* =======================================================
    ⚾️ 5. TEAM THEME COLORS (DYNAMIC)
    ======================================================= */
-.theme-blue { --primary: #0284c7; --primary-foreground: #ffffff; --ring: #0284c7; }
-.dark .theme-blue, .theme-blue.dark { --primary: #0ea5e9; --primary-foreground: #ffffff; --ring: #0ea5e9; }
+.theme-blue {
+  --primary: #0284c7;
+  --primary-foreground: #ffffff;
+  --ring: #0284c7;
+}
 
-.theme-red { --primary: #e11d48; --primary-foreground: #ffffff; --ring: #e11d48; }
-.dark .theme-red, .theme-red.dark { --primary: #fb7185; --primary-foreground: #18181b; --ring: #fb7185; }
+.dark .theme-blue,
+.theme-blue.dark {
+  --primary: #0ea5e9;
+  --primary-foreground: #ffffff;
+  --ring: #0ea5e9;
+}
 
-.theme-green { --primary: #16a34a; --primary-foreground: #ffffff; --ring: #16a34a; }
-.dark .theme-green, .theme-green.dark { --primary: #4ade80; --primary-foreground: #18181b; --ring: #4ade80; }
+.theme-red {
+  --primary: #e11d48;
+  --primary-foreground: #ffffff;
+  --ring: #e11d48;
+}
 
-.theme-orange { --primary: #ea580c; --primary-foreground: #ffffff; --ring: #ea580c; }
-.dark .theme-orange, .theme-orange.dark { --primary: #fb923c; --primary-foreground: #18181b; --ring: #fb923c; }
+.dark .theme-red,
+.theme-red.dark {
+  --primary: #fb7185;
+  --primary-foreground: #18181b;
+  --ring: #fb7185;
+}
 
-.theme-teal { --primary: #0d9488; --primary-foreground: #ffffff; --ring: #0d9488; }
-.dark .theme-teal, .theme-teal.dark { --primary: #2dd4bf; --primary-foreground: #18181b; --ring: #2dd4bf; }
+.theme-green {
+  --primary: #16a34a;
+  --primary-foreground: #ffffff;
+  --ring: #16a34a;
+}
 
-.theme-purple { --primary: #7c3aed; --primary-foreground: #ffffff; --ring: #7c3aed; }
-.dark .theme-purple, .theme-purple.dark { --primary: #a78bfa; --primary-foreground: #18181b; --ring: #a78bfa; }
+.dark .theme-green,
+.theme-green.dark {
+  --primary: #4ade80;
+  --primary-foreground: #18181b;
+  --ring: #4ade80;
+}
 
-.theme-indigo { --primary: #4338ca; --primary-foreground: #ffffff; --ring: #4338ca; }
-.dark .theme-indigo, .theme-indigo.dark { --primary: #818cf8; --primary-foreground: #18181b; --ring: #818cf8; }
+.theme-orange {
+  --primary: #ea580c;
+  --primary-foreground: #ffffff;
+  --ring: #ea580c;
+}
+
+.dark .theme-orange,
+.theme-orange.dark {
+  --primary: #fb923c;
+  --primary-foreground: #18181b;
+  --ring: #fb923c;
+}
+
+.theme-teal {
+  --primary: #0d9488;
+  --primary-foreground: #ffffff;
+  --ring: #0d9488;
+}
+
+.dark .theme-teal,
+.theme-teal.dark {
+  --primary: #2dd4bf;
+  --primary-foreground: #18181b;
+  --ring: #2dd4bf;
+}
+
+.theme-purple {
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --ring: #7c3aed;
+}
+
+.dark .theme-purple,
+.theme-purple.dark {
+  --primary: #a78bfa;
+  --primary-foreground: #18181b;
+  --ring: #a78bfa;
+}
+
+.theme-indigo {
+  --primary: #4338ca;
+  --primary-foreground: #ffffff;
+  --ring: #4338ca;
+}
+
+.dark .theme-indigo,
+.theme-indigo.dark {
+  --primary: #818cf8;
+  --primary-foreground: #18181b;
+  --ring: #818cf8;
+}
 
 /* =======================================================
    ⚾️ 6. BASE HTML/BODY STYLES & BACKGROUND MAGIC
    ======================================================= */
 @layer base {
-    * {
-        @apply border-border outline-ring/50;
-    }
+  * {
+    @apply border-border outline-ring/50;
+  }
 
-    html {
-        @apply font-sans;
-    }
+  html {
+    @apply font-sans;
+  }
 
-    body {
-        @apply bg-background text-foreground;
-        font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 
-        /* 💡 究極のハイブリッド：光彩エフェクト ＋ 同心円の波紋（Wavy）パターンを重ね掛け！ */
-        background-image:
-            /* 1. 左上からの光彩 */
-            radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
-            /* 2. 右下からの光彩 */
-            radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
-            /* 3. 円の波線（背景色でくり抜く円の繰り返し） */
-            repeating-radial-gradient(circle at 0 0, transparent 0, var(--background) var(--wavy-size)),
-            /* 4. 円の波線のベースとなる色（gray-500等の塗りつぶし） */
-            repeating-linear-gradient(var(--wavy-color), var(--wavy-color));
+    /* 💡 究極のハイブリッド：光彩エフェクト ＋ 同心円の波紋（Wavy）パターンを重ね掛け！ */
+    background-image:
+      /* 1. 左上からの光彩 */
+      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
+      /* 2. 右下からの光彩 */
+      radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
+      /* 3. 円の波線（背景色でくり抜く円の繰り返し） */
+      repeating-radial-gradient(circle at 0 0, transparent 0, var(--background) var(--wavy-size)),
+      /* 4. 円の波線のベースとなる色（gray-500等の塗りつぶし） */
+      repeating-linear-gradient(var(--wavy-color), var(--wavy-color));
 
-        background-attachment: fixed;
-    }
+    background-attachment: fixed;
+  }
 }
