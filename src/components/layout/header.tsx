@@ -65,6 +65,9 @@ export function Header() {
     || user?.memberships.find(m => m.isMainTeam)
     || user?.memberships[0];
 
+  // 💡 TSの型エラー回避のため、role と systemRole の両方をチェックして確実に対応！
+  const isAdmin = (user as any)?.role === 'SYSTEM_ADMIN' || (user as any)?.systemRole === 'SYSTEM_ADMIN';
+  
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-background/60 backdrop-blur-xl border-b border-border/40 transition-colors duration-200">
       <div className="flex h-16 items-center justify-between px-4 sm:px-8">
@@ -97,7 +100,7 @@ export function Header() {
           </div>
 
           {/* ✨ 修正: ADMINか、通常のチーム所属かでバッジの表示を分岐 */}
-          {user?.systemRole === 'SYSTEM_ADMIN' ? (
+          {isAdmin ? (
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 mr-1 shadow-sm dark:shadow-none">
               <Crown className="h-3 w-3" />
               <div className="flex flex-col">
