@@ -1,4 +1,4 @@
-// src/components/header.tsx
+// src/components/layout/header.tsx
 /* 💡 究極のヘッダー (R2アバターキャッシュ・API連携完全版✨)
  * 1. 取得: Cloudflare Workers APIからユーザー情報を取得。
  * 2. 画像: Hono+R2で構築された /api/images/ 経由の avatarUrl を表示。
@@ -10,8 +10,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, Shield, Zap, LogOut, Settings, Users } from "lucide-react";
-import { ThemeToggle } from "./theme-toggle"; 
-import { ThemeSwitcher } from "./theme-switcher"; 
+import { ThemeToggle } from "./theme-toggle";
+import { ThemeSwitcher } from "./theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -37,7 +37,7 @@ export function Header() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch("/api/auth/me"); 
+        const response = await fetch("/api/auth/me");
         if (!response.ok) throw new Error("Failed to fetch user");
 
         const json = await response.json();
@@ -59,24 +59,24 @@ export function Header() {
   const handleLogout = async () => {
     console.log("Logging out...");
     // 現場至上主義: window.locationを使わずルーターで安全に遷移
-    router.push("/login"); 
+    router.push("/login");
   };
 
   // 現在のアクティブチームを特定
-  const activeTeam = user?.memberships.find(m => m.teamId === user.currentTeamId) 
-    || user?.memberships.find(m => m.isMainTeam) 
+  const activeTeam = user?.memberships.find(m => m.teamId === user.currentTeamId)
+    || user?.memberships.find(m => m.isMainTeam)
     || user?.memberships[0];
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-background/60 backdrop-blur-xl border-b border-border/40 transition-colors duration-200">
       <div className="flex h-16 items-center justify-between px-4 sm:px-8">
-        
+
         {/* 左側: モバイルロゴ & アプリタイトル */}
         <div className="flex items-center gap-3">
-          <img 
-            src="/logo.png" 
-            alt="i-Score Logo" 
-            className="md:hidden h-9 w-9 object-contain shrink-0 drop-shadow-sm" 
+          <img
+            src="/logo.png"
+            alt="i-Score Logo"
+            className="md:hidden h-9 w-9 object-contain shrink-0 drop-shadow-sm"
           />
           <div className="flex flex-col justify-center">
             <h1 className="text-xl sm:text-2xl font-black italic tracking-tighter text-foreground leading-none">
@@ -93,7 +93,7 @@ export function Header() {
 
         {/* 右側: ツールエリア */}
         <div className="flex items-center gap-1 sm:gap-2">
-          
+
           <div className="hidden lg:block mr-2">
             <ThemeSwitcher variant="dropdown" />
           </div>
@@ -142,7 +142,7 @@ export function Header() {
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              
+
               <DropdownMenuContent align="end" className="w-64 rounded-xl border-border/50 bg-white/95 dark:bg-background/95 backdrop-blur-xl">
                 {user && (
                   <>
@@ -155,7 +155,7 @@ export function Header() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-border/50" />
-                    
+
                     {activeTeam && (
                       <div className="px-2 py-1.5 text-xs">
                         <span className="font-semibold text-primary">{activeTeam.teamName}</span>
@@ -165,7 +165,7 @@ export function Header() {
                     <DropdownMenuSeparator className="bg-border/50" />
                   </>
                 )}
-                
+
                 <DropdownMenuItem className="cursor-pointer gap-2 rounded-lg" onClick={() => router.push("/profile")}>
                   <Settings className="h-4 w-4" />
                   <span>アカウント設定</span>
@@ -174,10 +174,10 @@ export function Header() {
                   <Users className="h-4 w-4" />
                   <span>チーム切り替え・管理</span>
                 </DropdownMenuItem>
-                
+
                 <DropdownMenuSeparator className="bg-border/50" />
-                
-                <DropdownMenuItem 
+
+                <DropdownMenuItem
                   className="cursor-pointer gap-2 text-red-500 focus:text-red-500 rounded-lg"
                   onClick={handleLogout}
                 >

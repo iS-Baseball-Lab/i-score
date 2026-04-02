@@ -3,7 +3,7 @@
 /**
  * 💡 権限ユニット (後から追加可能)
  */
-export type Permission = 
+export type Permission =
   | 'score_write'      // 試合スコア入力
   | 'roster_edit'      // 選手名簿の編集
   | 'match_manage'     // 試合の作成・削除
@@ -37,6 +37,7 @@ export interface UserSession {
   systemRole: 'SYSTEM_ADMIN' | 'USER' | 'GUEST';
   memberships: UserTeamMembership[];
   currentTeamId?: string;
+  avatarUrl?: string;
 }
 
 /**

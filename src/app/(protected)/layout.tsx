@@ -10,7 +10,7 @@ import React, { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MAIN_NAV_ITEMS, BOTTOM_NAV_ITEMS } from "../../config/navigation";
 import { Sidebar } from "../../components/sidebar";
-import { Header } from "../../components/header";
+import { Header } from "../../components/layout/header";
 import { BottomNavigation } from "../../components/bottom-navigation";
 import { MobileDrawer } from "../../components/mobile-drawer";
 import { cn } from "../../lib/utils";
@@ -23,7 +23,7 @@ export default function ProtectedLayout({
 }) {
   const pathname = usePathname() || "";
   const router = useRouter();
-  
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -41,7 +41,7 @@ export default function ProtectedLayout({
       description: "お疲れ様でした。ゲートへ戻ります。",
       duration: 1500
     });
-    
+
     // 💡 実際にはここで Firebase signOut(auth) 等を呼び出します
     setTimeout(() => {
       router.push("/login");
@@ -55,7 +55,7 @@ export default function ProtectedLayout({
 
   return (
     <div className="relative flex min-h-screen w-full bg-transparent text-foreground selection:bg-primary/20">
-      
+
       {/* 💻 PC版サイドバー (z-50) */}
       <Sidebar
         session={session}

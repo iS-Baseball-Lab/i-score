@@ -1,4 +1,4 @@
-// src/components/theme-switcher.tsx
+// src/components/layout/theme-switcher.tsx
 "use client";
 
 import * as React from "react";

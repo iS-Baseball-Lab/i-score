@@ -11,20 +11,20 @@ import React from "react";
  * - ナビゲーション: 試合記録や大会管理などの主要機能への動線。
  * - 下部: ユーザー情報と、安全に退出するための「ログアウト」ボタン。
  */
-import { 
-  X, 
-  History, 
-  PlusSquare, 
-  UserCheck, 
-  Settings, 
-  ChevronRight, 
-  LogOut, 
-  User, 
-  Palette 
+import {
+  X,
+  History,
+  PlusSquare,
+  UserCheck,
+  Settings,
+  ChevronRight,
+  LogOut,
+  User,
+  Palette
 } from "lucide-react";
 import { MobileDrawerProps } from "@/types/navigation";
-import { ThemeToggle } from "./theme-toggle";
-import { ThemeSwitcher } from "./theme-switcher";
+import { ThemeToggle } from "./layout/theme-toggle";
+import { ThemeSwitcher } from "./layout/theme-switcher";
 
 // 💡 既存の MobileDrawerProps に onLogout を追加拡張
 interface ExtendedMobileDrawerProps extends MobileDrawerProps {
@@ -37,7 +37,7 @@ export function MobileDrawer({ isOpen, onClose, onNavigate, onLogout }: Extended
   return (
     <div className="fixed inset-0 z-[110] md:hidden bg-background/95 backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-300">
       <div className="p-6 flex flex-col h-full max-w-lg mx-auto">
-        
+
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             1. ヘッダー (タイトル & 閉じる)
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
@@ -50,19 +50,19 @@ export function MobileDrawer({ isOpen, onClose, onNavigate, onLogout }: Extended
               Management Hub
             </span>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-3 bg-muted/50 hover:bg-muted/80 rounded-full active:scale-90 transition-all border border-border/40 shadow-none"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             2. スクロール領域 (設定 & メニュー)
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <div className="space-y-8 overflow-y-auto scrollbar-hide flex-1 pb-10">
-          
+
           {/* 🌗 外観設定 (Appearance) */}
           <div className="space-y-4 px-2">
             <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
@@ -71,7 +71,7 @@ export function MobileDrawer({ isOpen, onClose, onNavigate, onLogout }: Extended
             <div className="space-y-4 bg-muted/5 p-4 rounded-[32px] border border-border/20">
               {/* ライト/ダーク切り替え */}
               <ThemeToggle variant="segmented" />
-              
+
               <div className="space-y-2 pt-2 border-t border-border/10">
                 <div className="flex items-center gap-2 px-2 text-muted-foreground/40 mb-3">
                   <Palette className="h-3 w-3" />
@@ -132,15 +132,15 @@ export function MobileDrawer({ isOpen, onClose, onNavigate, onLogout }: Extended
             <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary shrink-0">
               <User className="h-6 w-6" />
             </div>
-            
+
             {/* ユーザー情報 */}
             <div className="flex-1 overflow-hidden">
               <p className="font-black text-foreground italic leading-none truncate">山田 監督</p>
               <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1">Administrator</p>
             </div>
-            
+
             {/* 🚪 ログアウトボタン */}
-            <button 
+            <button
               onClick={onLogout}
               className="p-4 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all active:scale-90 group"
               aria-label="ログアウト"

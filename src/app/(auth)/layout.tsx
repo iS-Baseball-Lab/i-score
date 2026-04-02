@@ -12,14 +12,14 @@ import React, { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MAIN_NAV_ITEMS, BOTTOM_NAV_ITEMS } from "@/config/navigation";
 import { Sidebar } from "@/components/sidebar";
-import { Header } from "@/components/header";
+import { Header } from "@/components/layout/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { MobileDrawer } from "@/components/mobile-drawer";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 // 💡 監督の構成した Better Auth クライアントをインポート
-import { signOut, useSession } from "@/lib/auth-client"; 
+import { signOut, useSession } from "@/lib/auth-client";
 
 export default function ProtectedLayout({
   children,
@@ -28,21 +28,21 @@ export default function ProtectedLayout({
 }) {
   const pathname = usePathname() || "";
   const router = useRouter();
-  
+
   // 💡 Better Auth から現在のセッションを取得
   const { data: sessionData, isPending } = useSession();
-  
+
   // UI状態管理
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // コンポーネントへ渡すためのセッション情報の整形
-  const session = { 
-    user: { 
-      name: sessionData?.user?.name || (isPending ? "読み込み中..." : "Guest"), 
+  const session = {
+    user: {
+      name: sessionData?.user?.name || (isPending ? "読み込み中..." : "Guest"),
       role: "Manager", // チーム内の役割は Firestore 等から取得する運用を想定
-      image: sessionData?.user?.image || null 
-    } 
+      image: sessionData?.user?.image || null
+    }
   };
 
   /**
@@ -73,7 +73,7 @@ export default function ProtectedLayout({
 
   return (
     <div className="relative flex min-h-screen w-full bg-transparent text-foreground selection:bg-primary/20">
-      
+
       {/* 💻 デスクトップ専用サイドバー (z-50)
           PC環境でのみ表示され、開閉状態を保持。
       */}
@@ -96,7 +96,7 @@ export default function ProtectedLayout({
         "flex-1 flex flex-col min-w-0 transition-all duration-500 ease-in-out",
         isCollapsed ? "md:pl-16" : "md:pl-56"
       )}>
-        
+
         {/* 🏆 共通ヘッダー (sticky top-0)
             モバイル・PC共に最上部に固定され、ページタイトルやテーマ切り替えを提供。
         */}
