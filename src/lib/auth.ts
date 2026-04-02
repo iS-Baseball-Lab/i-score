@@ -25,21 +25,8 @@ export const getAuth = (d1: D1Database, env?: any) => {
         },
       },
     },
-    // 🔥 ここを追加！ adminプラグインのお節介をブロックし、DB保存直前に強制的にGUESTにします
-    databaseHooks: {
-      user: {
-        create: {
-          before: async (user) => {
-            return {
-              data: {
-                ...user,
-                role: "GUEST" // 何が来ても絶対に GUEST に上書き！
-              }
-            }
-          }
-        }
-      }
-    },
+    // 🔥 databaseHooks は adminプラグインと競合するため完全に削除しました！
+
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema: schema,
@@ -49,7 +36,11 @@ export const getAuth = (d1: D1Database, env?: any) => {
       updateAge: 60 * 60 * 24,
     },
     plugins: [
-      admin(), // 💡 こいつが裏で "user" をセットしていました
+      admin({
+        // 🔥 公式の機能を使って、管理者ロール名とデフォルトロールを設定！
+        adminRole: "SYSTEM_ADMIN",
+        defaultRole: "GUEST",
+      }),
     ],
     socialProviders: {
       ...(env?.GOOGLE_CLIENT_ID ? {
