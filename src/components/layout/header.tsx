@@ -172,13 +172,13 @@ export function Header() {
 
                     {/* ✨ 修正: ADMIN用メニュー表示の分岐 */}
                     {isAdmin ? (
-                      <div className="px-3 sm:px-2 py-3 sm:py-1.5 text-sm sm:text-xs">
+                      <div className="flex items-center gap-2 px-3 sm:px-2 py-3 sm:py-2 text-sm sm:text-xs bg-amber-500/10 dark:bg-amber-500/10 rounded-md mx-1 mb-1">
                         <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                         <span className="font-semibold text-amber-600 dark:text-amber-400">システム管理者</span>
                         <span className="ml-2 text-muted-foreground">(i-Score運営)</span>
                       </div>
                     ) : activeTeam ? (
-                      <div className="px-3 sm:px-2 py-3 sm:py-1.5 text-sm sm:text-xs">
+                      <div className="flex items-center gap-2 px-3 sm:px-2 py-3 sm:py-2 text-sm sm:text-xs bg-primary/10 dark:bg-primary/10 rounded-md mx-1 mb-1">
                         <Shield className="h-4 w-4 text-primary shrink-0" />
                         <span className="font-semibold text-primary">{activeTeam.teamName}</span>
                         <span className="ml-2 text-muted-foreground">({activeTeam.roleLabel})</span>
