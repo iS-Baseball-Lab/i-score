@@ -16,9 +16,6 @@ export const getAuth = (d1: D1Database, env?: any) => {
 
   const db = drizzle(d1);
   authCache = betterAuth({
-    //emailAndPassword: {
-    //  enabled: true,
-    //},
     user: {
       additionalFields: {
         role: {
@@ -28,19 +25,31 @@ export const getAuth = (d1: D1Database, env?: any) => {
         },
       },
     },
+    // 🔥 ここを追加！ adminプラグインのお節介をブロックし、DB保存直前に強制的にGUESTにします
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user) => {
+            return {
+              data: {
+                ...user,
+                role: "GUEST" // 何が来ても絶対に GUEST に上書き！
+              }
+            }
+          }
+        }
+      }
+    },
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema: schema,
     }),
     session: {
-      // セッションの有効期限: 30日 (秒計算: 60秒 * 60分 * 24時間 * 30日)
-      // ※半年(180日)にしたい場合は 60 * 60 * 24 * 180 にします
       expiresIn: 60 * 60 * 24 * 180,
-      // セッションの更新頻度: 1日 (1日1回アクセスがあれば、そこからまた30日延長される)
       updateAge: 60 * 60 * 24,
     },
     plugins: [
-      admin(),
+      admin(), // 💡 こいつが裏で "user" をセットしていました
     ],
     socialProviders: {
       ...(env?.GOOGLE_CLIENT_ID ? {
