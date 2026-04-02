@@ -96,21 +96,21 @@ export default function LandingPage() {
           <div className="flex items-center p-1 border border-border/30 rounded-full bg-background/20 backdrop-blur-md shadow-sm">
             <button
               onClick={() => handleThemeChange("light")}
-              className={`p-2 rounded-full transition-all duration-300 ${theme === "light" ? "bg-background shadow-sm text-foreground scale-105" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+              className={`p-2 rounded-full transition-all duration-300 ${theme === "light" ? "bg-background shadow-sm text-foreground scale-105" : "dark:text-muted-foreground hover:text-foreground hover:bg-background/50"
                 }`}
             >
               <Sun className="h-5 w-5" />
             </button>
             <button
               onClick={() => handleThemeChange("system")}
-              className={`p-2 rounded-full transition-all duration-300 ${theme === "system" ? "bg-background shadow-sm text-foreground scale-105" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+              className={`p-2 rounded-full transition-all duration-300 ${theme === "system" ? "bg-background shadow-sm text-foreground scale-105" : "dark:text-muted-foreground hover:text-foreground hover:bg-background/50"
                 }`}
             >
               <Monitor className="h-5 w-5" />
             </button>
             <button
               onClick={() => handleThemeChange("dark")}
-              className={`p-2 rounded-full transition-all duration-300 ${theme === "dark" ? "bg-background shadow-sm text-foreground scale-105" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+              className={`p-2 rounded-full transition-all duration-300 ${theme === "dark" ? "bg-background shadow-sm text-foreground scale-105" : "dark:text-muted-foreground hover:text-foreground hover:bg-background/50"
                 }`}
             >
               <Moon className="h-5 w-5" />
@@ -122,10 +122,10 @@ export default function LandingPage() {
       {/* 🌟 究極の背景（スタジアム画像をもっとクリアに！） */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         {/* 💡 透過度を上げ(0.5/0.7)、画像をハッキリ見せます */}
-        <div className="absolute inset-0 bg-[url('/stadium.webp')] bg-cover bg-center bg-no-repeat bg-fixed opacity-50 dark:opacity-70" />
+        <div className="absolute inset-0 bg-[url('/stadium.webp')] bg-cover bg-center bg-no-repeat bg-fixed opacity-90 dark:opacity-70" />
 
         {/* 💡 ライトモードの白い壁を大幅に薄くし(0.3)、画像そのままの迫力を活かします */}
-        <div className="absolute inset-0 bg-background/30 dark:bg-background/40 backdrop-blur-[2px] transition-colors duration-300" />
+        <div className="absolute inset-0 bg-background/20 dark:bg-background/40 backdrop-blur-[2px] transition-colors duration-300" />
 
         {/* 💡 画面端のグラデーションも最小限に。画像に没入させます */}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
@@ -140,7 +140,7 @@ export default function LandingPage() {
             <span className="text-primary drop-shadow-md">次世代</span>へ。
           </h1>
           {/* 🔥 魂のキャッチフレーズ変更！ */}
-          <p className="text-lg md:text-xl text-muted-foreground font-medium leading-relaxed tracking-widest mt-6">
+          <p className="text-lg md:text-xl dark:text-muted-foreground font-medium leading-relaxed tracking-widest mt-6">
             学童野球から草野球まで使える次世代スコアブック。
             <br className="hidden md:block" />
             現場の熱気をそのままに、指先一つでプロ並みのデータ分析を。
