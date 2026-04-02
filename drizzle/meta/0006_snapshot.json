@@ -792,7 +792,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'user'"
+          "default": "'GUEST'"
         },
         "banned": {
           "name": "banned",

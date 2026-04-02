@@ -23,7 +23,7 @@ export const getAuth = (d1: D1Database, env?: any) => {
       additionalFields: {
         role: {
           type: "string",
-          defaultValue: "pending",
+          defaultValue: "GUEST",
           input: false,
         },
       },

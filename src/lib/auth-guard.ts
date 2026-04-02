@@ -31,7 +31,7 @@ export async function requireAdmin(headerList: Headers) {
   // session 取得時にも headerList を引き継ぐ
   const session = await requireSession(headerList);
 
-  if ((session.user as any).role !== "admin") {
+  if ((session.user as any).role !== "SYSTEM_ADMIN") {
     redirect("/");
   }
   return session;
