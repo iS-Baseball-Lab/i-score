@@ -8,38 +8,34 @@ import { Button } from "@/components/ui/button";
  * 💡 トップページ (Landing Page)
  * 1. 究極の第一印象: スタジアムの熱気をより前面に出す透過度調整。
  * 2. ヴィネット効果の最適化: 中央の透明エリアを広げ、画像をより見やすく。
- * 3. i-Scoreの魂のキャッチフレーズ: 「野球の『今』を次世代の形へ」を復刻。
+ * 3. キャッチフレーズの研ぎ澄まし: 「今」と「次世代」をダブルハイライト。
  */
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/30 overflow-hidden">
 
-      {/* 🌟 究極の背景セクション（画像をもっと魅せる調整版） */}
+      {/* 🌟 究極の背景セクション */}
       <div className="absolute inset-0 z-0">
-        {/* スタジアム画像（透過度を 40% -> 60% に上げて主張を強めました！） */}
         <div
           className="absolute inset-0 bg-[url('/stadium.webp')] bg-cover bg-center bg-no-repeat opacity-60 dark:opacity-40"
         />
-        {/* スポットライト＆ヴィネット効果 
-            (transparentの範囲を広げ、画像がクリアに見える領域を拡大しました) */}
         <div
           className="absolute inset-0"
           style={{
             background: "radial-gradient(circle at center, transparent 0%, transparent 20%, hsl(var(--background)) 90%, hsl(var(--background)) 100%)"
           }}
         />
-        {/* 下部のグラデーションを少し弱め、コンテンツエリアとの境界を自然に */}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
       </div>
 
       {/* 🌟 ヒーローコンテンツ */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 w-full max-w-5xl mx-auto pt-20 pb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
 
-        {/* 🔥 魂のキャッチフレーズ（復刻） */}
+        {/* 🔥 魂のキャッチフレーズ（短縮＆ダブルハイライト版） */}
         <div className="space-y-6 text-center max-w-3xl">
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/70 drop-shadow-sm">
-            野球の「今」を、<br className="md:hidden" />
-            <span className="text-primary">次世代</span>の形へ。
+          <h1 className="text-5xl md:text-7xl md:leading-[1.1] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/70 drop-shadow-sm">
+            野球の<span className="text-primary drop-shadow-md">今</span>を、<br className="md:hidden" />
+            <span className="text-primary drop-shadow-md">次世代</span>へ。
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground font-medium leading-relaxed tracking-wide">
             草野球・アマチュア野球のための究極のスコアブック。
