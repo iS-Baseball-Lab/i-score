@@ -26,20 +26,20 @@ export const getAuth = (d1: D1Database, env?: any) => {
       },
     },
     // 🔥 ここを追加！ adminプラグインのお節介をブロックし、DB保存直前に強制的にGUESTにします
-    // databaseHooks: {
-    //   user: {
-    //     create: {
-    //       before: async (user) => {
-    //         return {
-    //           data: {
-    //             ...user,
-    //             role: "GUEST" // 何が来ても絶対に GUEST に上書き！
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // },
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user) => {
+            return {
+              data: {
+                ...user,
+                role: "GUEST" // 何が来ても絶対に GUEST に上書き！
+              }
+            }
+          }
+        }
+      }
+    },
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema: schema,
