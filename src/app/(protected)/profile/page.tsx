@@ -1,4 +1,3 @@
-// src/app/(protected)/profile/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -43,9 +42,7 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsSaving(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success("プロフィールを更新しました", {
-      description: "ベンチに変更サインを伝達しました！"
-    });
+    toast.success("プロフィールを更新しました");
     if (user) setUser({ ...user, name });
     setIsSaving(false);
   };
@@ -63,11 +60,11 @@ export default function ProfilePage() {
   const isAdmin = (user as any)?.role === 'SYSTEM_ADMIN' || (user as any)?.systemRole === 'SYSTEM_ADMIN';
 
   return (
-    // 🔥 修正: pb-32（約128px）に変更し、ボトムナビの裏にコンテンツが隠れないようにたっぷり余白を取ります！
-    <div className="min-h-[calc(100vh-4rem)] pb-32 w-full animate-in fade-in duration-500 relative">
+    // 🔥 全体の余白も通常に戻しました
+    <div className="w-full animate-in fade-in duration-500">
 
-      {/* ヒーローセクション */}
-      <div className="relative w-full h-40 sm:h-56 lg:h-72 bg-muted overflow-hidden rounded-b-[2rem] sm:rounded-b-none sm:rounded-3xl shadow-sm">
+      {/* ヒーローセクション (親の余白が消えたので、画面の端までバシッと広がります！) */}
+      <div className="relative w-full h-40 sm:h-56 lg:h-72 bg-muted overflow-hidden sm:rounded-b-3xl shadow-sm">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/60 via-primary/20 to-background opacity-90" />
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay opacity-20" />
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
@@ -206,21 +203,20 @@ export default function ProfilePage() {
           </div>
         </div>
 
-      </div>
+        {/* 🔥 スマホ用保存ボタン（元の位置であるコンテンツの一番下に戻しました） */}
+        <div className="mt-8 sm:hidden flex justify-end pb-8">
+          <Button
+            size="lg"
+            onClick={handleSave}
+            disabled={isSaving || name === user.name}
+            className="w-full h-14 rounded-2xl font-black text-base shadow-md shadow-primary/20 active:scale-95 transition-all"
+          >
+            {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
+            {isSaving ? "更新中..." : "変更を保存"}
+          </Button>
+        </div>
 
-      {/* 🔥 スマホ用 追従（フローティング）保存ボタン */}
-      <div className="sm:hidden fixed bottom-[88px] left-0 right-0 px-4 z-40 pointer-events-none">
-        <Button
-          size="lg"
-          onClick={handleSave}
-          disabled={isSaving || name === user.name}
-          className="w-full h-14 rounded-2xl font-black text-base shadow-[0_8px_30px_rgb(0,0,0,0.2)] shadow-primary/30 active:scale-95 transition-all pointer-events-auto backdrop-blur-md"
-        >
-          {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
-          {isSaving ? "更新中..." : "変更を保存"}
-        </Button>
       </div>
-
     </div>
   );
 }

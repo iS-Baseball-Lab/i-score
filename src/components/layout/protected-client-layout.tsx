@@ -10,36 +10,26 @@ import { toast } from "sonner";
 import { signOut, useSession } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
 
-// ❌ ここにあった Header と BottomNavigation のインポートを削除しました！
-
 export function ProtectedClientLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname() || "";
-
   const { data: session, isPending } = useSession();
-
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (!isPending) {
-      if (!session || !session.user) {
-        router.replace("/login");
-      } else if (session.user.role === "GUEST") {
-        router.replace("/pending-approval");
-      }
+      if (!session || !session.user) router.replace("/login");
+      else if (session.user.role === "GUEST") router.replace("/pending-approval");
     }
   }, [session, isPending, router]);
 
   const handleLogout = async () => {
-    toast.info("ログアウトしています...", {
-      description: "お疲れ様でした。ゲートへ戻ります。",
-      duration: 1500
-    });
+    toast.info("ログアウトしています...", { duration: 1500 });
     try {
       await signOut();
       router.push("/");
-    } catch (error) {
+    } catch {
       toast.error("ログアウトに失敗しました。");
     }
   };
@@ -67,10 +57,7 @@ export function ProtectedClientLayout({ children }: { children: React.ReactNode 
   };
 
   return (
-    // 💡 min-h-screen を外して、AppShellに高さを委ねます
     <div className="relative flex w-full bg-transparent text-foreground selection:bg-primary/20">
-
-      {/* PC用サイドバー */}
       <Sidebar
         session={userSession}
         pathname={pathname}
@@ -87,19 +74,15 @@ export function ProtectedClientLayout({ children }: { children: React.ReactNode 
         "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out",
         isCollapsed ? "md:pl-16" : "md:pl-56"
       )}>
-        {/* ❌ ここにあった <Header /> を削除！ (AppShellが上から被せてくれます) */}
-
         <main className="flex-1 w-full relative z-0">
-          <div className={cn("w-full max-w-7xl mx-auto p-4 md:p-8 pb-24 md:pb-12")}>
+          {/* 🔥 修正ポイント: ここにあった p-4 md:p-8 を削除！各ページにパディングを委ねます */}
+          <div className={cn("w-full max-w-7xl mx-auto pb-24 md:pb-12")}>
             {children}
           </div>
         </main>
       </div>
 
       <div className="md:hidden">
-        {/* ❌ ここにあった <BottomNavigation /> を削除！ (AppShellが下から被せてくれます) */}
-
-        {/* モバイル用ドロワーメニュー */}
         <MobileDrawer
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
