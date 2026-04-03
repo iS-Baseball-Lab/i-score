@@ -136,16 +136,19 @@ export function Header() {
           </button>
 
           {/* アバタードロップダウンメニュー */}
-          <div className="ml-1 sm:ml-2">
+          {/* 💡 flex items-center を追加し、縦のズレを完全にロック！ */}
+          <div className="ml-1 sm:ml-2 flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="rounded-full outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background transition-transform active:scale-95">
-                  <Avatar className="h-9 w-9 sm:h-10 sm:w-10 border-2 border-white shadow-sm hover:scale-105 dark:border-border/50 bg-white">
+                {/* 💡 ボタン自体にも flex items-center justify-center を追加し、内側の上の余白（ベースライン）を撲滅！ */}
+                <button className="flex items-center justify-center rounded-full outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background transition-transform active:scale-95">
+                  {/* 💡 sm:h-10 sm:w-10 を削除！ 常にロゴと同じ h-9 w-9 (36px) に固定し、美しいシンメトリーを保ちます！ */}
+                  <Avatar className="h-9 w-9 border-2 border-white shadow-sm hover:scale-105 dark:border-border/50 bg-white">
                     {!isLoading && user ? (
                       <>
-                        <AvatarImage src={user.avatarUrl || ""} alt={user.name} className="object-cover" />
+                        <AvatarImage src={user.avatarUrl || ""} alt={user.name || "User"} className="object-cover" />
                         <AvatarFallback className="bg-primary/10 text-primary font-black text-xs sm:text-sm">
-                          {user.name.slice(0, 2).toUpperCase()}
+                          {(user.name || "U").slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </>
                     ) : (
