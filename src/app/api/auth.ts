@@ -3,7 +3,8 @@ import { Hono } from 'hono'
 import { getAuth } from "@/lib/auth"
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, and } from 'drizzle-orm'
-import { teams, teamMembers } from '@/db/schema/team'
+// 💡 organizations テーブルを追加
+import { teams, teamMembers, organizations } from '@/db/schema/team'
 
 const app = new Hono<{ Bindings: { DB: D1Database, ASSETS: Fetcher } }>()
 
@@ -28,18 +29,21 @@ app.get('/me', async (c) => {
 
   const userWithRole = session.user as any;
   const db = drizzle(c.env.DB);
+
   let memberships: any[] = [];
 
   try {
-    // ⚾️ D1から取得を試みる（status条件を一旦外して、とにかく紐づくものを探します）
+    // ⚾️ Drizzle ORMで親子JOINを実行！
     const userTeams = await db
       .select({
         teamId: teams.id,
         teamName: teams.name,
+        organizationName: organizations.name, // 🔥 親チーム名を取得
         role: teamMembers.role,
       })
       .from(teamMembers)
       .innerJoin(teams, eq(teamMembers.teamId, teams.id))
+      .innerJoin(organizations, eq(teams.organizationId, organizations.id)) // 🔥 organizationsをJOIN
       .where(eq(teamMembers.userId, userWithRole.id));
 
     if (userTeams.length > 0) {
@@ -47,16 +51,18 @@ app.get('/me', async (c) => {
       memberships = userTeams.map((t, index) => ({
         teamId: t.teamId,
         teamName: t.teamName,
+        organizationName: t.organizationName, // 🔥 フロントへ渡す
         role: t.role,
         roleLabel: getRoleLabel(t.role),
-        isMainTeam: index === 0 
+        isMainTeam: index === 0
       }));
     } else {
-      // 💡 DBが空っぽだった場合は、UI確認用のダミーデータを挿入！
+      // 💡 DBが空の場合のダミーデータもC案仕様にアップデート！
       console.log("[i-Score Debug] No teams found in DB. Using mock data.");
       memberships = [{
         teamId: "mock-team-1",
-        teamName: "iS Baseball Club",
+        teamName: "2024年度 1軍",
+        organizationName: "iS Baseball Club", // 💡 親の名前
         role: "MANAGER",
         roleLabel: "監督",
         isMainTeam: true
@@ -64,10 +70,10 @@ app.get('/me', async (c) => {
     }
   } catch (error) {
     console.error("[i-Score Error] Failed to fetch user teams:", error);
-    // エラーが起きた場合もUIを崩さないためにダミーを返します
     memberships = [{
       teamId: "error-mock",
-      teamName: "DB連携エラー発生中",
+      teamName: "連携エラー",
+      organizationName: "DB接続確認中",
       role: "STAFF",
       roleLabel: "確認",
       isMainTeam: true
@@ -83,8 +89,6 @@ app.get('/me', async (c) => {
       avatarUrl: userWithRole.image || `/api/images/avatars/${userWithRole.id}.png`,
       role: userWithRole.role,
       systemRole: userWithRole.role,
-      
-      // 🔥 DBから取れたら本物、取れなければダミーが入ります
       memberships: memberships,
     }
   })
