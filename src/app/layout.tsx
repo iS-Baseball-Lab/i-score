@@ -2,14 +2,15 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 /**
- * 💡 究極のルートレイアウト (背景一任版)
+ * 💡 究極のルートレイアウト (背景一任 ＋ AppShell統合版)
  * 1. 修正: body タグから `bg-background` クラスを削除。
- * これにより、globals.css で定義した background-image と完全に同期します。
+ * 2. 追加: 全画面共通のヘッダーとボトムナビを管理する `AppShell` を導入。
  */
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppShell } from "@/components/layout/app-shell"; // 🔥 追加：アプリの殻
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -34,7 +35,6 @@ export default function RootLayout({
     <html lang="ja" suppressHydrationWarning>
       <body
         className={cn(
-          // 💡 ここにあった bg-background を削除し、CSSに完全に委ねます
           "min-h-screen font-sans antialiased",
           inter.variable
         )}
@@ -45,13 +45,18 @@ export default function RootLayout({
           enableSystem={true}
           disableTransitionOnChange={false}
         >
-          <Toaster 
-            position="top-center" 
+          <Toaster
+            position="top-center"
             toastOptions={{
               className: "rounded-2xl border-border bg-background/80 backdrop-blur-md font-bold shadow-none",
             }}
           />
-          {children}
+
+          {/* 🔥 ここでアプリ全体（children）を AppShell で包み込む！ */}
+          <AppShell>
+            {children}
+          </AppShell>
+
         </ThemeProvider>
       </body>
     </html>
