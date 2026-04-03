@@ -3,14 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
-import { BottomNavigation } from "@/components/bottom-navigation"; // 💡 パスはご自身の環境に合わせてください
+import { BottomNavigation } from "@/components/bottom-navigation";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  // URLのパスが変わるたびに、ボトムナビの光るアイコン（activeTab）を自動で合わせる
   useEffect(() => {
     if (pathname?.startsWith("/team")) setActiveTab("team");
     else if (pathname?.startsWith("/players")) setActiveTab("players");
@@ -24,10 +23,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   const handleOpenDrawer = () => {
-    console.log("その他メニュー（Drawer）を開く処理をここに書きます");
+    console.log("Drawer open");
   };
 
-  // ログイン画面など、ヘッダーとナビを隠したい画面の判定
   const isAuthPage = pathname?.startsWith("/login") || pathname?.startsWith("/register");
 
   if (isAuthPage) {
@@ -35,16 +33,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-background">
-      {/* 常に上部に固定される究極のヘッダー */}
+    // 🔥 修正ポイント: bg-background を bg-transparent に変更！
+    // これにより、globals.css の背景がバッチリ透けて見えます！
+    <div className="relative min-h-screen flex flex-col bg-transparent">
+
       <Header />
 
-      {/* 各画面の中身（ダッシュボードやチームプロフィールがここに入ります） */}
       <main className="flex-1 w-full relative">
         {children}
       </main>
 
-      {/* 常に下部に固定される究極のボトムナビ */}
       <BottomNavigation
         activeTab={activeTab}
         onNavigate={handleNavigate}
