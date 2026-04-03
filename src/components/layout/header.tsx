@@ -1,15 +1,8 @@
 // src/components/layout/header.tsx
-/* 💡 究極のヘッダー (ADMIN特別表示＆モバイル操作最適化版✨)
- * 1. 権限: systemRole が 'SYSTEM_ADMIN' の場合、専用の王冠バッジを表示し誤操作を防止。
- * 2. 画像: Hono+R2で構築された /api/images/ 経由の avatarUrl を表示。
- * 3. 意匠: ドロップダウンメニューのタップ領域を広げ、現場でのスマホ操作性を極限まで向上。
- * 4. 構造: src/components/layout に配置、インポートパスは @/ で統一。
- */
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-// ✨ 修正: Crown (王冠) アイコンを追加
 import { Bell, Shield, Zap, LogOut, Settings, Users, Crown } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
@@ -22,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserSession } from "@/types/auth"; // src/types/auth.ts で定義
+import { UserSession } from "@/types/auth";
 
 interface AuthResponse {
   success: boolean;
@@ -37,7 +30,14 @@ export function Header() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch("/api/auth/me");
+        const response = await fetch("/api/auth/me", {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache"
+          }
+        });
+
         if (!response.ok) throw new Error("Failed to fetch user");
 
         const json = await response.json();
@@ -57,17 +57,15 @@ export function Header() {
   }, []);
 
   const handleLogout = async () => {
-    console.log("Logging out...");
     router.push("/login");
   };
 
-  const activeTeam = user?.memberships.find(m => m.teamId === user.currentTeamId)
-    || user?.memberships.find(m => m.isMainTeam)
-    || user?.memberships[0];
+  const activeTeam = user?.memberships?.find(m => m.teamId === user.currentTeamId)
+    || user?.memberships?.find(m => m.isMainTeam)
+    || user?.memberships?.[0];
 
-  // 💡 TSの型エラー回避のため、role と systemRole の両方をチェックして確実に対応！
   const isAdmin = (user as any)?.role === 'SYSTEM_ADMIN' || (user as any)?.systemRole === 'SYSTEM_ADMIN';
-  
+
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-background/60 backdrop-blur-xl border-b border-border/40 transition-colors duration-200">
       <div className="flex h-16 items-center justify-between px-4 sm:px-8">
@@ -99,10 +97,11 @@ export function Header() {
             <ThemeSwitcher variant="dropdown" />
           </div>
 
-          {/* ✨ 修正: ADMINか、通常のチーム所属かでバッジの表示を分岐 */}
-          {isAdmin ? (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 mr-1 shadow-sm dark:shadow-none">
-              <Crown className="h-3 w-3" />
+          {isAdmin && (
+            <div className="hidden sm:flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 mr-1 shadow-sm select-none">
+              <Avatar className="h-7 w-7 border border-amber-500/30 bg-amber-500/20 flex items-center justify-center">
+                <Crown className="h-4 w-4" />
+              </Avatar>
               <div className="flex flex-col">
                 <span className="text-[10px] font-black tracking-widest uppercase whitespace-nowrap leading-tight">
                   SYSTEM ADMIN
@@ -112,18 +111,33 @@ export function Header() {
                 </span>
               </div>
             </div>
-          ) : (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 dark:bg-primary/5 border border-primary/20 text-primary mr-1 shadow-sm dark:shadow-none">
-              <Shield className="h-3 w-3" />
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black tracking-widest uppercase whitespace-nowrap leading-tight">
-                  {activeTeam?.teamName || "NO TEAM"}
+          )}
+
+          {/* 🔥 チームバッジ (パターンC: ハイブリッド) */}
+          {activeTeam && (
+            <div
+              onClick={() => router.push("/teams")}
+              className="hidden sm:flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full bg-background/50 backdrop-blur-md border border-border/50 text-foreground mr-1 shadow-sm hover:bg-background/80 hover:border-primary/30 transition-all cursor-pointer group"
+              title="チームを切り替える"
+            >
+              <Avatar className="h-7 w-7 border border-border/50 bg-primary/5 group-hover:border-primary/30 transition-colors">
+                <AvatarFallback className="bg-primary/10 text-primary font-black text-[10px]">
+                  {/* 💡 APIに organizationName があればそれを使用。なければ既存の teamName を使用 */}
+                  {((activeTeam as any).organizationName || activeTeam.teamName || "T").slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col justify-center">
+                <span className="text-[10px] font-black tracking-widest uppercase whitespace-nowrap leading-tight group-hover:text-primary transition-colors">
+                  {(activeTeam as any).organizationName || activeTeam.teamName}
                 </span>
-                {activeTeam?.roleLabel && (
-                  <span className="text-[7px] font-bold text-muted-foreground uppercase leading-none mt-0.5">
-                    {activeTeam.roleLabel}
-                  </span>
-                )}
+                <span className="text-[7px] font-bold text-muted-foreground uppercase leading-none mt-0.5 flex items-center gap-1">
+                  {/* 💡 親チーム名が存在する場合は「編成名 (役割)」の形にする */}
+                  {(activeTeam as any).organizationName ? (
+                    <>{activeTeam.teamName} <span className="opacity-60">({activeTeam.roleLabel})</span></>
+                  ) : (
+                    activeTeam.roleLabel
+                  )}
+                </span>
               </div>
             </div>
           )}
@@ -132,20 +146,20 @@ export function Header() {
 
           <button className="relative p-2 sm:p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-muted/50 text-muted-foreground transition-all group active:scale-90">
             <Bell className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-background animate-pulse" />
+            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border border-white dark:border-background animate-pulse" />
           </button>
 
           {/* アバタードロップダウンメニュー */}
-          <div className="ml-1 sm:ml-2">
+          <div className="ml-1 sm:ml-2 flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="rounded-full outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background transition-transform active:scale-95">
-                  <Avatar className="h-9 w-9 sm:h-10 sm:w-10 border-2 border-white shadow-sm hover:scale-105 dark:border-border/50 bg-white">
+                <button className="flex items-center justify-center rounded-full outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background transition-transform active:scale-95">
+                  <Avatar className="h-9 w-9 border border-border/30 shadow-sm hover:scale-105 bg-background transition-transform">
                     {!isLoading && user ? (
                       <>
-                        <AvatarImage src={user.avatarUrl || ""} alt={user.name} className="object-cover" />
-                        <AvatarFallback className="bg-primary/10 text-primary font-black text-xs sm:text-sm">
-                          {user.name.slice(0, 2).toUpperCase()}
+                        <AvatarImage src={user.avatarUrl || ""} alt={user.name || "User"} className="object-cover" />
+                        <AvatarFallback className="bg-primary/10 text-primary font-black text-xs">
+                          {(user.name || "U").slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </>
                     ) : (
@@ -170,21 +184,34 @@ export function Header() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-border/50" />
 
-                    {/* ✨ 修正: ADMIN用メニュー表示の分岐 */}
-                    {isAdmin ? (
+                    {isAdmin && (
                       <div className="flex items-center gap-2 px-3 sm:px-2 py-3 sm:py-2 text-sm sm:text-xs bg-amber-500/10 dark:bg-amber-500/10 rounded-md mx-1 mb-1">
                         <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                         <span className="font-semibold text-amber-600 dark:text-amber-400">システム管理者</span>
-                        <span className="ml-2 text-muted-foreground">(i-Score運営)</span>
+                        <span className="text-muted-foreground text-[10px] ml-auto">(i-Score運営)</span>
                       </div>
-                    ) : activeTeam ? (
-                      <div className="flex items-center gap-2 px-3 sm:px-2 py-3 sm:py-2 text-sm sm:text-xs bg-primary/10 dark:bg-primary/10 rounded-md mx-1 mb-1">
-                        <Shield className="h-4 w-4 text-primary shrink-0" />
-                        <span className="font-semibold text-primary">{activeTeam.teamName}</span>
-                        <span className="ml-2 text-muted-foreground">({activeTeam.roleLabel})</span>
+                    )}
+
+                    {/* 🔥 ドロップダウン内もパターンCに最適化 */}
+                    {activeTeam && (
+                      <div className="flex items-start gap-2 px-3 sm:px-2 py-3 sm:py-2 text-sm sm:text-xs bg-primary/10 dark:bg-primary/10 rounded-md mx-1 mb-1">
+                        <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-semibold text-primary leading-tight">
+                            {(activeTeam as any).organizationName || activeTeam.teamName}
+                          </span>
+                          <span className="text-muted-foreground text-[10px] font-bold">
+                            {(activeTeam as any).organizationName ? (
+                              <>{activeTeam.teamName} <span className="opacity-80">({activeTeam.roleLabel})</span></>
+                            ) : (
+                              activeTeam.roleLabel
+                            )}
+                          </span>
+                        </div>
                       </div>
-                    ) : null}
-                    {isAdmin || activeTeam ? <DropdownMenuSeparator className="bg-border/50" /> : null}
+                    )}
+
+                    {(isAdmin || activeTeam) && <DropdownMenuSeparator className="bg-border/50" />}
                   </>
                 )}
 
@@ -193,10 +220,9 @@ export function Header() {
                   <span>アカウント設定</span>
                 </DropdownMenuItem>
 
-                {/* 管理者なら「システム管理画面」へのリンクにするなどの拡張も可能です */}
                 <DropdownMenuItem className="cursor-pointer gap-3 sm:gap-2 rounded-lg py-3 sm:py-1.5 px-3 sm:px-2 text-base sm:text-sm" onClick={() => router.push("/teams")}>
                   <Users className="h-5 w-5 sm:h-4 sm:w-4 text-muted-foreground" />
-                  <span>チーム切り替え・管理</span>
+                  <span>チーム・編成の管理</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator className="bg-border/50" />
