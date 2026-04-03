@@ -45,7 +45,7 @@ export function Header() {
         });
 
         if (!response.ok) throw new Error("Failed to fetch user");
-        const json = await response.json();
+        const json = await response.json() as AuthResponse;
         if (json.success) setUser(json.data);
       } catch (error) {
         console.error("User fetch error:", error);
