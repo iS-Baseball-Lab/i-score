@@ -3,9 +3,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link"; // 🔥 追加：Next.jsの最強リンクコンポーネント
 import { Zap, Crown } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
-import { UserSession } from "@/types/auth";
+import { UserSession } from "@/types/auth"; 
 import { TeamSwitcher } from "@/components/layout/team-switcher";
 import { UserProfileMenu } from "@/components/layout/user-profile-menu";
 
@@ -32,7 +33,7 @@ export function Header() {
             "Pragma": "no-cache"
           }
         });
-
+        
         if (!response.ok) throw new Error("Failed to fetch user");
         const json = await response.json() as AuthResponse;
         if (json.success) setUser(json.data);
@@ -51,7 +52,7 @@ export function Header() {
     localStorage.setItem("iScore_selectedTeamId", teamId);
     if (orgId) localStorage.setItem("iScore_selectedOrgId", orgId);
     setLocalActiveTeamId(teamId);
-    window.location.href = "/dashboard"; // リロードして状態を最新化
+    window.location.href = "/dashboard";
   };
 
   const activeTeam = user?.memberships?.find(m => m.teamId === localActiveTeamId)
@@ -65,21 +66,35 @@ export function Header() {
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-background/60 backdrop-blur-xl border-b border-border/40 transition-colors duration-200">
       <div className="flex h-16 sm:h-20 items-center justify-between px-3 sm:px-8">
 
-        {/* 左側: モバイルロゴ & アプリタイトル */}
-        <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
-          <img src="/logo.png" alt="i-Score Logo" className="md:hidden h-10 w-10 sm:h-12 sm:w-12 object-contain drop-shadow-sm cursor-pointer hover:scale-105 transition-transform" onClick={() => router.push('/dashboard')} />
-          <div className="flex flex-col justify-center cursor-pointer" onClick={() => router.push('/dashboard')}>
-            <h1 className="text-xl sm:text-3xl font-black italic tracking-tighter text-foreground leading-none">i-Score</h1>
+        {/* 🌟 左側: ロゴ & アプリタイトル (最強のLinkコンポーネント化) */}
+        <Link 
+          href="/dashboard" 
+          className="flex items-center gap-2.5 sm:gap-4 shrink-0 group outline-none"
+          title="ダッシュボードへ戻る"
+        >
+          {/* 🔥 md:hidden を削除！これでPCでもロゴが堂々と表示されます */}
+          <img 
+            src="/logo.png" 
+            alt="i-Score Logo" 
+            className="h-10 w-10 sm:h-12 sm:w-12 object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-300" 
+          />
+          <div className="flex flex-col justify-center">
+            {/* 🔥 ホバー時に文字色がプライマリーカラーに変化するエフェクトを追加 */}
+            <h1 className="text-xl sm:text-3xl font-black italic tracking-tighter text-foreground leading-none group-hover:text-primary transition-colors duration-300">
+              i-Score
+            </h1>
             <div className="flex items-center gap-1 mt-0.5 opacity-60 md:hidden">
               <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary fill-primary hidden sm:block" />
-              <span className="text-[8px] sm:text-[10px] font-bold tracking-widest text-muted-foreground whitespace-nowrap hidden min-[380px]:block">野球の今を、次世代へ。</span>
+              <span className="text-[8px] sm:text-[10px] font-bold tracking-widest text-muted-foreground whitespace-nowrap hidden min-[380px]:block">
+                野球の今を、次世代へ。
+              </span>
             </div>
           </div>
-        </div>
+        </Link>
 
-        {/* 右側: ツールエリア (切り出したコンポーネントを配置！) */}
+        {/* 右側: ツールエリア */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 w-full justify-end">
-
+          
           {isAdmin && (
             <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 pl-1 pr-2 sm:pr-3 py-1 sm:py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 shadow-sm select-none">
               <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border border-amber-500/30 bg-amber-500/20 flex items-center justify-center shrink-0">
@@ -93,17 +108,17 @@ export function Header() {
           )}
 
           {/* チームスイッチャー（子コンポーネント） */}
-          <TeamSwitcher
-            activeTeam={activeTeam}
-            memberships={user?.memberships || []}
-            onTeamSwitch={handleTeamSwitch}
+          <TeamSwitcher 
+            activeTeam={activeTeam} 
+            memberships={user?.memberships || []} 
+            onTeamSwitch={handleTeamSwitch} 
           />
 
           {/* ユーザープロファイルメニュー（子コンポーネント） */}
-          <UserProfileMenu
-            user={user}
-            isLoading={isLoading}
-            onLogout={handleLogout}
+          <UserProfileMenu 
+            user={user} 
+            isLoading={isLoading} 
+            onLogout={handleLogout} 
           />
 
         </div>
