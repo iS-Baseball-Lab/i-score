@@ -39,7 +39,7 @@ export default function TeamProfilePage() {
       <div className="relative w-full aspect-[21/9] lg:aspect-[4/1] bg-muted overflow-hidden">
          
         {/* 🔥 ここを変更！ publicフォルダに入れたファイル名（例: /team-cover.jpg）を指定します */}
-        <div className="absolute inset-0 bg-[url('/team-cover.webp')] bg-cover bg-center mix-blend-overlay" />
+        <div className="absolute inset-0 bg-[url('/team-cover.webp')] bg-cover bg-center" />
         
       </div>
 
