@@ -39,8 +39,10 @@ export default function TeamProfilePage() {
       <div className="relative w-full h-48 sm:h-64 lg:h-80 bg-muted overflow-hidden">
         {/* カバー画像（仮のグラデーションまたはスタジアム画像） */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/40 to-background opacity-80" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1508344928928-7137b29de216?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay opacity-30" />
-
+        
+        {/* 🔥 ここを変更！ publicフォルダに入れたファイル名（例: /team-cover.jpg）を指定します */}
+        <div className="absolute inset-0 bg-[url('/team-cover.jpg')] bg-cover bg-center mix-blend-overlay opacity-30" />
+        
         {/* 装飾用の光 */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
       </div>
