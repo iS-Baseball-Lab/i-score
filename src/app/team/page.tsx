@@ -41,8 +41,6 @@ export default function TeamProfilePage() {
         {/* 🔥 ここを変更！ publicフォルダに入れたファイル名（例: /team-cover.jpg）を指定します */}
         <div className="absolute inset-0 bg-[url('/team-cover.webp')] bg-cover bg-center mix-blend-overlay opacity-30" />
         
-        {/* 装飾用の光 */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
