@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     console.log("Drawer open");
   };
 
-  const isAuthPage = pathname?.startsWith("/login") || pathname?.startsWith("/register");
+  const isAuthPage = pathname === "/" || pathname?.startsWith("/login") || pathname?.startsWith("/register");
 
   if (isAuthPage) {
     return <>{children}</>;

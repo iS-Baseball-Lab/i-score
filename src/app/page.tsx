@@ -156,9 +156,14 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        <div id="features" className="mt-16 w-full max-w-5xl flex flex-wrap justify-center gap-6">
+        {/* 🌟 修正: 親の隙間を スマホは gap-3(12px)、PCは gap-6(24px) に可変させます */}
+        <div id="features" className="mt-16 w-full max-w-5xl flex flex-wrap justify-center gap-3 sm:gap-6">
           {features.map((feature, index) => (
-            <div key={index} className="flex-grow-0 flex-shrink-0 w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
+            <div
+              key={index}
+              // 🔥 修正: スマホ(基本)を w-[calc(50%-6px)] に変更して2列化！
+              className="flex-grow-0 flex-shrink-0 w-[calc(50%-6px)] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
+            >
               <FeatureCard
                 icon={feature.icon}
                 title={feature.title}
