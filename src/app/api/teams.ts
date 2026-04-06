@@ -1,4 +1,4 @@
-// src/api/teams.ts
+// src/app/api/teams.ts
 import { Hono } from 'hono'
 import { getAuth } from "@/lib/auth"
 import { drizzle } from 'drizzle-orm/d1'
