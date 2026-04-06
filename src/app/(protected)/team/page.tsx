@@ -81,13 +81,41 @@ export default function TeamProfilePage() {
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground leading-tight mb-3">
               {team.name || "チーム名未設定"}
             </h1>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] sm:text-xs font-bold bg-muted px-2.5 py-0.5 rounded-full uppercase text-muted-foreground">
-                <Trophy className="inline h-3 w-3 mr-1" />
-                {team.teamType || "TEAM"}
+            {/* 🌟 究極に美しいプレミアム・バッジ群 */}
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              
+              {/* 1. チームタイプ（Primary: 爽やかな青系） */}
+              <span className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                <Trophy className="h-3.5 w-3.5" />
+                {team.teamType === 'regular' ? '一般チーム' : team.teamType || "TEAM"}
               </span>
-              {team.year && <span className="text-[10px] sm:text-xs font-bold bg-muted px-2.5 py-0.5 rounded-full text-muted-foreground">{team.year}年設立</span>}
+
+              {/* 2. 設立年（Emerald: 歴史と安定） */}
+              {team.year && (
+                <span className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full shadow-sm">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Est. {team.year}
+                </span>
+              )}
+
+              {/* 3. ティア（Purple: 競技レベルの高さ） */}
+              {team.tier && (
+                <span className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                  <Shield className="h-3.5 w-3.5" />
+                  Tier: {team.tier}
+                </span>
+              )}
+
+              {/* 4. 創設者（Amber: 特別な権威とリーダーシップ） */}
+              {team.isFounder && (
+                <span className="flex items-center gap-1.5 text-[10px] sm:text-xs font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full shadow-sm">
+                  <Crown className="h-3.5 w-3.5" />
+                  FOUNDER
+                </span>
+              )}
+              
             </div>
+
           </div>
         </div>
 
