@@ -61,4 +61,22 @@ app.get('/:id/spray-chart', async (c) => {
   } catch (e) { return c.json({ error: 'データの取得に失敗しました' }, 500); }
 });
 
+// 🌟 ここから追加！ 最近の試合結果（3件）を取得するAPI
+app.get('/:id/recent-matches', async (c) => {
+  const teamId = c.req.param('id');
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT id, date, opponent, my_score as myScore, opponent_score as opponentScore, match_type as matchType, status
+      FROM matches 
+      WHERE team_id = ? AND status = 'finished'
+      ORDER BY date DESC, created_at DESC
+      LIMIT 3
+    `).bind(teamId).all();
+    
+    return c.json(results);
+  } catch (e) { 
+    return c.json({ error: '試合結果の取得に失敗しました' }, 500); 
+  }
+});
+
 export default app;
