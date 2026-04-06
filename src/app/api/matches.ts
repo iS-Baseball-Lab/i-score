@@ -376,7 +376,7 @@ app.patch("/:id/score", async (c) => {
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⚾️ [PATCH] 試合情報（汎用）の更新
+// ⚾️ [PATCH] 試合情報の更新（全フィールド対応）
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 app.patch("/:id", async (c) => {
   const auth = getAuth(c.env.DB, c.env)
@@ -386,15 +386,22 @@ app.patch("/:id", async (c) => {
   const matchId = c.req.param("id");
   const db = drizzle(c.env.DB);
 
-  // 🔥 試合情報更新も権限をチェック！
+  // 🔥 権限チェック：監督やスコアラーのみ許可
   const hasPermission = await checkMatchPermission(db, session.user.id, matchId);
   if (!hasPermission) return c.json({ error: '権限がありません' }, 403)
 
   try {
     const body = await c.req.json();
+
+    // 🌟 修正：すべての項目を更新可能にする
     await db.update(matches)
       .set({
+        opponent: body.opponent,
+        date: body.date, // "YYYY-MM-DD HH:mm" 形式
+        matchType: body.matchType,
         battingOrder: body.battingOrder,
+        surfaceDetails: body.location, // UI側の location はここ
+        innings: body.innings,
       })
       .where(eq(matches.id, matchId));
 
