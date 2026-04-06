@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Play, History, Activity, CalendarDays, Target, Zap, Clock, CloudSun, Wind, Flame, Sparkles, Loader2, Crosshair } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { MatchModeDialog } from "@/components/matches/match-mode-dialog";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ⚾️ 型定義
@@ -185,14 +186,14 @@ function DashboardContent() {
             </div>
           </div>
 
-          {/* 🌟 巨大な NEW MATCH ボタン */}
-          <Button
-            onClick={() => router.push('/matches/create')}
-            className="rounded-[24px] h-14 sm:h-14 px-8 bg-primary text-primary-foreground font-black text-xl sm:text-lg shadow-none border border-primary/20 hover:border-primary/40 hover:bg-primary/90 transition-all flex items-center gap-2 active:scale-95 w-full sm:w-auto justify-center shrink-0"
-          >
-            <Plus className="h-6 w-6 sm:h-5 sm:w-5 stroke-[3px]" /> NEW MATCH
-          </Button>
-        </div>
+          {/* 🌟 修正: 巨大な NEW MATCH ボタンを Dialog コンポーネントでラップする */}
+          <MatchModeDialog>
+            <Button
+              className="rounded-[24px] h-14 sm:h-14 px-8 bg-primary text-primary-foreground font-black text-xl sm:text-lg shadow-none border border-primary/20 hover:border-primary/40 hover:bg-primary/90 transition-all flex items-center gap-2 active:scale-95 w-full sm:w-auto justify-center shrink-0"
+            >
+              <Plus className="h-6 w-6 sm:h-5 sm:w-5 stroke-[3px]" /> NEW MATCH
+            </Button>
+          </MatchModeDialog>        </div>
       </div>
 
       <div className="max-w-6xl mx-auto space-y-10">
