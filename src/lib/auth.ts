@@ -55,7 +55,13 @@ export const getAuth = (d1: D1Database, env?: any) => {
           clientSecret: env.LINE_CLIENT_SECRET || "",
         },
       } : {}),
-    }
+    },
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ["google", "line"], // 信頼するプロバイダを指定
+      },
+    },
   });
 
   lastD1 = d1;

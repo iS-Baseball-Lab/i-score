@@ -1,9 +1,7 @@
-// src/app/api/auth.ts
 import { Hono } from 'hono'
-import { getAuth } from "@/lib/auth"
+import { getAuth } from "@/lib/auth" // 🌟 getAuth に戻す！
 import { drizzle } from 'drizzle-orm/d1'
-import { eq, and } from 'drizzle-orm'
-// 💡 organizations テーブルを追加
+import { eq } from 'drizzle-orm'
 import { teams, teamMembers, organizations } from '@/db/schema/team'
 
 const app = new Hono<{ Bindings: { DB: D1Database, ASSETS: Fetcher } }>()
@@ -20,82 +18,60 @@ const getRoleLabel = (role: string) => {
 };
 
 app.get('/me', async (c) => {
-  const auth = getAuth(c.env.DB, c.env)
+  const auth = getAuth(c.env.DB, c.env) // 🌟 ここでインスタンスを取得！
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
 
-  if (!session) {
+  if (!session || !session.user) {
     return c.json({ success: false, error: 'Unauthorized' }, 401)
   }
 
-  const userWithRole = session.user as any;
+  const user = session.user;
   const db = drizzle(c.env.DB);
-
   let memberships: any[] = [];
 
   try {
-    // ⚾️ Drizzle ORMで親子JOINを実行！
     const userTeams = await db
       .select({
         teamId: teams.id,
         teamName: teams.name,
-        organizationName: organizations.name, // 🔥 親チーム名を取得
+        organizationName: organizations.name,
         role: teamMembers.role,
       })
       .from(teamMembers)
       .innerJoin(teams, eq(teamMembers.teamId, teams.id))
-      .innerJoin(organizations, eq(teams.organizationId, organizations.id)) // 🔥 organizationsをJOIN
-      .where(eq(teamMembers.userId, userWithRole.id));
+      .innerJoin(organizations, eq(teams.organizationId, organizations.id))
+      .where(eq(teamMembers.userId, user.id));
 
     if (userTeams.length > 0) {
-      // DBにデータがあった場合
       memberships = userTeams.map((t, index) => ({
         teamId: t.teamId,
         teamName: t.teamName,
-        organizationName: t.organizationName, // 🔥 フロントへ渡す
+        organizationName: t.organizationName,
         role: t.role,
         roleLabel: getRoleLabel(t.role),
         isMainTeam: index === 0
       }));
-    } else {
-      // 💡 DBが空の場合のダミーデータもC案仕様にアップデート！
-      console.log("[i-Score Debug] No teams found in DB. Using mock data.");
-      memberships = [{
-        teamId: "mock-team-1",
-        teamName: "2024年度 1軍",
-        organizationName: "iS Baseball Club", // 💡 親の名前
-        role: "MANAGER",
-        roleLabel: "監督",
-        isMainTeam: true
-      }];
     }
   } catch (error) {
-    console.error("[i-Score Error] Failed to fetch user teams:", error);
-    memberships = [{
-      teamId: "error-mock",
-      teamName: "連携エラー",
-      organizationName: "DB接続確認中",
-      role: "STAFF",
-      roleLabel: "確認",
-      isMainTeam: true
-    }];
+    console.error("[i-Score Error]", error);
   }
 
   return c.json({
     success: true,
     data: {
-      id: userWithRole.id,
-      name: userWithRole.name,
-      email: userWithRole.email,
-      avatarUrl: userWithRole.image || `/api/images/avatars/${userWithRole.id}.png`,
-      role: userWithRole.role,
-      systemRole: userWithRole.role,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.image || `/api/images/avatars/${user.id}.png`,
+      role: (user as any).role || 'USER',
+      systemRole: (user as any).role || 'USER',
       memberships: memberships,
     }
   })
 })
 
-app.all('/*', async (c) => {
-  const auth = getAuth(c.env.DB, c.env)
+app.all('/*', (c) => {
+  const auth = getAuth(c.env.DB, c.env) // 🌟 ここでも取得してハンドリング
   return auth.handler(c.req.raw)
 })
 
