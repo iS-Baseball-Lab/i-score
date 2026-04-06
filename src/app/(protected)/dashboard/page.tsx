@@ -3,14 +3,14 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trophy, Users, PlayCircle, Plus, ChevronRight, Activity, CalendarDays, Swords } from "lucide-react";
+// 🌟 復活：時計と天気のアイコンを追加インポート
+import { Trophy, Users, PlayCircle, Plus, ChevronRight, Activity, Swords, Clock, CloudSun, Navigation, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MatchList } from "@/components/matches/match-list";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-// 試合データの型定義
 interface Match {
   id: string;
   opponent: string;
@@ -28,7 +28,17 @@ export default function DashboardPage() {
   const [teamName, setTeamName] = useState("Team");
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🌟 初期データの取得
+  // 🌟 復活：リアルタイム時計のステート
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // 1秒ごとに時計を更新
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -38,19 +48,17 @@ export default function DashboardPage() {
           return;
         }
 
-        // 1. チーム情報の取得（名前を表示するため）
         const teamRes = await fetch("/api/teams");
         if (teamRes.ok) {
-          const teamsData = await teamRes.json() as any[];
+          const teamsData = (await teamRes.json()) as any[];
           const currentTeam = teamsData.find((t: any) => t.id === teamId);
           if (currentTeam) setTeamName(currentTeam.name);
         }
 
-        // 2. 試合一覧の取得
         const matchRes = await fetch(`/api/matches?teamId=${teamId}`);
         if (matchRes.ok) {
-          const matchData = await matchRes.json() as Match[];
-          setMatches(matchData || []);
+          const matchData = (await matchRes.json()) as Match[];
+          setMatches(Array.isArray(matchData) ? matchData : []);
         }
       } catch (error) {
         toast.error("データの読み込みに失敗しました");
@@ -62,7 +70,6 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
-  // 💡 簡易的な勝敗集計（表示用）
   const stats = matches.reduce(
     (acc, m) => {
       if (m.myScore > m.opponentScore) acc.wins++;
@@ -73,13 +80,16 @@ export default function DashboardPage() {
     { wins: 0, losses: 0, draws: 0 }
   );
 
+  // 日付と時刻のフォーマット
+  const timeString = currentTime.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+  const dateString = currentTime.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
+
   return (
-    // 🌟 背景は transparent にし、globals.css のグラデーションを活かす
     <div className="w-full animate-in fade-in duration-500 bg-transparent min-h-screen pb-24">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 sm:space-y-8">
 
         {/* =========================================
-            1. ヒーローセクション（挨拶と概要）
+            1. ヒーローセクション
             ========================================= */}
         <section className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
@@ -111,10 +121,68 @@ export default function DashboardPage() {
         </section>
 
         {/* =========================================
-            2. クイックアクション（特大ボタン）
+            🌟 1.5 復活の環境ウィジェット（時計・天気・風）
+            ========================================= */}
+        <section className="bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm rounded-3xl p-4 sm:p-5">
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-4 sm:gap-6">
+
+            {/* 🕰️ 時計 */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-primary/10 rounded-xl text-primary shrink-0">
+                <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
+              </div>
+              <div>
+                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">{mounted ? dateString : "---"}</p>
+                <p className="text-base sm:text-lg font-black text-foreground tabular-nums leading-none mt-0.5">{mounted ? timeString : "--:--"}</p>
+              </div>
+            </div>
+
+            <div className="hidden sm:block h-8 w-px bg-border/50" />
+
+            {/* ⛅️ 天気（※後日API連携を想定したモック） */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-amber-500/10 rounded-xl text-amber-500 shrink-0">
+                <CloudSun className="h-5 w-5 sm:h-6 sm:w-6" />
+              </div>
+              <div>
+                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">Weather</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-0.5">晴れ <span className="text-muted-foreground text-xs ml-0.5">22°C</span></p>
+              </div>
+            </div>
+
+            <div className="hidden sm:block h-8 w-px bg-border/50" />
+
+            {/* 🧭 風向き */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-blue-500/10 rounded-xl text-blue-500 shrink-0">
+                <Navigation className="h-5 w-5 sm:h-6 sm:w-6 transform rotate-45" />
+              </div>
+              <div>
+                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">Wind Dir</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-0.5">南南西</p>
+              </div>
+            </div>
+
+            <div className="hidden sm:block h-8 w-px bg-border/50" />
+
+            {/* 💨 風速 */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-teal-500/10 rounded-xl text-teal-500 shrink-0">
+                <Wind className="h-5 w-5 sm:h-6 sm:w-6" />
+              </div>
+              <div>
+                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">Wind Spd</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-0.5 tabular-nums">5 <span className="text-muted-foreground text-xs font-bold">m/s</span></p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* =========================================
+            2. クイックアクション
             ========================================= */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* メインアクション：Quick Score入力 */}
           <button
             onClick={() => router.push('/matches/create?mode=quick')}
             className="col-span-2 lg:col-span-2 relative overflow-hidden flex flex-col items-start justify-between p-5 sm:p-6 rounded-3xl bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group border border-primary-foreground/10"
@@ -131,7 +199,6 @@ export default function DashboardPage() {
             </div>
           </button>
 
-          {/* サブアクション1：チーム名簿 */}
           <button
             onClick={() => router.push('/team/players')}
             className="flex flex-col items-start justify-between p-5 sm:p-6 rounded-3xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm hover:shadow-md hover:border-primary/40 active:scale-[0.98] transition-all group"
@@ -141,11 +208,10 @@ export default function DashboardPage() {
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-black text-foreground mb-1">選手名簿</h3>
-              <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Roster</p>
+              <p className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Roster</p>
             </div>
           </button>
 
-          {/* サブアクション2：チーム成績 */}
           <button
             onClick={() => router.push('/team')}
             className="flex flex-col items-start justify-between p-5 sm:p-6 rounded-3xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm hover:shadow-md hover:border-primary/40 active:scale-[0.98] transition-all group"
@@ -155,7 +221,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-black text-foreground mb-1">チーム成績</h3>
-              <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Analytics</p>
+              <p className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Analytics</p>
             </div>
           </button>
         </section>
@@ -163,7 +229,7 @@ export default function DashboardPage() {
         {/* =========================================
             3. 最近の試合リスト
             ========================================= */}
-        <section className="pt-4">
+        <section className="pt-2 sm:pt-4">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-xs sm:text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <Swords className="h-4 w-4" /> Recent Matches
@@ -173,7 +239,6 @@ export default function DashboardPage() {
             </Button>
           </div>
 
-          {/* 🌟 先ほど作成した MatchList コンポーネントを配置 */}
           <MatchList matches={matches} isLoading={isLoading} />
         </section>
 
