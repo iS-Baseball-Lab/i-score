@@ -9,8 +9,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AppShell } from "@/components/layout/app-shell"; // 🔥 追加：アプリの殻
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { DensityProvider } from "@/components/providers/density-provider";
+import { AppShell } from "@/components/layout/app-shell";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -39,25 +40,26 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem={true}
-          disableTransitionOnChange={false}
-        >
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              className: "rounded-2xl border-border bg-background/80 backdrop-blur-md font-bold shadow-none",
-            }}
-          />
+        <DensityProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem={true}
+            disableTransitionOnChange={false}
+          >
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                className: "rounded-2xl border-border bg-background/80 backdrop-blur-md font-bold shadow-none",
+              }}
+            />
 
-          {/* 🔥 ここでアプリ全体（children）を AppShell で包み込む！ */}
-          <AppShell>
-            {children}
-          </AppShell>
+            <AppShell>
+              {children}
+            </AppShell>
 
-        </ThemeProvider>
+          </ThemeProvider>
+        </DensityProvider>
       </body>
     </html>
   );

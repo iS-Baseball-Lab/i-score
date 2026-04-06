@@ -1,10 +1,10 @@
-// src/components/layout/user-profile-menu.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { BellRing, LogOut, Settings, Sun, Moon, Monitor, Square, AppWindow, Circle } from "lucide-react";
+// 🌟 修正: 密度切り替え用のアイコン（Smartphone, Maximize）を追加インポート
+import { BellRing, LogOut, Settings, Sun, Moon, Monitor, Square, AppWindow, Circle, Smartphone, Maximize } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserSession } from "@/types/auth";
+// 🌟 追加: DensityProviderからフックをインポート
+import { useDensity } from "@/components/providers/density-provider";
 
 const THEMES = [
   { id: "blue", color: "#0284c7", label: "Blue" },
@@ -39,6 +41,13 @@ const APPEARANCES = [
   { id: "system", icon: Monitor, label: "System" },
 ];
 
+// 🌟 追加: Density（密度）の選択肢を定義
+const DENSITIES = [
+  { id: "compact", icon: Smartphone, label: "Compact" },
+  { id: "standard", icon: Monitor, label: "Standard" },
+  { id: "comfortable", icon: Maximize, label: "Comfort" },
+];
+
 interface UserProfileMenuProps {
   user: UserSession | null;
   isLoading: boolean;
@@ -48,6 +57,8 @@ interface UserProfileMenuProps {
 export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuProps) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  // 🌟 追加: 密度の状態を取得・更新するフック
+  const { density, setDensity } = useDensity();
 
   const [activeThemeColor, setActiveThemeColor] = useState<string>("blue");
   const [activeDesign, setActiveDesign] = useState<string>("modern");
@@ -136,7 +147,7 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
 
         <DropdownMenuSeparator className="bg-border/50 my-1" />
 
-        {/* 🌟 究極にすっきりしたテーマ設定エリア */}
+        {/* 🌟 テーマ・UI設定エリア */}
         <div className="px-2 py-3 space-y-6">
 
           {/* 🎨 カラーテーマ */}
@@ -146,10 +157,7 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
               {THEMES.map((t) => (
                 <button
                   key={t.id}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    applyColorTheme(t.id);
-                  }}
+                  onClick={(e) => { e.preventDefault(); applyColorTheme(t.id); }}
                   className={cn(
                     "h-6 w-6 rounded-full transition-all hover:scale-125 active:scale-90 relative",
                     activeThemeColor === t.id && "ring-2 ring-offset-2 ring-offset-background ring-primary scale-110"
@@ -180,9 +188,32 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
                     onClick={(e) => { e.preventDefault(); applyDesignTheme(d.id); }}
                     className={cn(
                       "flex-1 flex flex-col items-center justify-center py-2.5 gap-1.5 rounded-xl border transition-all active:scale-95",
-                      isActive
-                        ? "bg-primary/10 border-primary/30 text-primary shadow-sm"
-                        : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                      isActive ? "bg-primary/10 border-primary/30 text-primary shadow-sm" : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="text-[10px] font-bold">{d.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 📏 表示サイズ (Density) テーマ */}
+          <div>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 pl-1">Density</p>
+            <div className="flex gap-2 px-1">
+              {DENSITIES.map((d) => {
+                const Icon = d.icon;
+                const isActive = density === d.id;
+                return (
+                  <button
+                    key={d.id}
+                    // 💡 anyキャストで型エラーを回避しつつ安全に更新
+                    onClick={(e) => { e.preventDefault(); setDensity(d.id as any); }}
+                    className={cn(
+                      "flex-1 flex flex-col items-center justify-center py-2.5 gap-1.5 rounded-xl border transition-all active:scale-95",
+                      isActive ? "bg-primary/10 border-primary/30 text-primary shadow-sm" : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -206,9 +237,7 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
                     onClick={(e) => { e.preventDefault(); setTheme(a.id); }}
                     className={cn(
                       "flex-1 flex flex-col items-center justify-center py-2.5 gap-1.5 rounded-xl border transition-all active:scale-95",
-                      isActive
-                        ? "bg-primary/10 border-primary/30 text-primary shadow-sm"
-                        : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                      isActive ? "bg-primary/10 border-primary/30 text-primary shadow-sm" : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
                     <Icon className="h-4 w-4" />

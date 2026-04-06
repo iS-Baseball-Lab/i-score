@@ -268,7 +268,28 @@
 }
 
 /* =======================================================
-   ⚾️ 7. BASE HTML/BODY STYLES & BACKGROUND MAGIC
+   ⚾️ 7. DENSITY THEMES (DISPLAY SIZE)
+   ======================================================= */
+@layer base {
+
+  /* 標準モード (Pixel 10 Proなどの標準画面向け) */
+  :root {
+    font-size: 16px;
+  }
+
+  /* コンパクトモード (情報量重視 / 小画面向け) */
+  [data-density="compact"] {
+    font-size: 14px;
+  }
+
+  /* ゆったりモード (タブレット / シニア向け) */
+  [data-density="comfortable"] {
+    font-size: 18px;
+  }
+}
+
+/* =======================================================
+   ⚾️ 8. BASE HTML/BODY STYLES & BACKGROUND MAGIC
    ======================================================= */
 @layer base {
   * {
