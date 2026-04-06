@@ -82,7 +82,7 @@ export default function TeamProfilePage() {
         <Shield className="h-16 w-16 text-muted-foreground opacity-20" />
         <h2 className="text-2xl font-black text-foreground">チームが選択されていません</h2>
         <p className="text-muted-foreground font-medium max-w-md">
-          現在選択されているチームがありません。右上のメニューからチームを選択するか、新しいチームを作成・検索してください。
+          現在選択されているチームがありません。<br></br>右上のメニューからチームを選択するか、<br></br>新しいチームを作成・検索してください。
         </p>
       </div>
     );
