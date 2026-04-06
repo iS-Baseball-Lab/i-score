@@ -1,21 +1,21 @@
-// src/app/(protected)/team/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, MapPin, Calendar, Shield, Trophy, Loader2, Camera, History, Target, BarChart3, Settings, Crown, UserCircle, Info } from "lucide-react";
+import { Users, MapPin, Calendar, Shield, Trophy, Loader2, Camera, Settings, Crown, UserCircle, Info, ChevronRight, BarChart3 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
-// 💡 バックエンドのレスポンスに合わせた型定義
 interface Team {
   id: string;
   name: string;
-  orgName?: string; 
+  orgName?: string;
   description?: string;
-  category?: string;    
-  homeGround?: string;  
-  managerName?: string; 
+  category?: string;
+  homeGround?: string;
+  managerName?: string;
   year: number | null;
   tier: string | null;
   teamType: string | null;
@@ -23,9 +23,22 @@ interface Team {
   isFounder: boolean;
 }
 
+interface TeamStats {
+  totalGames: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winRate: number;
+  avgRuns: number;
+  teamAvg: string;
+  teamHR: string;
+}
+
 export default function TeamProfilePage() {
+  const router = useRouter();
   const [team, setTeam] = useState<Team | null>(null);
   const [memberCount, setMemberCount] = useState<number>(0);
+  const [stats, setStats] = useState<TeamStats>({ totalGames: 0, wins: 0, draws: 0, losses: 0, winRate: 0, avgRuns: 0, teamAvg: ".000", teamHR: "0" });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -34,22 +47,59 @@ export default function TeamProfilePage() {
         const activeTeamId = localStorage.getItem("iScore_selectedTeamId");
         if (!activeTeamId) { setIsLoading(false); return; }
 
+        // 1. チーム基本情報
         const teamsResponse = await fetch("/api/teams", { cache: "no-store" });
         if (!teamsResponse.ok) throw new Error("取得失敗");
-        
         const teamsData: Team[] = await teamsResponse.json();
         const currentTeam = teamsData.find(t => t.id === activeTeamId);
 
         if (currentTeam) {
           setTeam(currentTeam);
+
+          // 2. メンバー数
           const playersResponse = await fetch(`/api/teams/${activeTeamId}/players`, { cache: "no-store" });
           if (playersResponse.ok) {
             const playersData = (await playersResponse.json()) as any[];
             setMemberCount(playersData.length || 0);
           }
+
+          // 3. 試合結果（勝敗・得点）の集計
+          const matchesRes = await fetch(`/api/teams/${activeTeamId}/recent-matches`, { cache: "no-store" });
+          let wins = 0, losses = 0, draws = 0, totalRuns = 0, totalGames = 0;
+          if (matchesRes.ok) {
+            const matchesData = await matchesRes.json() as any[];
+            totalGames = matchesData.length;
+            matchesData.forEach(m => {
+              if (m.myScore > m.opponentScore) wins++;
+              else if (m.myScore < m.opponentScore) losses++;
+              else draws++;
+              totalRuns += m.myScore;
+            });
+          }
+
+          // 4. 打撃成績の集計
+          const statsRes = await fetch(`/api/teams/${activeTeamId}/stats`, { cache: "no-store" });
+          let teamAvg = ".000", teamHR = "0";
+          if (statsRes.ok) {
+            const statsData = await statsRes.json() as any[];
+            let totalAB = 0, totalHits = 0, totalHR = 0;
+            statsData.forEach(p => {
+              totalAB += p.atBats || 0;
+              totalHits += p.hits || 0;
+              totalHR += p.homeRuns || 0;
+            });
+            teamAvg = totalAB > 0 ? (totalHits / totalAB).toFixed(3).replace(/^0+/, '') : ".000";
+            teamHR = totalHR.toString();
+          }
+
+          setStats({
+            totalGames, wins, draws, losses,
+            winRate: (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0,
+            avgRuns: totalGames > 0 ? Number((totalRuns / totalGames).toFixed(1)) : 0,
+            teamAvg, teamHR
+          });
         }
       } catch (error) {
-        console.error("Team fetch error:", error);
         toast.error("データの読み込みに失敗しました");
       } finally {
         setIsLoading(false);
@@ -64,16 +114,16 @@ export default function TeamProfilePage() {
   const canManage = team.myRole === 'ADMIN' || team.myRole === 'MANAGER' || team.isFounder;
 
   return (
-    <div className="w-full animate-in fade-in duration-500">
-      
+    <div className="w-full animate-in fade-in duration-500 bg-transparent">
+
       {/* 1. ヒーローセクション */}
-      <div className="relative w-full aspect-[21/9] lg:aspect-[4/1] bg-muted overflow-hidden border-b border-border/50">
+      <div className="relative w-full aspect-[21/9] lg:aspect-[4/1] bg-muted overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('/team-cover.webp')` }} />
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        
-        {/* 2. プロフィールヘッダー（変更なし） */}
+
+        {/* 2. プロフィールヘッダー */}
         <div className="relative -mt-16 sm:-mt-20 flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 mb-8 sm:mb-12">
           <div className="relative group shrink-0 self-start sm:self-auto">
             <Avatar className="h-28 w-28 sm:h-36 sm:w-36 border-4 border-background shadow-xl bg-white dark:bg-zinc-900">
@@ -121,99 +171,131 @@ export default function TeamProfilePage() {
         </div>
 
         {/* 🌟 3. メインコンテンツ（2カラム構成） */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* 🌟 左側（2カラム分）: 主役の編成ダッシュボード */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* ダッシュボード：最近の試合 */}
-            <div className="p-6 rounded-3xl bg-background border border-border/50 shadow-sm">
-              <h3 className="text-sm font-black flex items-center gap-2 mb-6 text-muted-foreground uppercase tracking-wider">
-                <History className="h-4 w-4" /> 最近の試合結果
-              </h3>
-              <div className="space-y-3 opacity-40">
-                {[1, 2].map(i => (
-                  <div key={i} className="h-16 w-full border border-dashed border-border rounded-xl flex items-center px-4 justify-between bg-muted/10">
-                    <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-muted" /><div className="w-24 h-4 bg-muted rounded" /></div>
-                    <div className="w-16 h-8 bg-muted rounded-lg" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+          {/* 左側（7カラム分）: チームインテル（勝率＆理念） */}
+          <div className="lg:col-span-7 space-y-8">
+
+            {/* 移植！シーズン勝率＆打撃成績カード */}
+            <Card className="p-0 gap-0 bg-white/90 dark:bg-card/30 backdrop-blur-xl border-border/40 rounded-[40px] overflow-hidden shadow-sm hover:shadow-md dark:shadow-none transition-all hover:border-primary/30">
+              <CardContent className="p-8 sm:p-10 flex flex-col items-center text-center space-y-8">
+
+                {/* 勝率サークル */}
+                <div className="relative w-40 h-40 flex items-center justify-center">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" className="stroke-muted/20 fill-none" strokeWidth="8" />
+                    <circle cx="50" cy="50" r="45" className="stroke-primary fill-none transition-all duration-1000 ease-out" strokeWidth="8" strokeDasharray={283} strokeDashoffset={283 - (283 * stats.winRate) / 100} strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-4xl font-black tabular-nums tracking-tighter text-foreground">{stats.winRate}%</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Win Rate</span>
                   </div>
-                ))}
-                <p className="text-center text-[10px] font-bold text-muted-foreground pt-2">試合を記録するとここに自動表示されます</p>
-              </div>
-            </div>
-
-            {/* ダッシュボード：チーム成績 */}
-            <div className="p-6 rounded-3xl bg-background border border-border/50 shadow-sm">
-              <h3 className="text-sm font-black flex items-center gap-2 mb-6 text-muted-foreground uppercase tracking-wider">
-                <BarChart3 className="h-4 w-4" /> チーム打撃成績
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 opacity-40">
-                {['打率', '本塁打', '打点', '盗塁'].map(stat => (
-                  <div key={stat} className="p-4 border border-dashed border-border rounded-2xl text-center">
-                    <div className="text-[10px] font-bold text-muted-foreground">{stat}</div>
-                    <div className="text-xl font-black mt-1">---</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 🌟 右側（1カラム分）: 準主役＆名脇役のサブ情報 */}
-          <div className="space-y-6">
-            
-            {/* 準主役：ロースター情報 */}
-            <div className="p-6 rounded-3xl bg-primary/5 border border-primary/20 shadow-sm group">
-              <span className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1 block">Roster</span>
-              <div className="flex items-baseline gap-1.5 mt-1">
-                <span className="text-4xl font-black text-primary">{memberCount}</span>
-                <span className="text-xs font-bold text-primary/80">選手</span>
-              </div>
-            </div>
-
-            {/* 準主役：管理メニュー */}
-            {canManage && (
-              <div className="p-6 rounded-3xl bg-background border border-border/50 shadow-sm space-y-4">
-                <span className="text-xs font-black text-muted-foreground uppercase tracking-widest block mb-2">Management</span>
-                <Button variant="outline" className="w-full justify-start rounded-xl font-bold h-12">
-                  <Users className="h-4 w-4 mr-2" />選手管理
-                </Button>
-                <Button variant="outline" className="w-full justify-start rounded-xl font-bold h-12">
-                  <Settings className="h-4 w-4 mr-2" />チーム設定
-                </Button>
-              </div>
-            )}
-
-            {/* 🌟 名脇役：大元の組織情報（コンパクト化してサイドバーに配置！） */}
-            <div className="p-6 rounded-3xl bg-muted/30 border border-border/50 shadow-sm space-y-5">
-              <h3 className="text-xs font-black flex items-center gap-2 text-muted-foreground uppercase tracking-wider mb-2">
-                <Info className="h-3.5 w-3.5" /> Club Info
-              </h3>
-
-              {team.description && (
-                <div>
-                  <p className="text-sm font-bold text-foreground leading-relaxed italic border-l-2 border-primary pl-3">
-                    「{team.description}」
-                  </p>
                 </div>
+
+                {/* 統計スタッツ */}
+                <div className="grid grid-cols-4 w-full pt-4 border-t border-border/40">
+                  <div className="text-center pt-4">
+                    <p className="text-lg font-black text-foreground">{stats.wins} <span className="text-xs text-muted-foreground">-</span> {stats.losses}</p>
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">W-L</p>
+                  </div>
+                  <div className="text-center border-l border-border/40 pt-4">
+                    <p className="text-lg font-black text-foreground">{stats.avgRuns}</p>
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Avg Runs</p>
+                  </div>
+                  <div className="text-center border-l border-border/40 pt-4">
+                    <p className="text-lg font-black text-primary">{stats.teamAvg}</p>
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Team AVG</p>
+                  </div>
+                  <div className="text-center border-l border-border/40 pt-4">
+                    <p className="text-lg font-black text-foreground">{stats.teamHR}</p>
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Team HR</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* チーム理念（スローガン＆拠点） */}
+            <div className="p-8 rounded-[40px] bg-muted/30 border border-border/40 shadow-sm space-y-6">
+              <h3 className="text-xs font-black flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
+                <Info className="h-4 w-4" /> Club Identity
+              </h3>
+
+              {team.description ? (
+                <p className="text-lg font-bold text-foreground leading-relaxed italic border-l-4 border-primary pl-4">
+                  「{team.description}」
+                </p>
+              ) : (
+                <p className="text-sm font-medium text-muted-foreground italic border-l-4 border-muted pl-4">
+                  チームのスローガンや紹介文が未設定です。
+                </p>
               )}
 
-              <div className="space-y-3">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Home Ground</span>
-                  <p className="text-sm font-semibold flex items-center mt-0.5">
-                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-primary" />
-                    {team.homeGround || "未設定"}
+              <div className="flex flex-col sm:flex-row gap-6 pt-4">
+                <div>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Home Ground</span>
+                  <p className="text-sm font-semibold flex items-center">
+                    <MapPin className="h-4 w-4 mr-1.5 text-primary" /> {team.homeGround || "未設定"}
                   </p>
                 </div>
-                
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Manager</span>
-                  <p className="text-sm font-semibold flex items-center mt-0.5">
-                    <UserCircle className="h-3.5 w-3.5 mr-1.5 text-primary" />
-                    {team.managerName || "未設定"}
+                <div>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Manager</span>
+                  <p className="text-sm font-semibold flex items-center">
+                    <UserCircle className="h-4 w-4 mr-1.5 text-primary" /> {team.managerName || "未設定"}
                   </p>
                 </div>
               </div>
+            </div>
+
+          </div>
+
+          {/* 右側（5カラム分）: 管理・名簿メニュー */}
+          <div className="lg:col-span-5 space-y-6">
+
+            {/* ロースター（人数） */}
+            <div className="p-8 rounded-[40px] bg-primary/5 border border-primary/20 shadow-sm group">
+              <span className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1 block">Active Roster</span>
+              <div className="flex items-baseline gap-1.5 mt-1">
+                <span className="text-5xl font-black text-primary">{memberCount}</span>
+                <span className="text-sm font-bold text-primary/80">選手</span>
+              </div>
+            </div>
+
+            {/* クイックメニュー（ナビゲーション） */}
+            <div className="space-y-3">
+              <button onClick={() => router.push('/team/players')} className="flex items-center gap-5 p-6 rounded-[32px] bg-white/90 dark:bg-card/20 border border-border/40 hover:bg-card/40 hover:border-primary/40 transition-all group shadow-sm text-left w-full">
+                <div className="p-4 rounded-2xl bg-muted/40 group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-black uppercase tracking-widest text-foreground">選手名簿</p>
+                  <p className="text-[9px] font-bold text-muted-foreground/60 uppercase">Squad List</p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground/20 group-hover:text-primary transition-all group-hover:translate-x-1" />
+              </button>
+
+              <button onClick={() => router.push('/team/stats')} className="flex items-center gap-5 p-6 rounded-[32px] bg-white/90 dark:bg-card/20 border border-border/40 hover:bg-card/40 hover:border-primary/40 transition-all group shadow-sm text-left w-full">
+                <div className="p-4 rounded-2xl bg-muted/40 group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+                  <BarChart3 className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-black uppercase tracking-widest text-foreground">通算成績</p>
+                  <p className="text-[9px] font-bold text-muted-foreground/60 uppercase">Team Analytics</p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground/20 group-hover:text-primary transition-all group-hover:translate-x-1" />
+              </button>
+
+              {canManage && (
+                <button onClick={() => router.push('/team/settings')} className="flex items-center gap-5 p-6 rounded-[32px] bg-white/90 dark:bg-card/20 border border-border/40 hover:bg-card/40 hover:border-primary/40 transition-all group shadow-sm text-left w-full">
+                  <div className="p-4 rounded-2xl bg-muted/40 group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+                    <Settings className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-black uppercase tracking-widest text-foreground">チーム設定</p>
+                    <p className="text-[9px] font-bold text-muted-foreground/60 uppercase">Management</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground/20 group-hover:text-primary transition-all group-hover:translate-x-1" />
+                </button>
+              )}
             </div>
 
           </div>
