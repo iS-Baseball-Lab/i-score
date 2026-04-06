@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { BellRing, LogOut, Settings, Sun, Moon, Monitor } from "lucide-react";
+// 🔥 Square, AppWindow, Circle を追加
+import { BellRing, LogOut, Settings, Sun, Moon, Monitor, Square, AppWindow, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -26,6 +27,13 @@ const THEMES = [
   { id: "indigo", color: "#4338ca", label: "Indigo" },
 ];
 
+// 🌟 デザイン（形状）の選択肢を追加
+const DESIGNS = [
+  { id: "sharp", icon: Square, label: "Sharp" },
+  { id: "modern", icon: AppWindow, label: "Modern" },
+  { id: "rounded", icon: Circle, label: "Rounded" },
+];
+
 interface UserProfileMenuProps {
   user: UserSession | null;
   isLoading: boolean;
@@ -35,18 +43,30 @@ interface UserProfileMenuProps {
 export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuProps) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+
   const [activeThemeColor, setActiveThemeColor] = useState<string>("blue");
+  // 🌟 デザイン状態の管理を追加
+  const [activeDesign, setActiveDesign] = useState<string>("modern");
 
   const unreadNotificationsCount = 3;
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("i-score-color-theme") || "blue";
-    setActiveThemeColor(savedTheme); // UIの選択状態を復元
+    // 💡 色とデザインの両方をlocalStorageから復元
+    const savedColor = localStorage.getItem("i-score-color-theme") || "blue";
+    const savedDesign = localStorage.getItem("i-score-design-theme") || "modern";
 
-    // リロード時にも実際の画面にテーマクラスを適用する！
+    setActiveThemeColor(savedColor);
+    setActiveDesign(savedDesign);
+
     const root = document.documentElement;
+
+    // 色のクラス適用
     THEMES.forEach((t) => root.classList.remove(`theme-${t.id}`));
-    root.classList.add(`theme-${savedTheme}`);
+    root.classList.add(`theme-${savedColor}`);
+
+    // デザインのクラス適用
+    DESIGNS.forEach((d) => root.classList.remove(`design-${d.id}`));
+    root.classList.add(`design-${savedDesign}`);
   }, []);
 
   const applyColorTheme = (themeId: string) => {
@@ -55,6 +75,15 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
     root.classList.add(`theme-${themeId}`);
     localStorage.setItem("i-score-color-theme", themeId);
     setActiveThemeColor(themeId);
+  };
+
+  // 🌟 デザイン切替処理を追加
+  const applyDesignTheme = (designId: string) => {
+    const root = document.documentElement;
+    DESIGNS.forEach((d) => root.classList.remove(`design-${d.id}`));
+    root.classList.add(`design-${designId}`);
+    localStorage.setItem("i-score-design-theme", designId);
+    setActiveDesign(designId);
   };
 
   return (
@@ -106,8 +135,9 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
         <DropdownMenuSeparator className="bg-border/50 my-1" />
 
         <div className="px-3 py-2 bg-muted/20 rounded-xl border border-border/30 mx-1 my-2 shadow-inner">
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">テーマ環境設定</p>
 
+          {/* 🎨 カラーテーマ */}
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">Color Theme</p>
           <div className="flex items-center justify-between mb-4 px-1">
             {THEMES.map((t) => (
               <button
@@ -132,7 +162,32 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
             ))}
           </div>
 
-          <div className="flex items-center gap-1 bg-background/50 p-1 rounded-lg border border-border/50 shadow-sm">
+          {/* 📐 デザイン(角丸)テーマ */}
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 mt-4">Design Style</p>
+          <div className="flex gap-1.5 mb-4">
+            {DESIGNS.map((d) => {
+              const Icon = d.icon;
+              const isActive = activeDesign === d.id;
+              return (
+                <button
+                  key={d.id}
+                  onClick={(e) => { e.preventDefault(); applyDesignTheme(d.id); }}
+                  className={cn(
+                    "flex-1 flex flex-col items-center justify-center py-2 gap-1 rounded-lg border transition-all active:scale-95",
+                    isActive
+                      ? "bg-primary/10 border-primary/50 text-primary shadow-sm"
+                      : "bg-background/50 border-border/50 text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-[10px] font-bold">{d.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 🌓 明暗モード */}
+          <div className="flex items-center gap-1 bg-background/50 p-1 rounded-lg border border-border/50 shadow-sm mt-2">
             <button onClick={(e) => { e.preventDefault(); setTheme("light"); }} className={`flex-1 flex justify-center items-center py-2 rounded-md transition-all ${theme === 'light' ? 'bg-background shadow text-foreground font-black' : 'text-muted-foreground hover:text-foreground'}`}>
               <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
