@@ -2,20 +2,20 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, MapPin, Calendar, Shield, Trophy, Loader2, Camera, History, Target, BarChart3, Settings, Crown, UserCircle } from "lucide-react";
+import { Users, MapPin, Calendar, Shield, Trophy, Loader2, Camera, History, Target, BarChart3, Settings, Crown, UserCircle, Info } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-// 💡 バックエンドのレスポンスに合わせた型定義（追加項目を反映！）
+// 💡 バックエンドのレスポンスに合わせた型定義
 interface Team {
   id: string;
   name: string;
   orgName?: string; 
-  description?: string; // スローガン・紹介文
-  category?: string;    // カテゴリ（学童、中学硬式など）
-  homeGround?: string;  // ホームグラウンド
-  managerName?: string; // 監督名
+  description?: string;
+  category?: string;    
+  homeGround?: string;  
+  managerName?: string; 
   year: number | null;
   tier: string | null;
   teamType: string | null;
@@ -66,17 +66,15 @@ export default function TeamProfilePage() {
   return (
     <div className="w-full animate-in fade-in duration-500">
       
-      {/* 1. ヒーローセクション（完全な長方形エッジツーエッジ） */}
+      {/* 1. ヒーローセクション */}
       <div className="relative w-full aspect-[21/9] lg:aspect-[4/1] bg-muted overflow-hidden border-b border-border/50">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('/team-cover.webp')` }} />
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         
-        {/* 2. プロフィールヘッダー */}
+        {/* 2. プロフィールヘッダー（変更なし） */}
         <div className="relative -mt-16 sm:-mt-20 flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 mb-8 sm:mb-12">
-          
-          {/* アイコン */}
           <div className="relative group shrink-0 self-start sm:self-auto">
             <Avatar className="h-28 w-28 sm:h-36 sm:w-36 border-4 border-background shadow-xl bg-white dark:bg-zinc-900">
               <AvatarFallback className="text-4xl sm:text-5xl font-black text-primary bg-primary/5">
@@ -98,7 +96,6 @@ export default function TeamProfilePage() {
               {team.name || "チーム名未設定"}
             </h1>
 
-            {/* 🌟 究極に美しいプレミアム・バッジ群 */}
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <span className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
                 <Trophy className="h-3.5 w-3.5" />
@@ -123,45 +120,13 @@ export default function TeamProfilePage() {
           </div>
         </div>
 
-        {/* 🌟 3. チーム詳細情報（スローガン・拠点・監督名） */}
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          
-          {/* 左側: スローガン（Description） */}
-          <div className="md:col-span-2 p-6 rounded-3xl bg-muted/30 border border-border/50 shadow-sm flex flex-col justify-center">
-            <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-2">Team Concept</h3>
-            {team.description ? (
-              <p className="text-lg font-bold text-foreground leading-relaxed italic border-l-4 border-primary pl-4 py-1">
-                「{team.description}」
-              </p>
-            ) : (
-              <p className="text-sm font-medium text-muted-foreground italic border-l-4 border-muted pl-4 py-1">
-                チームのスローガンや紹介文が未設定です。
-              </p>
-            )}
-          </div>
-
-          {/* 右側: 基本データ（活動拠点・監督） */}
-          <div className="p-6 rounded-3xl bg-background border border-border/50 shadow-sm space-y-4">
-            <div>
-              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Home Ground</span>
-              <p className="flex items-center text-sm font-bold text-foreground">
-                <MapPin className="h-4 w-4 mr-2 text-primary" />
-                {team.homeGround || "未設定"}
-              </p>
-            </div>
-            <div>
-              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Manager</span>
-              <p className="flex items-center text-sm font-bold text-foreground">
-                <UserCircle className="h-4 w-4 mr-2 text-primary" />
-                {team.managerName || "未設定"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 4. ダッシュボード（スケルトン表示） */}
+        {/* 🌟 3. メインコンテンツ（2カラム構成） */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* 🌟 左側（2カラム分）: 主役の編成ダッシュボード */}
           <div className="lg:col-span-2 space-y-6">
+            
+            {/* ダッシュボード：最近の試合 */}
             <div className="p-6 rounded-3xl bg-background border border-border/50 shadow-sm">
               <h3 className="text-sm font-black flex items-center gap-2 mb-6 text-muted-foreground uppercase tracking-wider">
                 <History className="h-4 w-4" /> 最近の試合結果
@@ -176,9 +141,27 @@ export default function TeamProfilePage() {
                 <p className="text-center text-[10px] font-bold text-muted-foreground pt-2">試合を記録するとここに自動表示されます</p>
               </div>
             </div>
+
+            {/* ダッシュボード：チーム成績 */}
+            <div className="p-6 rounded-3xl bg-background border border-border/50 shadow-sm">
+              <h3 className="text-sm font-black flex items-center gap-2 mb-6 text-muted-foreground uppercase tracking-wider">
+                <BarChart3 className="h-4 w-4" /> チーム打撃成績
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 opacity-40">
+                {['打率', '本塁打', '打点', '盗塁'].map(stat => (
+                  <div key={stat} className="p-4 border border-dashed border-border rounded-2xl text-center">
+                    <div className="text-[10px] font-bold text-muted-foreground">{stat}</div>
+                    <div className="text-xl font-black mt-1">---</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
+          {/* 🌟 右側（1カラム分）: 準主役＆名脇役のサブ情報 */}
           <div className="space-y-6">
+            
+            {/* 準主役：ロースター情報 */}
             <div className="p-6 rounded-3xl bg-primary/5 border border-primary/20 shadow-sm group">
               <span className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1 block">Roster</span>
               <div className="flex items-baseline gap-1.5 mt-1">
@@ -187,6 +170,7 @@ export default function TeamProfilePage() {
               </div>
             </div>
 
+            {/* 準主役：管理メニュー */}
             {canManage && (
               <div className="p-6 rounded-3xl bg-background border border-border/50 shadow-sm space-y-4">
                 <span className="text-xs font-black text-muted-foreground uppercase tracking-widest block mb-2">Management</span>
@@ -198,8 +182,43 @@ export default function TeamProfilePage() {
                 </Button>
               </div>
             )}
+
+            {/* 🌟 名脇役：大元の組織情報（コンパクト化してサイドバーに配置！） */}
+            <div className="p-6 rounded-3xl bg-muted/30 border border-border/50 shadow-sm space-y-5">
+              <h3 className="text-xs font-black flex items-center gap-2 text-muted-foreground uppercase tracking-wider mb-2">
+                <Info className="h-3.5 w-3.5" /> Club Info
+              </h3>
+
+              {team.description && (
+                <div>
+                  <p className="text-sm font-bold text-foreground leading-relaxed italic border-l-2 border-primary pl-3">
+                    「{team.description}」
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Home Ground</span>
+                  <p className="text-sm font-semibold flex items-center mt-0.5">
+                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                    {team.homeGround || "未設定"}
+                  </p>
+                </div>
+                
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Manager</span>
+                  <p className="text-sm font-semibold flex items-center mt-0.5">
+                    <UserCircle className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                    {team.managerName || "未設定"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
+
       </div>
     </div>
   );
