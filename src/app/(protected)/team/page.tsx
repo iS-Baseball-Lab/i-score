@@ -29,7 +29,7 @@ export default function TeamProfilePage() {
         const activeTeamId = localStorage.getItem("iScore_selectedTeamId");
         if (!activeTeamId) { setIsLoading(false); return; }
 
-        const teamsResponse = await fetch("/api/teams");
+        const teamsResponse = await fetch("/api/teams", { cache: "no-store" });
         if (!teamsResponse.ok) throw new Error("取得失敗");
         
         const teamsData: Team[] = await teamsResponse.json();
@@ -37,7 +37,7 @@ export default function TeamProfilePage() {
 
         if (currentTeam) {
           setTeam(currentTeam);
-          const playersResponse = await fetch(`/api/teams/${activeTeamId}/players`);
+          const playersResponse = await fetch(`/api/teams/${activeTeamId}/players`, { cache: "no-store" });
           if (playersResponse.ok) {
             const playersData = (await playersResponse.json()) as any[];
             setMemberCount(playersData.length || 0);
