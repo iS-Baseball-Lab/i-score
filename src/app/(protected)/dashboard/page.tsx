@@ -24,7 +24,7 @@ interface Match {
 export default function DashboardPage() {
   const router = useRouter();
   const [matches, setMatches] = useState<any[]>([]);
-  const [teamFullName, setTeamFullName] = useState("");
+  const [teamInfo, setTeamInfo] = useState<{ org: string; name: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mounted, setMounted] = useState(false);
@@ -48,7 +48,10 @@ export default function DashboardPage() {
           const res = (await teamRes.json()) as { data: { memberships: any[] } };
           const currentMembership = res.data.memberships.find((m: any) => m.teamId === teamId);
           if (currentMembership) {
-            setTeamFullName(`${currentMembership.organizationName} ${currentMembership.teamName}`);
+            setTeamInfo({
+              org: currentMembership.organizationName || "",
+              name: currentMembership.teamName || "",
+            });
           }
         }
 
@@ -88,8 +91,15 @@ export default function DashboardPage() {
           <h2 className="text-sm font-black text-primary uppercase tracking-widest mb-1 flex items-center gap-2">
             <Activity className="h-4 w-4" /> Overview
           </h2>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground leading-tight">
-            {teamFullName || "Loading..."}
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight flex flex-wrap gap-x-2">
+            {teamInfo ? (
+              <>
+                <span className="text-foreground">{teamInfo.org}</span>
+                <span className="text-primary">{teamInfo.name}</span>
+              </>
+            ) : (
+              <span className="text-foreground">Loading...</span>
+            )}
           </h1>
         </section>
 
