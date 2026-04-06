@@ -1,4 +1,3 @@
-// src/app/team/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -27,6 +26,7 @@ export default function TeamProfilePage() {
     const fetchTeamData = async () => {
       try {
         // 1. ローカルストレージから「現在選択中のチームID」を取得
+        // ※ 以前のモックのIDが残っている場合は、一度TeamSwitcherで選択し直す必要があります。
         const activeTeamId = localStorage.getItem("iScore_selectedTeamId");
 
         if (!activeTeamId) {
@@ -47,13 +47,13 @@ export default function TeamProfilePage() {
           // 3. チームの所属選手を取得して人数（メンバーカウント）を計算
           const playersResponse = await fetch(`/api/teams/${activeTeamId}/players`);
           if (playersResponse.ok) {
-            const playersData = await playersResponse.json() as any[];;
-            // 配列の長さをメンバー数としてセット
+            // TypeScriptのエラー回避のため、as any[] で配列であることを明示
+            const playersData = (await playersResponse.json()) as any[];
             setMemberCount(playersData.length || 0);
           }
         } else {
-          // 選択中のチームIDが所属一覧にない場合（削除された等）
-          localStorage.removeItem("iScore_selectedTeamId");
+          // 選択中のチームIDが所属一覧にない場合（削除された、または古いダミーID等）
+          // localStorage.removeItem("iScore_selectedTeamId");
         }
 
       } catch (error) {
@@ -97,16 +97,17 @@ export default function TeamProfilePage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           1. ヒーローセクション（カバー画像）
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* 親のdivはアスペクト比固定と角丸、影のために残します */}
       <div className="relative w-full aspect-[21/9] lg:aspect-[4/1] bg-muted overflow-hidden sm:rounded-b-3xl shadow-sm">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/40 to-background opacity-80" />
 
-        {/* ※ 将来的にチーム毎のカバー画像をDBに持たせるまではデフォルト画像 */}
+        {/* 🌟 修正: 装飾（オーバーレイ、ブレンド、不透明度、フェード）をすべて削除し、画像をそのまま表示 */}
         <div
-          className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-40"
-          style={{ backgroundImage: `url('/team-cover.jpg')` }}
+          className="absolute inset-0 bg-cover bg-center"
+          // 🌟 修正: ファイル名を .webp に変更
+          style={{ backgroundImage: `url('/team-cover.webp')` }}
         />
 
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
+        {/* 以前あったグラデーションとフェードのdivは削除しました */}
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
@@ -187,7 +188,6 @@ export default function TeamProfilePage() {
           {/* 右側: ステータスエリア (1カラム分) */}
           <div className="space-y-4 sm:space-y-6">
 
-            {/* 本物のメンバーカウント！ */}
             <div className="p-5 sm:p-6 rounded-3xl bg-primary/5 border border-primary/20 shadow-sm relative overflow-hidden group">
               <Users className="absolute -right-2 -bottom-2 h-20 w-20 text-primary/10 group-hover:scale-110 transition-transform duration-500" />
               <span className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1 relative z-10">Roster</span>
@@ -199,7 +199,6 @@ export default function TeamProfilePage() {
               </div>
             </div>
 
-            {/* 管理者用メニュー */}
             {canManage && (
               <div className="p-5 sm:p-6 rounded-3xl bg-background border border-border/50 shadow-sm">
                 <span className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4 block">Management</span>
