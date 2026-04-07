@@ -7,7 +7,7 @@ export const MatchService = {
 
   // 1. 試合一覧の取得
   async getMatchesByTeam(db: any, teamId: string) {
-    return await db.select({
+    const rows = await db.select({
       id: matches.id,
       opponent: matches.opponent,
       date: matches.date,
@@ -17,13 +17,23 @@ export const MatchService = {
       matchType: matches.matchType,
       battingOrder: matches.battingOrder,
       surfaceDetails: matches.surfaceDetails,
-      tournamentName: tournaments.name
+      tournamentName: tournaments.name,
+      innings: matches.innings, // 🌟 追加：イニング数
+      myInningScores: matches.myInningScores, // 🌟 追加：自チームのスコア
+      opponentInningScores: matches.opponentInningScores // 🌟 追加：相手のスコア
     })
       .from(matches)
       .leftJoin(tournaments, eq(matches.tournamentId, tournaments.id))
       .where(eq(matches.teamId, teamId))
       .orderBy(desc(matches.date))
       .all();
+
+    // 🌟 DBのJSON文字列を配列に変換してフロントエンドに返す
+    return rows.map((r: any) => ({
+      ...r,
+      myInningScores: JSON.parse(r.myInningScores || "[]"),
+      opponentInningScores: JSON.parse(r.opponentInningScores || "[]")
+    }));
   },
 
   // 2. 特定の試合の取得
