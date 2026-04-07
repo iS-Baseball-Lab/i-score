@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Swords, Loader2 } from "lucide-react";
+import { ChevronLeft, Swords, Loader2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchList } from "@/components/matches/match-list";
 import { toast } from "sonner";
@@ -52,11 +52,30 @@ export default function AllMatchesPage() {
 
       <MatchList matches={paginatedMatches} isLoading={isLoading} />
 
+      {/* 🌟 ページングナビゲーション（背景色付きのフラットデザイン） */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-6 mt-12 bg-white/30 dark:bg-zinc-900/30 backdrop-blur-sm p-4 rounded-3xl border border-border/40 shadow-sm">
-          <Button variant="outline" size="sm" className="rounded-full px-6 font-black" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prev</Button>
-          <span className="text-sm font-black tabular-nums">{currentPage} / {totalPages}</span>
-          <Button variant="outline" size="sm" className="rounded-full px-6 font-black" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</Button>
+        <div className="flex items-center justify-center gap-4 mt-8">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full h-11 w-11 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => p - 1)}
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <span className="text-sm font-black tabular-nums bg-white/50 dark:bg-zinc-800/50 backdrop-blur-sm px-4 py-2 rounded-full border border-border/50 shadow-sm">
+            {currentPage} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full h-11 w-11 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => p + 1)}
+          >
+            <ChevronRight className="h-6 w-6" />
+          </Button>
         </div>
       )}
     </div>

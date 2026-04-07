@@ -18,6 +18,7 @@ interface Match {
   matchType: 'official' | 'practice';
   battingOrder: 'first' | 'second';
   surfaceDetails?: string;
+  innings?: number; // 🌟 追加：イニング数
   myInningScores?: number[];
   opponentInningScores?: number[];
 }
@@ -25,7 +26,6 @@ interface Match {
 interface MatchListProps {
   matches: Match[];
   isLoading: boolean;
-  // 親からコールバックを受け取る（なければ内部で強制リロード）
   onDelete?: (id: string) => void;
 }
 
@@ -36,7 +36,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
   const [startX, setStartX] = useState(0);
   const [offsetX, setOffsetX] = useState(0);
 
-  // 🌟 イニングスコア用に自チームの「組織名＋チーム名」を取得
   const [teamFullName, setTeamFullName] = useState("");
   useEffect(() => {
     const fetchTeamName = async () => {
@@ -56,7 +55,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
 
   if (isLoading) return <div className="space-y-3">{[1, 2, 3].map((i) => (<div key={i} className="h-28 w-full rounded-2xl bg-muted/50 animate-pulse" />))}</div>;
 
-  // --- スワイプ制御 ---
   const handleTouchStart = (e: React.TouchEvent, id: string) => {
     setStartX(e.touches[0].clientX);
     setSwipeId(id);
@@ -67,12 +65,11 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
     if (Math.abs(diff) < 100) setOffsetX(diff);
   };
   const handleTouchEnd = () => {
-    if (offsetX > 50) setOffsetX(80); // 右スワイプ
-    else if (offsetX < -50) setOffsetX(-80); // 左スワイプ
+    if (offsetX > 50) setOffsetX(80);
+    else if (offsetX < -50) setOffsetX(-80);
     else { setOffsetX(0); setSwipeId(null); }
   };
 
-  // 🌟 削除処理の実装
   const handleDelete = async (id: string) => {
     if (!confirm("本当にこの試合を削除しますか？")) return;
     try {
@@ -80,7 +77,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
       if (res.ok) {
         toast.success("試合を削除しました");
         if (onDelete) onDelete(id);
-        else window.location.reload(); // コールバックがなければ画面リロードで最新化
+        else window.location.reload();
       } else {
         toast.error("削除に失敗しました");
       }
@@ -91,14 +88,15 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
 
   if (matches.length === 0) {
     return (
-      <div className="text-center py-10 px-4 rounded-3xl border-2 border-dashed border-border/50">
+      <div className="text-center py-10 px-4 rounded-3xl border-2 border-dashed border-border/50 bg-white/20 dark:bg-zinc-900/20 backdrop-blur-sm">
         <p className="text-sm font-bold text-muted-foreground">試合データがありません</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3 overflow-hidden">
+    // 🌟 修正：枠線が切れないように overflow-hidden を overflow-x-hidden に変更し、少しパディングを持たせる
+    <div className="space-y-3 overflow-x-hidden px-1 pb-1">
       {matches.map((match) => {
         const isWin = match.myScore > match.opponentScore;
         const isLoss = match.myScore < match.opponentScore;
@@ -109,16 +107,27 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
         const firstScore = match.battingOrder === 'first' ? match.myScore : match.opponentScore;
         const secondScore = match.battingOrder === 'first' ? match.opponentScore : match.myScore;
 
+        // 🌟 修正：試合の設定されたイニング数（未設定ならデフォルト7）
+        const inningCount = match.innings || 7;
+
         return (
           <div key={match.id} className="relative">
-            {/* --- アクションボタン（スワイプで露出） --- */}
-            <div className="absolute inset-0 flex items-center justify-between px-2">
-              <Button variant="default" size="icon" onClick={() => router.push(`/matches/edit?id=${match.id}`)} className="bg-blue-600 text-white rounded-xl h-14 w-14 shadow-lg">
-                <Edit2 className="h-6 w-6" />
-              </Button>
-              <Button variant="destructive" size="icon" onClick={() => handleDelete(match.id)} className="rounded-xl h-14 w-14 shadow-lg">
-                <Trash2 className="h-6 w-6" />
-              </Button>
+            {/* 🌟 修正：背面の「編集・削除」ボタンをクールなデザインに！文字も追加！ */}
+            <div className="absolute inset-0 flex items-center justify-between px-1">
+              <button
+                onClick={() => router.push(`/matches/edit?id=${match.id}`)}
+                className="flex flex-col items-center justify-center w-16 h-[calc(100%-8px)] bg-blue-500 hover:bg-blue-600 text-white rounded-xl shadow-inner transition-all active:scale-95"
+              >
+                <Edit2 className="h-5 w-5 mb-1" />
+                <span className="text-[10px] font-black tracking-widest">編集</span>
+              </button>
+              <button
+                onClick={() => handleDelete(match.id)}
+                className="flex flex-col items-center justify-center w-16 h-[calc(100%-8px)] bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-inner transition-all active:scale-95"
+              >
+                <Trash2 className="h-5 w-5 mb-1" />
+                <span className="text-[10px] font-black tracking-widest">削除</span>
+              </button>
             </div>
 
             {/* --- カード本体 --- */}
@@ -128,8 +137,9 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
               onTouchEnd={handleTouchEnd}
               style={{ transform: isSwiping ? `translateX(${offsetX}px)` : 'translateX(0)' }}
               className={cn(
-                "relative z-10 rounded-2xl bg-white dark:bg-zinc-900 border border-border/50 shadow-sm transition-transform duration-200 ease-out",
-                isExpanded && "ring-2 ring-primary/30 shadow-md"
+                // 🌟 修正：すりガラス効果（backdrop-blur）と、選択時の枠線（border-primary）の最適化
+                "relative z-10 rounded-2xl bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border transition-all duration-200 ease-out",
+                isExpanded ? "border-primary shadow-md" : "border-border/50 shadow-sm hover:border-border"
               )}
             >
               <div
@@ -141,10 +151,8 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
               >
                 <div className="flex items-center justify-between gap-4">
 
-                  {/* 左側：試合情報 */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
-                      {/* 🌟 修正：バッジの幅を合わせ、テキストを「練習試合」に */}
                       <span className={cn(
                         "w-16 text-center text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded shadow-sm",
                         match.matchType === 'official' ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
@@ -156,7 +164,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                       </span>
                     </div>
 
-                    {/* 🌟 修正：全体的に文字サイズを1段階アップ */}
                     <h3 className="text-lg sm:text-xl font-black truncate text-foreground mb-1">vs {match.opponent}</h3>
 
                     {match.matchType === 'official' && (
@@ -165,31 +172,28 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                       </p>
                     )}
 
-                    {/* 🌟 復活：場所（球場）の表示 */}
                     <p className="text-xs font-bold text-muted-foreground flex items-center gap-1 mt-1 truncate">
                       <MapPin className="h-3.5 w-3.5 shrink-0" /> {match.surfaceDetails || "球場未設定"}
                     </p>
                   </div>
 
-                  {/* 右側：スコア ＆ 勝敗バッジ */}
                   <div className="flex flex-col items-center gap-1.5 shrink-0">
-                    {/* 🌟 修正：WIN/LOSE/DRAW の幅を固定して統一感を出す */}
                     <div className="w-14 text-center">
                       {isWin && <span className="block w-full bg-blue-600 text-white text-[11px] font-black py-0.5 rounded shadow-sm">WIN</span>}
                       {isLoss && <span className="block w-full bg-red-600 text-white text-[11px] font-black py-0.5 rounded shadow-sm">LOSE</span>}
                       {isDraw && <span className="block w-full bg-zinc-500 text-white text-[11px] font-black py-0.5 rounded shadow-sm">DRAW</span>}
                     </div>
 
-                    {/* 🌟 修正：背景色を濃くし、先/後の文字を復活 */}
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/60 dark:bg-muted/30 rounded-xl border border-border/60 shadow-inner">
+                    {/* 🌟 修正：くぼみを無くし、薄いプライマリカラーのフラットな背景に */}
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20">
                       <div className="text-center w-7">
-                        <p className="text-[9px] font-black text-muted-foreground uppercase leading-none">先</p>
-                        <span className="text-xl font-black tabular-nums leading-none">{firstScore}</span>
+                        <p className="text-[9px] font-black text-primary/70 uppercase leading-none">先</p>
+                        <span className="text-xl font-black tabular-nums leading-none text-foreground">{firstScore}</span>
                       </div>
-                      <span className="text-sm font-black text-muted-foreground/30">-</span>
+                      <span className="text-sm font-black text-primary/30">-</span>
                       <div className="text-center w-7">
-                        <p className="text-[9px] font-black text-muted-foreground uppercase leading-none">後</p>
-                        <span className="text-xl font-black tabular-nums leading-none">{secondScore}</span>
+                        <p className="text-[9px] font-black text-primary/70 uppercase leading-none">後</p>
+                        <span className="text-xl font-black tabular-nums leading-none text-foreground">{secondScore}</span>
                       </div>
                     </div>
                     {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground/50 mt-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground/50 mt-1" />}
@@ -199,24 +203,26 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                 {/* 🌟 展開時：イニングスコア */}
                 {isExpanded && (
                   <div className="mt-4 pt-4 border-t border-border/50 animate-in fade-in slide-in-from-top-2">
-                    <div className="bg-zinc-100 dark:bg-zinc-800/60 rounded-xl p-3 overflow-x-auto shadow-inner">
+                    {/* 🌟 修正：くぼみ（shadow-inner）を削除し、フラットなすりガラスに */}
+                    <div className="bg-white/40 dark:bg-zinc-800/40 backdrop-blur-sm rounded-xl p-3 overflow-x-auto border border-border/30">
                       <table className="w-full text-center">
                         <thead>
                           <tr className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase border-b border-border/50">
                             <th className="text-left font-bold pb-1 w-20">TEAM</th>
-                            {Array.from({ length: 9 }).map((_, i) => <th key={i} className="w-6 pb-1">{i + 1}</th>)}
+                            {/* 🌟 修正：9回固定ではなく、inningsカラムの値（デフォルト7）で回数を描画 */}
+                            {Array.from({ length: inningCount }).map((_, i) => <th key={i} className="w-6 pb-1">{i + 1}</th>)}
                             <th className="w-8 text-primary pb-1">R</th>
                           </tr>
                         </thead>
                         <tbody className="text-xs sm:text-sm font-black tabular-nums">
                           <tr className="border-b border-border/30">
-                            {/* 🌟 修正：チーム名＋編成名を truncate で省略表示 */}
                             <td className="text-left py-1.5 pr-2">
                               <div className="w-20 truncate text-muted-foreground text-[10px] sm:text-xs">
                                 {match.battingOrder === 'first' ? (teamFullName || "自チーム") : (match.opponent || "相手")}
                               </div>
                             </td>
-                            {Array.from({ length: 9 }).map((_, i) => <td key={i}>{i < 7 ? (match.battingOrder === 'first' ? "0" : "0") : "-"}</td>)}
+                            {/* 🌟 修正：回数に合わせてダミーのスコアを描画 */}
+                            {Array.from({ length: inningCount }).map((_, i) => <td key={i}>{match.battingOrder === 'first' ? "0" : "0"}</td>)}
                             <td className="text-primary">{firstScore}</td>
                           </tr>
                           <tr>
@@ -225,12 +231,12 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                                 {match.battingOrder === 'second' ? (teamFullName || "自チーム") : (match.opponent || "相手")}
                               </div>
                             </td>
-                            {Array.from({ length: 9 }).map((_, i) => <td key={i}>{i < 7 ? (match.battingOrder === 'second' ? "0" : "0") : "-"}</td>)}
+                            {Array.from({ length: inningCount }).map((_, i) => <td key={i}>{match.battingOrder === 'second' ? "0" : "0"}</td>)}
                             <td className="text-primary">{secondScore}</td>
                           </tr>
                         </tbody>
                       </table>
-                      <p className="text-[9px] text-muted-foreground mt-3 text-center">* 詳細なイニングスコアは「試合詳細の編集」から登録できます</p>
+                      {/* 🌟 注意書き（不要とのことなので削除しました） */}
                     </div>
                   </div>
                 )}
