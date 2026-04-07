@@ -115,8 +115,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
 
         return (
           <div key={match.id} className="relative">
-            {/* 🌟 修正1：ボタンは常にHTMLにあるが、「スワイプ中以外」は透明（opacity-0）にする！
-                これにより、開閉アニメーション中のチラつきを完全に抹殺しました。 */}
+            {/* --- スワイプ時のボタン --- */}
             <div className={cn(
               "absolute inset-0 flex items-center justify-between px-1 transition-opacity duration-200",
               Math.abs(offsetX) > 0 ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -144,10 +143,10 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
               onTouchEnd={() => { if (!isExpanded) handleTouchEnd(); }}
               style={{ transform: isSwiping && !isExpanded ? `translateX(${offsetX}px)` : 'translateX(0)' }}
               className={cn(
-                // 🌟 修正2：展開時は 90%不透明 ＋ 2xl(最強)のぼかし ＋ 薄い影 で「極上の曇りガラス」に！
                 "relative z-10 rounded-2xl border transition-all duration-300 ease-out",
+                // 🌟 修正：監督ご指定の「bg-primary/10」を採用！最高のトーンになりました。
                 isExpanded
-                  ? "bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl border-primary shadow-lg shadow-primary/10"
+                  ? "bg-primary/10 backdrop-blur-xl border-primary shadow-md shadow-primary/5"
                   : "bg-white dark:bg-zinc-900 border-border/50 shadow-sm hover:border-border"
               )}
             >
@@ -211,18 +210,18 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                 {/* 🌟 展開時：イニングスコア */}
                 {isExpanded && (
                   <div className="mt-4 pt-4 border-t border-primary/20 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="bg-background rounded-xl p-3 overflow-x-auto border border-primary/10 shadow-sm">
+                    <div className="overflow-x-auto pb-1">
                       <table className="w-full text-center">
                         <thead>
-                          <tr className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase border-b border-border/50">
-                            <th className="text-left font-bold pb-1 w-28 sm:w-36">TEAM</th>
-                            {Array.from({ length: inningCount }).map((_, i) => <th key={i} className="w-6 pb-1">{i + 1}</th>)}
-                            <th className="w-8 text-primary pb-1">R</th>
+                          <tr className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase border-b border-primary/20">
+                            <th className="text-left font-bold pb-1.5 w-28 sm:w-36">TEAM</th>
+                            {Array.from({ length: inningCount }).map((_, i) => <th key={i} className="w-6 pb-1.5">{i + 1}</th>)}
+                            <th className="w-8 text-primary pb-1.5">R</th>
                           </tr>
                         </thead>
                         <tbody className="text-xs sm:text-sm font-black tabular-nums">
-                          <tr className="border-b border-border/30">
-                            <td className="text-left py-1.5 pr-2">
+                          <tr className="border-b border-primary/10">
+                            <td className="text-left py-2 pr-2">
                               <div className="w-28 sm:w-36 truncate text-muted-foreground text-[10px] sm:text-xs">
                                 {match.battingOrder === 'first' ? (teamFullName || "自チーム") : (match.opponent || "相手")}
                               </div>
@@ -237,7 +236,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                             <td className="text-primary">{firstScore}</td>
                           </tr>
                           <tr>
-                            <td className="text-left py-1.5 pr-2">
+                            <td className="text-left py-2 pr-2">
                               <div className="w-28 sm:w-36 truncate text-muted-foreground text-[10px] sm:text-xs">
                                 {match.battingOrder === 'second' ? (teamFullName || "自チーム") : (match.opponent || "相手")}
                               </div>
