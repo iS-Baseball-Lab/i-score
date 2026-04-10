@@ -34,7 +34,7 @@ export default function DashboardPage() {
     const checkAdminAndStartTimer = async () => {
       // 現場UX: セッションを確認し、管理者なら即座に /admin へ飛ばす (方法A)
       const { data: session } = await authClient.getSession();
-      if (session?.user?.role === "admin") {
+      if (session?.user?.role === "SYSTEM_ADMIN") {
         router.replace("/admin");
         return;
       }
