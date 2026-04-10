@@ -9,22 +9,7 @@ import { Edit2, Calendar, MapPin, Trophy, Trash2, ChevronDown, ChevronUp } from 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-// APIレスポンスを想定した型定義
-interface Match {
-  id: string;
-  opponent: string;
-  tournamentName?: string;
-  date: string;
-  myScore: number;
-  opponentScore: number;
-  matchType: 'official' | 'practice';
-  battingOrder: 'first' | 'second';
-  surfaceDetails?: string;
-  innings?: number;
-  myInningScores?: number[];
-  opponentInningScores?: number[];
-}
+import { Match } from "@/types/match";
 
 interface MatchListProps {
   matches: Match[];
