@@ -40,14 +40,14 @@ app.get('/me', async (c) => {
       })
       .from(teamMembers)
       .innerJoin(teams, eq(teamMembers.teamId, teams.id))
-      .innerJoin(organizations, eq(teams.organizationId, organizations.id))
+      .leftJoin(organizations, eq(teams.organizationId, organizations.id))
       .where(eq(teamMembers.userId, user.id));
 
     userTeams.forEach((t, index) => {
       memberships.push({
         teamId: t.teamId,
         teamName: t.teamName,
-        organizationName: t.organizationName,
+        organizationName: t.organizationName ?? t.teamName,
         role: t.role,
         roleLabel: getRoleLabel(t.role),
         isMainTeam: index === 0,

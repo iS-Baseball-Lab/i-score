@@ -326,13 +326,13 @@ export default function TeamProfilePage() {
               </button>
 
               {canManage && (
-                <button onClick={() => router.push('/team/settings')} className="flex items-center gap-5 p-6 rounded-2xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 hover:border-primary/40 hover:bg-white/80 dark:hover:bg-zinc-800/80 transition-all group shadow-sm text-left w-full">
+                <button onClick={() => router.push('/settings/team/roles')} className="flex items-center gap-5 p-6 rounded-2xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 hover:border-primary/40 hover:bg-white/80 dark:hover:bg-zinc-800/80 transition-all group shadow-sm text-left w-full">
                   <div className="p-4 rounded-xl bg-muted dark:bg-zinc-800 group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
                     <Settings className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-black uppercase tracking-widest text-foreground">チーム設定</p>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase">Management</p>
+                    <p className="text-sm font-black uppercase tracking-widest text-foreground">メンバー管理</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase">Members &amp; Roles</p>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground/30 group-hover:text-primary transition-all group-hover:translate-x-1" />
                 </button>
