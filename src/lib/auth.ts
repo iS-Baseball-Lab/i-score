@@ -8,7 +8,7 @@ import * as schema from "@/db/schema"; // schema全体をインポート
 let authCache: ReturnType<typeof betterAuth> | null = null;
 let lastD1: D1Database | null = null;
 
-export const getAuth = (d1: D1Database, env?: any) => {
+export const getAuth = (d1: D1Database, env?: Partial<{ GOOGLE_CLIENT_ID: string; GOOGLE_CLIENT_SECRET: string; LINE_CLIENT_ID: string; LINE_CLIENT_SECRET: string }>) => {
   // 💡 パフォーマンス最適化: ID が同じならキャッシュを返す (CPU 制限対策)
   if (authCache && lastD1 === d1) {
     return authCache;

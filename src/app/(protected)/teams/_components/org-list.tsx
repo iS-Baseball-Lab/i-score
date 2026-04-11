@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ChevronRight, Settings, Swords, Search, Plus, ChevronDown } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { cn } from "@/lib/utils";
-import { Organization } from "@/types/teams";
+import { Organization, Opponent } from "@/types/teams";
 
 interface OrgListProps {
   orgs: Organization[];
@@ -14,7 +14,7 @@ interface OrgListProps {
   onCategoryChange: (cat: string) => void;
   onSelectOrg: (org: Organization) => void;
   onOpenDetail: (e: React.MouseEvent, org: Organization) => void;
-  onOpponentClick: (opponent: any) => void;
+  onOpponentClick: (opponent: Opponent & { originalOrg?: Organization }) => void;
   onAddOrg: (isExternal: boolean) => void;
 }
 

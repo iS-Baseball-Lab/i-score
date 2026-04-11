@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/d1'
 import { teams, teamMembers, organizations } from '@/db/schema'
 import { desc, eq, and } from 'drizzle-orm'
 import { canManageTeam } from '@/lib/roles'
+import type { AuthUser } from '@/types/api'
 
 // 🔥 子ルーターのインポート
 import playersApp from './players'
@@ -73,7 +74,7 @@ app.patch('/:id', async (c) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
   if (!session) return c.json({ error: 'Unauthorized' }, 401)
 
-  const userRole = (session.user as any).role;
+  const userRole = (session.user as AuthUser).role;
   const teamId = c.req.param('id')
   const body = await c.req.json()
   const db = drizzle(c.env.DB)

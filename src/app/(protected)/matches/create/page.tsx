@@ -42,15 +42,15 @@ function MatchCreateContent() {
       fetch("/api/teams")
         .then(res => res.json())
         .then(data => {
-          const teamsData = data as any[];
-          const current = teamsData.find((t: any) => t.id === activeTeamId);
+          const teamsData = data as { id: string; name: string }[];
+          const current = teamsData.find(t => t.id === activeTeamId);
           if (current) setTeamName(current.name);
         }).catch(() => { });
 
       fetch(`/api/teams/${activeTeamId}/recent-matches`)
         .then(res => res.json())
         .then(data => {
-          const matches = data as any[];
+          const matches = data as { opponent: string | null; venue?: string | null; surfaceDetails?: string | null }[];
           const opponents = Array.from(new Set(matches.map(m => m.opponent).filter(Boolean))) as string[];
           const venues = Array.from(new Set(matches.map(m => m.venue || m.surfaceDetails).filter(Boolean))) as string[];
           setOpponentList(opponents);
@@ -136,8 +136,8 @@ function MatchCreateContent() {
       toast.success("試合結果を保存しました！🔥");
       router.push("/dashboard"); // 保存後はダッシュボードへ帰還
 
-    } catch (error: any) {
-      toast.error(error.message || "エラーが発生しました");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "エラーが発生しました");
     } finally {
       setIsSubmitting(false);
     }

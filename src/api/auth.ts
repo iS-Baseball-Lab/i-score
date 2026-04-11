@@ -1,10 +1,11 @@
 import { Hono } from 'hono'
-import { getAuth } from "@/lib/auth" // 🌟 getAuth に戻す！
+import { getAuth } from "@/lib/auth"
 import { drizzle } from 'drizzle-orm/d1'
 import { eq } from 'drizzle-orm'
 import { teams, teamMembers, organizations } from '@/db/schema/team'
+import type { WorkerEnv, Membership, AuthUser } from '@/types/api'
 
-const app = new Hono<{ Bindings: { DB: D1Database, ASSETS: Fetcher } }>()
+const app = new Hono<{ Bindings: WorkerEnv }>()
 
 const getRoleLabel = (role: string) => {
   switch (role.toUpperCase()) {
@@ -25,9 +26,9 @@ app.get('/me', async (c) => {
     return c.json({ success: false, error: 'Unauthorized' }, 401)
   }
 
-  const user = session.user;
+  const user = session.user as AuthUser;
   const db = drizzle(c.env.DB);
-  let memberships: any[] = [];
+  const memberships: Membership[] = [];
 
   try {
     const userTeams = await db
@@ -42,16 +43,16 @@ app.get('/me', async (c) => {
       .innerJoin(organizations, eq(teams.organizationId, organizations.id))
       .where(eq(teamMembers.userId, user.id));
 
-    if (userTeams.length > 0) {
-      memberships = userTeams.map((t, index) => ({
+    userTeams.forEach((t, index) => {
+      memberships.push({
         teamId: t.teamId,
         teamName: t.teamName,
         organizationName: t.organizationName,
         role: t.role,
         roleLabel: getRoleLabel(t.role),
-        isMainTeam: index === 0
-      }));
-    }
+        isMainTeam: index === 0,
+      });
+    });
   } catch (error) {
     console.error("[i-Score Error]", error);
   }
@@ -63,8 +64,8 @@ app.get('/me', async (c) => {
       name: user.name,
       email: user.email,
       avatarUrl: user.image || `/api/images/avatars/${user.id}.png`,
-      role: (user as any).role || 'USER',
-      systemRole: (user as any).role || 'USER',
+      role: user.role ?? 'USER',
+      systemRole: user.role ?? 'USER',
       memberships: memberships,
     }
   })

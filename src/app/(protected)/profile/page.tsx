@@ -57,7 +57,7 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  const isAdmin = (user as any)?.role === 'SYSTEM_ADMIN' || (user as any)?.systemRole === 'SYSTEM_ADMIN';
+  const isAdmin = user?.systemRole === 'SYSTEM_ADMIN';
 
   return (
     // 🔥 全体の余白も通常に戻しました

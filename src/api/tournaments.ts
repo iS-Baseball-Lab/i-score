@@ -3,16 +3,17 @@ import { Hono } from 'hono'
 import { getAuth } from "@/lib/auth"
 import { drizzle } from 'drizzle-orm/d1'
 import { tournaments, matches } from '@/db/schema'
+import type { WorkerEnv } from '@/types/api'
 import { desc, eq } from 'drizzle-orm'
 
-const app = new Hono<{ Bindings: { DB: D1Database } }>()
+const app = new Hono<{ Bindings: WorkerEnv }>()
 
 // ──────────────────────────────────
 // GET /api/tournaments
 // 大会一覧取得（新しい順）
 // ──────────────────────────────────
 app.get('/', async (c) => {
-    const auth = getAuth(c.env.DB, c.env as any)
+    const auth = getAuth(c.env.DB, c.env)
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if (!session) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -30,7 +31,7 @@ app.get('/', async (c) => {
 // 大会の新規登録
 // ──────────────────────────────────
 app.post('/', async (c) => {
-    const auth = getAuth(c.env.DB, c.env as any)
+    const auth = getAuth(c.env.DB, c.env)
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if (!session) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -63,7 +64,7 @@ app.post('/', async (c) => {
 // 大会情報の更新
 // ──────────────────────────────────
 app.patch('/:id', async (c) => {
-    const auth = getAuth(c.env.DB, c.env as any)
+    const auth = getAuth(c.env.DB, c.env)
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if (!session) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -95,7 +96,7 @@ app.patch('/:id', async (c) => {
 // 大会の削除（関連試合のtournamentIdをnullに）
 // ──────────────────────────────────
 app.delete('/:id', async (c) => {
-    const auth = getAuth(c.env.DB, c.env as any)
+    const auth = getAuth(c.env.DB, c.env)
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
     if (!session) return c.json({ error: 'Unauthorized' }, 401)
 

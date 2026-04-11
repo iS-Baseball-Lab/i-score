@@ -29,6 +29,23 @@ interface LineupTemplate {
     lineupData: string;
 }
 
+/** 自チームの打順スロット */
+interface MyLineupSlot {
+    order: number;
+    position: string;
+    playerId: string;
+    name: string;
+    uniformNumber: string;
+}
+
+/** 相手チームの打順スロット */
+interface OpponentLineupSlot {
+    order: number;
+    position: string;
+    name: string;
+    uniformNumber: string;
+}
+
 function LineupContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -42,11 +59,11 @@ function LineupContent() {
     const [teamPlayers, setTeamPlayers] = useState<Player[]>([]);
     const [templates, setTemplates] = useState<LineupTemplate[]>([]);
 
-    const [myLineup, setMyLineup] = useState(
+    const [myLineup, setMyLineup] = useState<MyLineupSlot[]>(
         Array.from({ length: 9 }, (_, i) => ({ order: i + 1, position: "", playerId: "", name: "", uniformNumber: "" }))
     );
 
-    const [opponentLineup, setOpponentLineup] = useState(
+    const [opponentLineup, setOpponentLineup] = useState<OpponentLineupSlot[]>(
         Array.from({ length: 9 }, (_, i) => ({ order: i + 1, position: "", name: "", uniformNumber: "" }))
     );
 
@@ -122,12 +139,12 @@ function LineupContent() {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 🚀 排他制御ヘルパー（監督の最高UX仕様！）
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const getDisabledPositions = (lineup: any[], currentIndex: number) => {
+    const getDisabledPositions = (lineup: { position: string }[], currentIndex: number): string[] => {
         return lineup.filter((_, i) => i !== currentIndex).map(p => p.position).filter(Boolean);
     };
 
-    const getDisabledPlayers = (lineup: any[], currentIndex: number) => {
-        return lineup.filter((_, i) => i !== currentIndex).map(p => p.playerId).filter(Boolean);
+    const getDisabledPlayers = (lineup: { playerId?: string }[], currentIndex: number): string[] => {
+        return lineup.filter((_, i) => i !== currentIndex).map(p => p.playerId ?? "").filter(Boolean);
     };
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

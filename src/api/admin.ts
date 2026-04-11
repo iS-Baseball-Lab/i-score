@@ -4,13 +4,14 @@ import { getAuth } from "@/lib/auth"
 import { drizzle } from 'drizzle-orm/d1'
 import { teamMembers } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
+import type { WorkerEnv, AuthUser } from '@/types/api'
 
-const app = new Hono<{ Bindings: { DB: D1Database, ASSETS: Fetcher } }>()
+const app = new Hono<{ Bindings: WorkerEnv }>()
 
 app.get('/users', async (c) => {
   const auth = getAuth(c.env.DB, c.env)
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
-  if ((session?.user as any)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
+  if ((session?.user as AuthUser)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
 
   try {
     const { results } = await c.env.DB.prepare(`SELECT id, name, email, role, created_at as createdAt FROM user ORDER BY created_at DESC`).all()
@@ -21,7 +22,7 @@ app.get('/users', async (c) => {
 app.patch('/users/:id/role', async (c) => {
   const auth = getAuth(c.env.DB, c.env)
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
-  if ((session?.user as any)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
+  if ((session?.user as AuthUser)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
 
   const userId = c.req.param('id')
   const { role } = await c.req.json()
@@ -34,7 +35,7 @@ app.patch('/users/:id/role', async (c) => {
 app.delete('/users/:id', async (c) => {
   const auth = getAuth(c.env.DB, c.env)
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
-  if ((session?.user as any)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
+  if ((session?.user as AuthUser)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
 
   const userId = c.req.param('id')
   try {
@@ -47,7 +48,7 @@ app.delete('/users/:id', async (c) => {
 app.get('/teams', async (c) => {
   const auth = getAuth(c.env.DB, c.env)
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
-  if ((session?.user as any)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
+  if ((session?.user as AuthUser)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
 
   try {
     const { results } = await c.env.DB.prepare(`
@@ -61,7 +62,7 @@ app.get('/teams', async (c) => {
 app.get('/teams/:id/members', async (c) => {
   const auth = getAuth(c.env.DB, c.env)
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
-  if ((session?.user as any)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
+  if ((session?.user as AuthUser)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
 
   const teamId = c.req.param('id')
   try {
@@ -73,7 +74,7 @@ app.get('/teams/:id/members', async (c) => {
 app.post('/teams/:id/members', async (c) => {
   const auth = getAuth(c.env.DB, c.env)
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
-  if ((session?.user as any)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
+  if ((session?.user as AuthUser)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
 
   const teamId = c.req.param('id')
   const { userId, role } = await c.req.json()
@@ -84,7 +85,7 @@ app.post('/teams/:id/members', async (c) => {
     if (existing) {
       await db.update(teamMembers).set({ role }).where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)))
     } else {
-      await db.insert(teamMembers).values({ id: crypto.randomUUID(), teamId: teamId, userId: userId, role: role, createdAt: new Date(), joinedAt: new Date() } as any)
+      await db.insert(teamMembers).values({ id: crypto.randomUUID(), teamId: teamId, userId: userId, role: role, joinedAt: new Date() })
     }
     return c.json({ success: true })
   } catch (e) { return c.json({ error: 'メンバーの追加に失敗しました' }, 500) }
@@ -93,7 +94,7 @@ app.post('/teams/:id/members', async (c) => {
 app.delete('/teams/:id/members/:userId', async (c) => {
   const auth = getAuth(c.env.DB, c.env)
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
-  if ((session?.user as any)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
+  if ((session?.user as AuthUser)?.role !== 'SYSTEM_ADMIN') return c.json({ error: '権限がありません' }, 403)
 
   const teamId = c.req.param('id')
   const userId = c.req.param('userId')

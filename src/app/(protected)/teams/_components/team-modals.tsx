@@ -115,7 +115,7 @@ interface TeamDetailModalProps {
   selectedOrgRole?: string;
   isUpdating: boolean;
   onClose: () => void;
-  onUpdate: (newName: string, extraData?: any) => Promise<void>;
+  onUpdate: (newName: string, extraData?: string | { year?: number; tier?: string; generation?: string; teamType?: string }) => Promise<void>;
   onDelete: () => Promise<void>;
 }
 

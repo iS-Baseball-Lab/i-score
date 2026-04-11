@@ -52,8 +52,8 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
       if (!teamId) return;
       const teamRes = await fetch("/api/auth/me");
       if (teamRes.ok) {
-        const res = (await teamRes.json()) as { data: { memberships: any[] } };
-        const currentMembership = res.data.memberships.find((m: any) => m.teamId === teamId);
+        const res = (await teamRes.json()) as { data: { memberships: { teamId: string; organizationName?: string; teamName: string }[] } };
+        const currentMembership = res.data.memberships.find(m => m.teamId === teamId);
         if (currentMembership) {
           setTeamFullName(`${currentMembership.organizationName} ${currentMembership.teamName}`);
         }

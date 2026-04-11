@@ -107,7 +107,7 @@ export default function TeamProfilePage() {
 
           const playersResponse = await fetch(`/api/teams/${activeTeamId}/players`, { cache: "no-store" });
           if (playersResponse.ok) {
-            const playersData = (await playersResponse.json()) as any[];
+            const playersData = (await playersResponse.json()) as { id: string }[];
             setMemberCount(playersData.length || 0);
           }
 
@@ -116,8 +116,8 @@ export default function TeamProfilePage() {
           let totalRuns = 0;
 
           if (matchesRes.ok) {
-            const matchesData = await matchesRes.json() as any[];
-            const calc = (matches: any[]) => {
+            const matchesData = await matchesRes.json() as { myScore: number; opponentScore: number; matchType: string }[];
+            const calc = (matches: { myScore: number; opponentScore: number }[]) => {
               let w = 0, l = 0, d = 0;
               matches.forEach(m => {
                 if (m.myScore > m.opponentScore) w++;
@@ -137,7 +137,7 @@ export default function TeamProfilePage() {
           const statsRes = await fetch(`/api/teams/${activeTeamId}/stats`, { cache: "no-store" });
           let teamAvg = ".000", teamHR = "0";
           if (statsRes.ok) {
-            const statsData = await statsRes.json() as any[];
+            const statsData = await statsRes.json() as { atBats?: number; hits?: number; homeRuns?: number }[];
             let totalAB = 0, totalHits = 0, totalHR = 0;
             statsData.forEach(p => {
               totalAB += p.atBats || 0;

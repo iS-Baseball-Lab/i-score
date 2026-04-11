@@ -6,6 +6,14 @@ import { toast } from "sonner";
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ⚾️ 型定義（スキーマ完全準拠）
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/** 塁進塁情報（打球結果に伴うランナーの移動） */
+export interface BaseAdvance {
+  runnerId: string;
+  fromBase: 0 | 1 | 2 | 3;
+  toBase: 1 | 2 | 3 | 4; // 4 = ホームイン
+}
+
 interface Player {
     id: string;
     name: string;
@@ -57,7 +65,7 @@ interface ScoreContextType {
     isLoading: boolean;
     initMatch: (matchId: string) => Promise<void>;
     recordPitch: (result: "ball" | "strike" | "foul" | "swinging_strike" | "in_play") => Promise<void>;
-    recordInPlay: (result: string, rbi: number, advances: any[]) => Promise<void>;
+    recordInPlay: (result: string, rbi: number, advances: BaseAdvance[]) => Promise<void>;
     changeInning: () => void;
     updateRunners: (runners: { base1: string | null; base2: string | null; base3: string | null }) => void;
     resetBatter: (playerId: string | null) => void;
@@ -174,7 +182,7 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 🚀 打球・インプレイの結果記録
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const recordInPlay = async (result: string, rbi: number, advances: any[]) => {
+    const recordInPlay = async (result: string, rbi: number, advances: BaseAdvance[]) => {
         try {
             await fetch(`/api/matches/${state.matchId}/pitches`, {
                 method: "POST",

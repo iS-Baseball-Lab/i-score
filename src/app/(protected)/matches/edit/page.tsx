@@ -38,7 +38,11 @@ function MatchEditContent() {
       try {
         // 1. 試合基本情報の取得
         const res = await fetch(`/api/matches/${matchId}`);
-        const data = (await res.json()) as { success: boolean; match?: any };
+        const data = (await res.json()) as { success: boolean; match?: {
+          id: string; opponent: string; tournamentName?: string; matchType: 'official' | 'practice';
+          battingOrder: 'first' | 'second'; surfaceDetails?: string; innings?: number; date?: string;
+          myScore?: number; opponentScore?: number;
+        } };
 
         if (data.success && data.match) {
           const m = data.match;
@@ -58,7 +62,7 @@ function MatchEditContent() {
           // 2. スコア詳細（イニングスコア）の取得
           const inningsRes = await fetch(`/api/matches/${matchId}/innings`);
           if (inningsRes.ok) {
-            const inningsData = (await inningsRes.json()) as any[];
+            const inningsData = (await inningsRes.json()) as { teamType: string; inningNumber: number; runs: number }[];
             const myScores = Array(m.innings || 7).fill("");
             const oppScores = Array(m.innings || 7).fill("");
 
@@ -121,8 +125,8 @@ function MatchEditContent() {
 
       toast.success("試合情報を更新しました！");
       router.back();
-    } catch (error: any) {
-      toast.error(error.message || "更新に失敗しました");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "更新に失敗しました");
     } finally {
       setIsSubmitting(false);
     }

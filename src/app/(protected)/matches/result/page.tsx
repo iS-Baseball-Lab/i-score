@@ -73,8 +73,8 @@ function MatchResultContent() {
                 if (tid) {
                     const teamsRes = await fetch('/api/teams');
                     if (teamsRes.ok) {
-                        const teams = await teamsRes.json() as { id: string, name: string }[];
-                        const t = teams.find((t: any) => t.id === tid);
+                        const teams = await teamsRes.json() as { id: string; name: string }[];
+                        const t = teams.find(t => t.id === tid);
                         if (t) setTeamName(t.name);
                     }
                 }
@@ -106,9 +106,10 @@ function MatchResultContent() {
             document.body.removeChild(link);
 
             toast.success("画像を保存しました！シェアしてみましょう！", { id: "download-toast" });
-        } catch (error: any) {
+        } catch (error) {
             console.error("画像化エラー:", error);
-            toast.error(`画像の保存に失敗しました。\n詳細: ${error?.message || error}`, { id: "download-toast" });
+            const msg = error instanceof Error ? error.message : String(error);
+            toast.error(`画像の保存に失敗しました。\n詳細: ${msg}`, { id: "download-toast" });
         } finally {
             setIsDownloading(false);
         }

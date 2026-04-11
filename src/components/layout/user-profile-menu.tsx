@@ -19,6 +19,7 @@ import {
 import { UserSession } from "@/types/auth";
 // 🌟 追加: DensityProviderからフックをインポート
 import { useDensity } from "@/components/providers/density-provider";
+import type { Density } from "@/components/providers/density-provider";
 
 const THEMES = [
   { id: "blue", color: "#0284c7", label: "Blue" },
@@ -211,7 +212,7 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
                   <button
                     key={d.id}
                     // 💡 anyキャストで型エラーを回避しつつ安全に更新
-                    onClick={(e) => { e.preventDefault(); setDensity(d.id as any); }}
+                    onClick={(e) => { e.preventDefault(); setDensity(d.id as Density); }}
                     className={cn(
                       "flex-1 flex flex-col items-center justify-center py-2.5 gap-1.5 rounded-xl border transition-all active:scale-95",
                       isActive ? "bg-primary/10 border-primary/30 text-primary shadow-sm" : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"

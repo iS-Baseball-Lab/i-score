@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { getAuth } from "@/lib/auth"
 import { drizzle } from 'drizzle-orm/d1'
 import { organizations, organizationMembers, teams } from '@/db/schema'
+import type { AuthUser } from '@/types/api'
 import { desc, eq, and } from 'drizzle-orm'
 
 const app = new Hono<{ Bindings: { DB: D1Database, ASSETS: Fetcher } }>()
@@ -119,7 +120,7 @@ app.delete('/:orgId', async (c) => {
       .where(and(eq(organizationMembers.organizationId, orgId), eq(organizationMembers.userId, session.user.id))).get()
 
     // 対戦相手（OPPONENT_MANAGER）も削除できるように条件追加
-    if ((session.user as any).role !== 'SYSTEM_ADMIN' && (!member || (member.role !== 'OWNER' && member.role !== 'OPPONENT_MANAGER'))) {
+    if ((session.user as AuthUser).role !== 'SYSTEM_ADMIN' && (!member || (member.role !== 'OWNER' && member.role !== 'OPPONENT_MANAGER'))) {
       return c.json({ error: '権限がありません' }, 403)
     }
 
@@ -163,7 +164,7 @@ app.patch('/:orgId', async (c) => {
     const member = await db.select().from(organizationMembers)
       .where(and(eq(organizationMembers.organizationId, orgId), eq(organizationMembers.userId, session.user.id))).get()
 
-    if ((session.user as any).role !== 'SYSTEM_ADMIN' && (!member || (member.role !== 'OWNER' && member.role !== 'OPPONENT_MANAGER'))) {
+    if ((session.user as AuthUser).role !== 'SYSTEM_ADMIN' && (!member || (member.role !== 'OWNER' && member.role !== 'OPPONENT_MANAGER'))) {
       return c.json({ error: '権限がありません' }, 403)
     }
 

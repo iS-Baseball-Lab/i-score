@@ -1,5 +1,6 @@
 // src/types/navigation.ts
 import React from "react";
+import type { UserSession } from "@/types/auth";
 
 /**
  * 💡 ナビゲーション・アイテム定義
@@ -17,7 +18,7 @@ export interface NavItem {
  * 💡 各コンポーネントのプロパティ定義
  */
 export interface SidebarProps {
-  session: any;
+  session: UserSession | null;
   pathname: string;
   isCollapsed: boolean;
   toggleSidebar: () => void;

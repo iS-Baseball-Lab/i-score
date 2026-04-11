@@ -12,10 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { Membership } from "@/types/api";
 
 interface TeamSwitcherProps {
-  activeTeam: any;
-  memberships: any[];
+  activeTeam: Membership;
+  memberships: Membership[];
   onTeamSwitch: (teamId: string, orgId?: string) => void;
 }
 
@@ -33,15 +34,15 @@ export function TeamSwitcher({ activeTeam, memberships, onTeamSwitch }: TeamSwit
         >
           <Avatar className="h-7 w-7 sm:h-9 sm:w-9 border border-primary/30 bg-background group-hover:bg-primary/10 transition-colors shrink-0">
             <AvatarFallback className="text-primary font-black text-[10px] sm:text-[12px]">
-              {((activeTeam as any).organizationName || activeTeam.teamName || "T").slice(0, 2).toUpperCase()}
+              {(activeTeam.organizationName || activeTeam.teamName || "T").slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col justify-center overflow-hidden flex-1">
             <span className="text-[11px] sm:text-sm font-black tracking-widest uppercase truncate leading-tight group-hover:text-primary transition-colors">
-              {(activeTeam as any).organizationName || activeTeam.teamName}
+              {activeTeam.organizationName || activeTeam.teamName}
             </span>
             <span className="text-[9px] sm:text-[11px] font-bold text-muted-foreground uppercase truncate leading-none mt-0.5">
-              {(activeTeam as any).organizationName ? (
+              {activeTeam.organizationName ? (
                 <>{activeTeam.teamName} <span className="opacity-60">({activeTeam.roleLabel})</span></>
               ) : activeTeam.roleLabel}
             </span>
@@ -55,13 +56,13 @@ export function TeamSwitcher({ activeTeam, memberships, onTeamSwitch }: TeamSwit
         {memberships?.map((m) => {
           const isCurrent = m.teamId === activeTeam.teamId;
           return (
-            <DropdownMenuItem key={m.teamId} onClick={() => onTeamSwitch(m.teamId, (m as any).organizationId)} className={`flex items-start gap-3 p-2.5 rounded-lg cursor-pointer transition-colors ${isCurrent ? 'bg-primary/10 text-primary focus:bg-primary/15' : 'hover:bg-muted focus:bg-muted'}`}>
+            <DropdownMenuItem key={m.teamId} onClick={() => onTeamSwitch(m.teamId, m.organizationId)} className={`flex items-start gap-3 p-2.5 rounded-lg cursor-pointer transition-colors ${isCurrent ? 'bg-primary/10 text-primary focus:bg-primary/15' : 'hover:bg-muted focus:bg-muted'}`}>
               <Avatar className={`h-8 w-8 border shrink-0 ${isCurrent ? 'border-primary/40 bg-primary/20' : 'border-border/50 bg-background'}`}>
-                <AvatarFallback className={`font-black text-[10px] ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>{((m as any).organizationName || m.teamName || "T").slice(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className={`font-black text-[10px] ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>{(m.organizationName || m.teamName || "T").slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col flex-1 overflow-hidden">
-                <span className="text-sm font-bold truncate leading-tight">{(m as any).organizationName || m.teamName}</span>
-                <span className="text-[10px] font-bold opacity-70 truncate mt-0.5">{(m as any).organizationName ? `${m.teamName} (${m.roleLabel})` : m.roleLabel}</span>
+                <span className="text-sm font-bold truncate leading-tight">{m.organizationName || m.teamName}</span>
+                <span className="text-[10px] font-bold opacity-70 truncate mt-0.5">{m.organizationName ? `${m.teamName} (${m.roleLabel})` : m.roleLabel}</span>
               </div>
               {isCurrent && <Check className="h-4 w-4 text-primary shrink-0 self-center" />}
             </DropdownMenuItem>

@@ -13,7 +13,9 @@ export default function UserPage() {
 
   if (!session) return null;
 
-  const { name, role, email } = session.user as any;
+  // better-auth の adminClient 拡張により role フィールドが存在する
+  const user = session.user as { name: string; email: string; role?: string };
+  const { name, role, email } = user;
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center pt-12 p-4 md:p-8">

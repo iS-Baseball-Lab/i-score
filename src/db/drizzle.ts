@@ -1,12 +1,13 @@
 // src/db/drizzle.ts
 import { drizzle } from 'drizzle-orm/d1';
+import type { WorkerEnv } from '@/types/api';
 
 /**
  * 💡 D1 データベースインスタンスを取得し、Drizzle オブジェクトを返します。
  * Next.js (Cloudflare Workers runtime) 環境では process.env.DB に injection されます。
  */
 export const getDb = () => {
-  const d1 = (process.env as any).DB as D1Database;
+  const d1 = (process.env as unknown as WorkerEnv).DB;
 
   if (!d1) {
     // 💡 ローカル開発時や環境構築ミスを早期に発見するためのエラーハンドリング

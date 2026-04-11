@@ -7,10 +7,11 @@ import { ChevronLeft, Swords, Loader2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchList } from "@/components/matches/match-list";
 import { toast } from "sonner";
+import { Match } from "@/types/match";
 
 export default function AllMatchesPage() {
   const router = useRouter();
-  const [matches, setMatches] = useState<any[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -24,7 +25,7 @@ export default function AllMatchesPage() {
         const res = await fetch(`/api/matches?teamId=${teamId}`);
         if (res.ok) {
           const data = await res.json();
-          setMatches(Array.isArray(data) ? data.sort((a: any, b: any) => b.date.localeCompare(a.date)) : []);
+          setMatches(Array.isArray(data) ? (data as Match[]).sort((a, b) => b.date.localeCompare(a.date)) : []);
         }
       } catch (error) {
         toast.error("データの読み込みに失敗しました");

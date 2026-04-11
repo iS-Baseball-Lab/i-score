@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import type { BaseAdvance } from "@/contexts/ScoreContext";
 /**
  * 💡 打球結果記録モーダル (究極UI版)
  * 1. 意匠: bg-background/60 と backdrop-blur-2xl による極上の透過感。
@@ -24,7 +25,7 @@ import { cn } from "@/lib/utils";
 export interface FieldModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onResult: (result: string, rbi: number, advances: any[]) => void;
+  onResult: (result: string, rbi: number, advances: BaseAdvance[]) => void;
 }
 
 export function FieldModal({ open, onOpenChange, onResult }: FieldModalProps) {

@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Density = "standard" | "compact" | "comfortable";
+export type Density = "standard" | "compact" | "comfortable";
 
 interface DensityContextType {
   density: Density;

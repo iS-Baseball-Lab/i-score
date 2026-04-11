@@ -103,7 +103,7 @@ export default function TeamsPage() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, role, organizationId: selectedOrg.id, year, tier, generation, teamType }),
       });
-      const data = await res.json() as any;
+      const data = await res.json() as { success: boolean; error?: string };
       if (res.ok && data.success) {
         toast.success("編成を作成しました！");
         setIsDrawerOpen(false);
@@ -113,16 +113,17 @@ export default function TeamsPage() {
     finally { setIsCreating(false); }
   };
 
-  const handleUpdate = async (newName: string, extraData?: any) => {
+  type TeamExtraData = { year?: number; tier?: string; generation?: string; teamType?: string };
+  const handleUpdate = async (newName: string, extraData?: string | TeamExtraData) => {
     if (!detailModal || !newName.trim()) return;
     setIsUpdating(true);
     try {
       const url = detailModal.type === 'org' ? `/api/organizations/${detailModal.data.id}` : `/api/teams/${detailModal.data.id}`;
-      const bodyPayload: any = { name: newName };
+      const bodyPayload: Record<string, unknown> = { name: newName };
 
       if (detailModal.type === 'org' && extraData) {
         bodyPayload.category = extraData;
-      } else if (detailModal.type === 'team' && extraData) {
+      } else if (detailModal.type === 'team' && extraData && typeof extraData === 'object') {
         bodyPayload.year = extraData.year;
         bodyPayload.tier = extraData.tier;
         bodyPayload.generation = extraData.generation;

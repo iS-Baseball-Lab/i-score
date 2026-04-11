@@ -60,7 +60,7 @@ export function Header() {
     || user?.memberships?.find(m => m.isMainTeam)
     || user?.memberships?.[0];
 
-  const isAdmin = (user as any)?.role === 'SYSTEM_ADMIN' || (user as any)?.systemRole === 'SYSTEM_ADMIN';
+  const isAdmin = user?.systemRole === 'SYSTEM_ADMIN';
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-background/60 backdrop-blur-xl border-b border-border/40 transition-colors duration-200">
