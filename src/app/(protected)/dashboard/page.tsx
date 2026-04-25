@@ -1,13 +1,10 @@
 // filepath: src/app/(protected)/dashboard/page.tsx
-/* 💡 i-score ダッシュボード：現場の状況をリアルタイムに反映する中心地 */
+/* 💡 i-score ダッシュボード：元のデザインを維持しつつリアルタイム天気を統合 */
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  Trophy, Users, PlayCircle, Plus, Activity, Clock, 
-  CloudSun, Navigation, Wind, Calendar 
-} from "lucide-react";
+import { Trophy, Users, PlayCircle, Plus, Activity, Clock, CloudSun, Navigation, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchList } from "@/components/matches/match-list";
 import { toast } from "sonner";
@@ -17,7 +14,7 @@ import {
   getWindDirectionLabel, 
   getWMOWeatherText, 
   type OpenMeteoResponse 
-} from "@/lib/weather";
+} from "@/lib/weather"; // 🌟 weather.ts からインポート
 
 interface UserMembership {
   teamId: string;
@@ -41,22 +38,21 @@ export default function DashboardPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mounted, setMounted] = useState(false);
 
-  // マウント後の処理と時計の更新
   useEffect(() => {
     setMounted(true);
     const checkAdmin = async () => {
       const { data: session } = await authClient.getSession();
       if (session?.user?.role === "SYSTEM_ADMIN") {
         router.replace("/admin");
+        return;
       }
     };
     checkAdmin();
-
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, [router]);
 
-  // 気象データの取得
+  // 天気取得ロジック（バックグラウンドで実行）
   useEffect(() => {
     const fetchWeather = async (lat: number, lon: number) => {
       try {
@@ -80,12 +76,11 @@ export default function DashboardPage() {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-        () => console.warn("Geolocation denied - using default display")
+        () => console.log("Location access denied")
       );
     }
   }, []);
 
-  // チーム情報と試合データの取得
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -95,20 +90,15 @@ export default function DashboardPage() {
           return;
         }
 
-        // チーム名の取得
         const teamRes = await fetch("/api/auth/me");
         if (teamRes.ok) {
           const res = (await teamRes.json()) as { data: { memberships: UserMembership[] } };
           const currentMembership = res.data.memberships.find((m) => m.teamId === teamId);
           if (currentMembership) {
-            setTeamInfo({ 
-              org: currentMembership.organizationName, 
-              name: currentMembership.teamName 
-            });
+            setTeamInfo({ org: currentMembership.organizationName, name: currentMembership.teamName });
           }
         }
 
-        // 試合情報の取得
         const matchRes = await fetch(`/api/matches?teamId=${teamId}`);
         if (matchRes.ok) {
           const matchData = (await matchRes.json()) as Match[];
@@ -132,101 +122,123 @@ export default function DashboardPage() {
     <div className="w-full animate-in fade-in duration-500 bg-transparent min-h-screen pb-24">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 sm:space-y-8">
         
-        {/* --- ヒーローセクション --- */}
+        {/* --- ヒーローセクション（元のデザイン） --- */}
         <section>
-          <div className="flex items-center gap-2 mb-1">
-            <Activity className="h-4 w-4 text-primary animate-pulse" />
-            <h2 className="text-sm font-black text-primary uppercase tracking-widest">Overview</h2>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+          <h2 className="text-sm font-black text-primary uppercase tracking-widest mb-1 flex items-center gap-2">
+            <Activity className="h-4 w-4" /> Overview
+          </h2>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight flex flex-wrap gap-x-2">
             {teamInfo ? (
-              <><span className="text-foreground">{teamInfo.org}</span> <span className="text-primary">{teamInfo.name}</span></>
+              <><span className="text-foreground">{teamInfo.org}</span><span className="text-primary">{teamInfo.name}</span></>
             ) : (
-              <span className="text-muted-foreground italic">チームを選択してください</span>
+              <span className="text-foreground">Team Loading...</span>
             )}
           </h1>
         </section>
 
-        {/* --- 気象・環境ウィジェット --- */}
-        <section className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl border border-white/20 dark:border-zinc-800/20 shadow-xl rounded-[32px] p-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {/* 時刻 */}
+        {/* --- 環境ウィジェット（元の角丸[40px]・透過bg-background/40デザイン） --- */}
+        <section className="bg-background/40 backdrop-blur-xl border border-border/40 shadow-sm rounded-[40px] p-4 sm:p-5">
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-4 sm:gap-6">
+            
+            {/* 時計 */}
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-primary/10 rounded-2xl text-primary"><Clock className="h-6 w-6" /></div>
+              <div className="p-2 sm:p-2.5 bg-primary/10 rounded-full text-primary shrink-0"><Clock className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">{dateString}</p>
-                <p className="text-lg font-black text-foreground tabular-nums leading-none mt-1">{timeString}</p>
+                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">{dateString}</p>
+                <p className="text-base sm:text-lg font-black text-foreground tabular-nums leading-none mt-0.5">{timeString}</p>
               </div>
             </div>
 
+            <div className="hidden sm:block h-8 w-px bg-border/50" />
+
             {/* 天気 */}
-            <div className="flex items-center gap-3 border-l border-border/10 pl-2">
-              <div className="p-3 bg-amber-500/10 rounded-2xl text-amber-500"><CloudSun className="h-6 w-6" /></div>
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-amber-500/10 rounded-full text-amber-500 shrink-0"><CloudSun className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Condition</p>
-                <p className="text-lg font-black text-foreground leading-none mt-1">
+                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">Weather</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-0.5">
                   {weather ? (
-                    <>{getWMOWeatherText(weather.weatherCode)} <span className="text-xs ml-1 text-muted-foreground font-medium">{weather.temp}°C</span></>
+                    <>{getWMOWeatherText(weather.weatherCode)} <span className="text-muted-foreground text-xs ml-0.5">{weather.temp}°C</span></>
                   ) : "---"}
                 </p>
               </div>
             </div>
 
+            <div className="hidden sm:block h-8 w-px bg-border/50" />
+
             {/* 風向き */}
-            <div className="flex items-center gap-3 border-l border-border/10 pl-2">
-              <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-500 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-blue-500/10 rounded-full text-blue-500 shrink-0">
                 <Navigation 
-                  className="h-6 w-6 transition-transform duration-1000" 
-                  style={{ transform: `rotate(${weather ? weather.windDir : 0}deg)` }} 
+                  className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-700" 
+                  style={{ transform: `rotate(${weather ? weather.windDir : 45}deg)` }} 
                 />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Wind</p>
-                <p className="text-lg font-black text-foreground leading-none mt-1">
+                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">Wind Dir</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-0.5">
                   {weather ? getWindDirectionLabel(weather.windDir) : "---"}
                 </p>
               </div>
             </div>
 
+            <div className="hidden sm:block h-8 w-px bg-border/50" />
+
             {/* 風速 */}
-            <div className="flex items-center gap-3 border-l border-border/10 pl-2">
-              <div className="p-3 bg-teal-500/10 rounded-2xl text-teal-500"><Wind className="h-6 w-6" /></div>
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-teal-500/10 rounded-full text-teal-500 shrink-0"><Wind className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Speed</p>
-                <p className="text-lg font-black text-foreground leading-none mt-1 tabular-nums">
-                  {weather ? weather.windSpd : "--"} <span className="text-xs text-muted-foreground font-medium">m/s</span>
+                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">Wind Spd</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-0.5 tabular-nums">
+                  {weather ? weather.windSpd : "--"} <span className="text-muted-foreground text-xs font-bold">m/s</span>
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* --- クイックアクション --- */}
+        {/* --- クイックアクション（元のRounded-fullデザイン） --- */}
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Button 
             onClick={() => router.push("/matches/create")}
-            className="h-auto py-6 rounded-[24px] flex flex-col gap-2 font-bold transition-all hover:scale-105 active:scale-95 bg-primary text-primary-foreground shadow-lg"
+            className="h-auto py-4 sm:py-6 rounded-full flex flex-col gap-1 sm:gap-2 font-bold transition-all hover:scale-105 active:scale-95 bg-primary text-primary-foreground shadow-lg"
           >
-            <Plus className="h-6 w-6" /> New Match
+            <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="text-xs sm:text-sm">New Match</span>
           </Button>
           <Button 
-            variant="secondary"
+            variant="outline"
             onClick={() => router.push("/players")}
-            className="h-auto py-6 rounded-[24px] flex flex-col gap-2 font-bold backdrop-blur-md bg-white/50 dark:bg-zinc-800/50 border-border/40 transition-all hover:scale-105"
+            className="h-auto py-4 sm:py-6 rounded-full flex flex-col gap-1 sm:gap-2 font-bold backdrop-blur-md bg-background/40 border-border/40 transition-all hover:scale-105"
           >
-            <Users className="h-6 w-6" /> Players
+            <Users className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="text-xs sm:text-sm">Players</span>
           </Button>
-          {/* 追加のボタンは必要に応じて配置 */}
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/team")}
+            className="h-auto py-4 sm:py-6 rounded-full flex flex-col gap-1 sm:gap-2 font-bold backdrop-blur-md bg-background/40 border-border/40 transition-all hover:scale-105"
+          >
+            <Trophy className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="text-xs sm:text-sm">Team Stats</span>
+          </Button>
+          <Button 
+            variant="outline"
+            className="h-auto py-4 sm:py-6 rounded-full flex flex-col gap-1 sm:gap-2 font-bold backdrop-blur-md bg-background/40 border-border/40 transition-all hover:scale-105"
+          >
+            <PlayCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="text-xs sm:text-sm">Training</span>
+          </Button>
         </section>
 
-        {/* --- 試合リスト --- */}
-        <section className="space-y-4">
+        {/* --- 試合リスト（元のRounded-[40px]デザイン） --- */}
+        <section className="space-y-4 sm:space-y-6">
           <div className="flex items-center justify-between px-2">
-            <h3 className="text-lg font-black flex items-center gap-2 tracking-tight">
-              <Calendar className="h-5 w-5 text-primary" /> Recent Matches
+            <h3 className="text-lg sm:text-xl font-black flex items-center gap-2 tracking-tight">
+              <Trophy className="h-5 w-5 text-primary" /> Recent Matches
             </h3>
           </div>
-          <div className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md rounded-[32px] border border-border/20 p-2 sm:p-4 min-h-[300px]">
+          <div className="bg-background/40 backdrop-blur-xl rounded-[40px] border border-border/40 p-2 sm:p-4 min-h-[300px] shadow-sm">
             <MatchList matches={matches} isLoading={isLoading} />
           </div>
         </section>
