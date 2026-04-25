@@ -1,16 +1,21 @@
 // filepath: src/app/(protected)/dashboard/page.tsx
-/* 💡 ダッシュボード（管理者自動転送 ＆ リアルタイム天気統合版） */
+/* 💡 ダッシュボード（位置情報・天気・地名統合版） */
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trophy, Users, PlayCircle, Plus, ChevronLeft, ChevronRight, Activity, Swords, Clock, CloudSun, Navigation, Wind } from "lucide-react";
+import { Trophy, Users, PlayCircle, Plus, ChevronLeft, ChevronRight, Activity, Swords, Clock, CloudSun, Navigation, Wind, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchList } from "@/components/matches/match-list";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Match } from "@/types/match";
-import { getWindDirectionLabel, getWMOWeatherText, type OpenMeteoResponse } from "@/lib/weather"; // 🌟 追加
+import { 
+  getWindDirectionLabel, 
+  getWMOWeatherText, 
+  reverseGeocode, 
+  type OpenMeteoResponse 
+} from "@/lib/weather";
 
 interface UserMembership {
   teamId: string;
@@ -18,7 +23,6 @@ interface UserMembership {
   teamName: string;
 }
 
-// 🌟 天気データの型定義
 interface WeatherData {
   temp: number;
   weatherCode: number;
@@ -30,7 +34,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const [matches, setMatches] = useState<Match[]>([]);
   const [teamInfo, setTeamInfo] = useState<{ org: string; name: string } | null>(null);
-  const [weather, setWeather] = useState<WeatherData | null>(null); // 🌟 追加
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [locationName, setLocationName] = useState<string | null>(null); // 🌟 追加
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mounted, setMounted] = useState(false);
@@ -39,27 +44,27 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setMounted(true);
-    const checkAdminAndStartTimer = async () => {
+    const checkAdmin = async () => {
       const { data: session } = await authClient.getSession();
       if (session?.user?.role === "SYSTEM_ADMIN") {
         router.replace("/admin");
-        return;
       }
     };
-    checkAdminAndStartTimer();
+    checkAdmin();
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, [router]);
 
-  // 🌟 リアルタイム天気取得ロジック
+  // 天気と地名の取得
   useEffect(() => {
-    const fetchWeather = async (lat: number, lon: number) => {
+    const fetchData = async (lat: number, lon: number) => {
       try {
-        const res = await fetch(
+        // 天気取得
+        const weatherRes = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m`
         );
-        if (res.ok) {
-          const data = (await res.json()) as OpenMeteoResponse;
+        if (weatherRes.ok) {
+          const data = (await weatherRes.json()) as OpenMeteoResponse;
           setWeather({
             temp: Math.round(data.current.temperature_2m),
             weatherCode: data.current.weather_code,
@@ -67,14 +72,18 @@ export default function DashboardPage() {
             windSpd: Math.round(data.current.wind_speed_10m),
           });
         }
+
+        // 🌟 地名取得
+        const name = await reverseGeocode(lat, lon);
+        setLocationName(name);
       } catch (e) {
-        console.error("Weather fetch error", e);
+        console.error("Fetch error", e);
       }
     };
 
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+        (pos) => fetchData(pos.coords.latitude, pos.coords.longitude),
         () => console.log("Geolocation access denied")
       );
     }
@@ -101,8 +110,7 @@ export default function DashboardPage() {
         const matchRes = await fetch(`/api/matches?teamId=${teamId}`);
         if (matchRes.ok) {
           const matchData = (await matchRes.json()) as Match[];
-          const sorted = Array.isArray(matchData) ? matchData.sort((a, b) => b.date.localeCompare(a.date)) : [];
-          setMatches(sorted);
+          setMatches(Array.isArray(matchData) ? matchData.sort((a, b) => b.date.localeCompare(a.date)) : []);
         }
       } catch (error) {
         toast.error("データの読み込みに失敗しました");
@@ -139,21 +147,29 @@ export default function DashboardPage() {
           </h1>
         </section>
 
-        {/* --- 🌟 環境ウィジェット（元の統合デザインに戻しました） --- */}
+        {/* --- 🌟 環境ウィジェット（地名を時計横に追加） --- */}
         <section className="bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm rounded-3xl p-4 sm:p-5">
           <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-4 sm:gap-6">
-            {/* 時計 */}
+            {/* 時計 ＆ 📍現在地 */}
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-primary/10 rounded-xl text-primary shrink-0"><Clock className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">{dateString}</p>
-                <p className="text-base sm:text-lg font-black text-foreground tabular-nums leading-none mt-0.5">{timeString}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase leading-none">{dateString}</p>
+                  {locationName && (
+                    <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-black text-primary bg-primary/5 px-1.5 py-0.5 rounded-full">
+                      <MapPin className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
+                      {locationName}
+                    </span>
+                  )}
+                </div>
+                <p className="text-base sm:text-lg font-black text-foreground tabular-nums leading-none mt-1">{timeString}</p>
               </div>
             </div>
 
             <div className="hidden sm:block h-8 w-px bg-border/50" />
 
-            {/* 天気（リアルデータ） */}
+            {/* 天気 */}
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-amber-500/10 rounded-xl text-amber-500 shrink-0"><CloudSun className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
@@ -168,7 +184,7 @@ export default function DashboardPage() {
 
             <div className="hidden sm:block h-8 w-px bg-border/50" />
 
-            {/* 風向き（リアルデータ & アイコン回転） */}
+            {/* 風向き */}
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-blue-500/10 rounded-xl text-blue-500 shrink-0">
                 <Navigation 
@@ -186,7 +202,7 @@ export default function DashboardPage() {
 
             <div className="hidden sm:block h-8 w-px bg-border/50" />
 
-            {/* 風速（リアルデータ） */}
+            {/* 風速 */}
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-teal-500/10 rounded-xl text-teal-500 shrink-0"><Wind className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
@@ -199,7 +215,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* --- 2. クイックアクション（元の大きなボタン ＆ PlayCircle背景デザインを維持） --- */}
+        {/* --- 2. クイックアクション --- */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <button 
             onClick={() => router.push('/matches/create?mode=quick')} 
@@ -228,7 +244,7 @@ export default function DashboardPage() {
           </button>
         </section>
 
-        {/* --- 3. 試合リスト（元のページングロジック・スタイルを維持） --- */}
+        {/* --- 3. 試合リスト --- */}
         <section className="pt-2 sm:pt-4">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-xs sm:text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2"><Swords className="h-4 w-4" /> Recent Matches</h2>
@@ -269,4 +285,4 @@ export default function DashboardPage() {
       </div>
     </div>
   );
- }
+}
