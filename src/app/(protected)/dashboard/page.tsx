@@ -1,5 +1,5 @@
 // filepath: src/app/(protected)/dashboard/page.tsx
-/* 💡 i-Score ダッシュボード：完全復旧（デザイン完全一致版） */
+/* 💡 i-Score ダッシュボード：【完全復旧】オリジナルデザイン一致版 */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -15,12 +15,6 @@ import {
   getWMOWeatherText, 
   type OpenMeteoResponse 
 } from "@/lib/weather";
-
-interface UserMembership {
-  teamId: string;
-  organizationName: string;
-  teamName: string;
-}
 
 interface WeatherData {
   temp: number;
@@ -52,7 +46,7 @@ export default function DashboardPage() {
     return () => clearInterval(timer);
   }, [router]);
 
-  // 天気データ取得（ロジックのみ追加）
+  // 天気データ取得（バックグラウンド処理のみ）
   useEffect(() => {
     const fetchWeather = async (lat: number, lon: number) => {
       try {
@@ -92,8 +86,8 @@ export default function DashboardPage() {
 
         const teamRes = await fetch("/api/auth/me");
         if (teamRes.ok) {
-          const res = (await teamRes.json()) as { data: { memberships: UserMembership[] } };
-          const currentMembership = res.data.memberships.find((m) => m.teamId === teamId);
+          const res = await teamRes.json();
+          const currentMembership = res.data.memberships.find((m: any) => m.teamId === teamId);
           if (currentMembership) {
             setTeamInfo({ org: currentMembership.organizationName, name: currentMembership.teamName });
           }
@@ -101,8 +95,8 @@ export default function DashboardPage() {
 
         const matchRes = await fetch(`/api/matches?teamId=${teamId}`);
         if (matchRes.ok) {
-          const matchData = (await matchRes.json()) as Match[];
-          setMatches(Array.isArray(matchData) ? matchData.sort((a, b) => b.date.localeCompare(a.date)) : []);
+          const matchData = await matchRes.json();
+          setMatches(Array.isArray(matchData) ? matchData.sort((a: Match, b: Match) => b.date.localeCompare(a.date)) : []);
         }
       } catch (error) {
         toast.error("データの読み込みに失敗しました");
@@ -115,128 +109,91 @@ export default function DashboardPage() {
 
   if (!mounted) return null;
 
-  const timeString = currentTime.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const timeString = currentTime.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
   const dateString = currentTime.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
 
   return (
-    <div className="w-full animate-in fade-in duration-500">
-      <div className="max-w-5xl mx-auto px-4 pt-6 space-y-8">
-        
-        {/* ヘッダーセクション */}
-        <section>
-          <h2 className="text-sm font-bold text-primary uppercase tracking-widest mb-1 flex items-center gap-2">
-            <Activity className="h-4 w-4" /> Overview
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">
+            {teamInfo ? `${teamInfo.org} ${teamInfo.name}` : "Dashboard"}
           </h2>
-          <h1 className="text-3xl font-black tracking-tight">
-            {teamInfo ? (
-              <div className="flex items-baseline gap-2">
-                <span className="text-foreground">{teamInfo.org}</span>
-                <span className="text-primary">{teamInfo.name}</span>
-              </div>
-            ) : (
-              <span className="text-foreground">Loading...</span>
-            )}
-          </h1>
-        </section>
-
-        {/* 環境ウィジェット - 元のデザインを完全に維持 */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-card p-4 rounded-xl border shadow-sm flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-              <Clock className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-medium text-muted-foreground uppercase">{dateString}</p>
-              <p className="text-lg font-bold tabular-nums leading-none mt-1">{timeString}</p>
-            </div>
+          <div className="flex items-center text-muted-foreground">
+            <Activity className="mr-2 h-4 w-4" />
+            <span>Team Overview & Quick Access</span>
           </div>
+        </div>
+      </div>
 
-          <div className="bg-card p-4 rounded-xl border shadow-sm flex items-center gap-3">
-            <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500">
-              <CloudSun className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-medium text-muted-foreground uppercase">Weather</p>
-              <p className="text-base font-bold leading-none mt-1">
-                {weather ? (
-                  <>{getWMOWeatherText(weather.weatherCode)} <span className="text-sm font-normal opacity-70">{weather.temp}°C</span></>
-                ) : "---"}
-              </p>
-            </div>
+      {/* 環境情報：枠を分けず、以前の統合された横並びスタイルに復旧 */}
+      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+        <div className="flex items-center gap-1.5">
+          <Clock className="h-4 w-4" />
+          <span>{dateString} {timeString}</span>
+        </div>
+        <div className="flex items-center gap-1.5 ml-auto md:ml-0">
+          <CloudSun className="h-4 w-4" />
+          <span>{weather ? `${getWMOWeatherText(weather.weatherCode)} ${weather.temp}°C` : "---"}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Navigation className="h-4 w-4" style={{ transform: `rotate(${weather ? weather.windDir : 0}deg)` }} />
+          <span>{weather ? getWindDirectionLabel(weather.windDir) : "---"}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Wind className="h-4 w-4" />
+          <span>{weather ? `${weather.windSpd} m/s` : "---"}</span>
+        </div>
+      </div>
+
+      {/* クイックアクション：ボタンを大きく、以前のアイコン強調デザインに復旧 */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <Button 
+          variant="default"
+          onClick={() => router.push("/matches/create")}
+          className="h-32 flex flex-col items-center justify-center gap-4 rounded-xl shadow-md transition-all hover:scale-[1.02]"
+        >
+          <div className="p-3 bg-white/20 rounded-full">
+            <Plus className="h-8 w-8" />
           </div>
+          <span className="text-lg font-bold">New Match</span>
+        </Button>
 
-          <div className="bg-card p-4 rounded-xl border shadow-sm flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-              <Navigation 
-                className="h-5 w-5 transition-transform duration-700" 
-                style={{ transform: `rotate(${weather ? weather.windDir : 0}deg)` }} 
-              />
-            </div>
-            <div>
-              <p className="text-[10px] font-medium text-muted-foreground uppercase">Wind Dir</p>
-              <p className="text-base font-bold leading-none mt-1">
-                {weather ? getWindDirectionLabel(weather.windDir) : "---"}
-              </p>
-            </div>
-          </div>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/players")}
+          className="h-32 flex flex-col items-center justify-center gap-4 rounded-xl shadow-sm hover:bg-accent"
+        >
+          <Users className="h-8 w-8 text-primary" />
+          <span className="text-base font-semibold">Players</span>
+        </Button>
 
-          <div className="bg-card p-4 rounded-xl border shadow-sm flex items-center gap-3">
-            <div className="p-2 bg-teal-500/10 rounded-lg text-teal-500">
-              <Wind className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-medium text-muted-foreground uppercase">Wind Spd</p>
-              <p className="text-base font-bold leading-none mt-1 tabular-nums">
-                {weather ? `${weather.windSpd} m/s` : "--"}
-              </p>
-            </div>
-          </div>
-        </section>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/team")}
+          className="h-32 flex flex-col items-center justify-center gap-4 rounded-xl shadow-sm hover:bg-accent"
+        >
+          <Trophy className="h-8 w-8 text-primary" />
+          <span className="text-base font-semibold">Team Stats</span>
+        </Button>
 
-        {/* クイックアクション - ボタンデザインを復旧 */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Button 
-            onClick={() => router.push("/matches/create")}
-            className="h-auto py-6 flex flex-col gap-2 font-bold"
-          >
-            <Plus className="h-6 w-6" />
-            <span>New Match</span>
-          </Button>
-          <Button 
-            variant="outline"
-            onClick={() => router.push("/players")}
-            className="h-auto py-6 flex flex-col gap-2 font-bold"
-          >
-            <Users className="h-6 w-6" />
-            <span>Players</span>
-          </Button>
-          <Button 
-            variant="outline"
-            onClick={() => router.push("/team")}
-            className="h-auto py-6 flex flex-col gap-2 font-bold"
-          >
-            <Trophy className="h-6 w-6" />
-            <span>Team Stats</span>
-          </Button>
-          <Button 
-            variant="outline"
-            className="h-auto py-6 flex flex-col gap-2 font-bold"
-          >
-            <PlayCircle className="h-6 w-6" />
-            <span>Training</span>
-          </Button>
-        </section>
+        <Button 
+          variant="outline"
+          className="h-32 flex flex-col items-center justify-center gap-4 rounded-xl shadow-sm hover:bg-accent"
+        >
+          <PlayCircle className="h-8 w-8 text-primary" />
+          <span className="text-base font-semibold">Training</span>
+        </Button>
+      </div>
 
-        {/* 試合リスト - コンテナを削除し、MatchListをそのまま配置 */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-primary" /> Recent Matches
-            </h3>
-          </div>
-          <MatchList matches={matches} isLoading={isLoading} />
-        </section>
-
+      {/* 試合リスト：コンテナを完全に削除し、以前の直接配置に戻す（ページングが直ります） */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-primary" /> Recent Matches
+          </h3>
+        </div>
+        <MatchList matches={matches} isLoading={isLoading} />
       </div>
     </div>
   );
