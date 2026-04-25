@@ -30,7 +30,7 @@ export default function DashboardPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teamInfo, setTeamInfo] = useState<{ org: string; name: string } | null>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [locationName, setLocationName] = useState<string | null>(null); // 🌟 追加
+  const [locationName, setLocationName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mounted, setMounted] = useState(false);
@@ -141,9 +141,9 @@ export default function DashboardPage() {
           </h1>
         </section>
 
-        {/* --- 🌟 現在地ステータス（指定通りのスタイルで追加） --- */}
-        <div className="flex justify-center px-1 mb-2">
-          <div className="flex items-center gap-2 py-2 px-6 rounded-full bg-primary/20 border border-primary/30 backdrop-blur-xl shadow-lg">
+        {/* --- 🌟 現在地ステータス（透過率アップ・ボカシ弱・影なしへ修正） --- */}
+        <div className="flex justify-center px-1 mb-2 relative z-10">
+          <div className="flex items-center gap-2 py-2 px-6 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
             <MapPin className="h-4 w-4 text-primary animate-pulse" />
             <span className="text-sm sm:text-base font-black text-foreground tracking-tight">
               現在地：{locationName || "取得中..."}
@@ -281,4 +281,4 @@ export default function DashboardPage() {
       </div>
     </div>
   );
-}
+ }
