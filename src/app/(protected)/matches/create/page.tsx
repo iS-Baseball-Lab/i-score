@@ -156,7 +156,7 @@ function MatchCreateContent() {
 
   // --- 初期データ取得 ---
   useEffect(() => {
-    const activeTeamId = localStorage.getItem("iScore_selectedTeamId");
+    const activeTeamId = localStorage.getItem("iscore_selectedTeamId");
     if (activeTeamId) {
       fetch("/api/teams")
         .then(res => res.json())
@@ -226,7 +226,7 @@ function MatchCreateContent() {
     }
 
     setIsSubmitting(true);
-    const activeTeamId = localStorage.getItem("iScore_selectedTeamId");
+    const activeTeamId = localStorage.getItem("iscore_selectedTeamId");
 
     try {
       const createRes = await fetch("/api/matches", {

@@ -20,7 +20,7 @@ export function DensityProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // 初回読み込み時に設定を復元
-    const saved = localStorage.getItem("iScore_density") as Density;
+    const saved = localStorage.getItem("iscore_density") as Density;
     if (saved) {
       setDensityState(saved);
       document.documentElement.setAttribute("data-density", saved);
@@ -29,7 +29,7 @@ export function DensityProvider({ children }: { children: React.ReactNode }) {
 
   const setDensity = (newDensity: Density) => {
     setDensityState(newDensity);
-    localStorage.setItem("iScore_density", newDensity);
+    localStorage.setItem("iscore_density", newDensity);
     document.documentElement.setAttribute("data-density", newDensity);
   };
 

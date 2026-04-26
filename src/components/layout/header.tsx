@@ -22,7 +22,7 @@ export function Header() {
   const [localActiveTeamId, setLocalActiveTeamId] = useState<string | null>(null);
 
   useEffect(() => {
-    setLocalActiveTeamId(localStorage.getItem("iScore_selectedTeamId"));
+    setLocalActiveTeamId(localStorage.getItem("iscore_selectedTeamId"));
 
     const fetchUser = async () => {
       try {
@@ -49,8 +49,8 @@ export function Header() {
   const handleLogout = async () => router.push("/login");
 
   const handleTeamSwitch = (teamId: string, orgId?: string) => {
-    localStorage.setItem("iScore_selectedTeamId", teamId);
-    if (orgId) localStorage.setItem("iScore_selectedOrgId", orgId);
+    localStorage.setItem("iscore_selectedTeamId", teamId);
+    if (orgId) localStorage.setItem("iscore_selectedOrgId", orgId);
     setLocalActiveTeamId(teamId);
     window.location.href = "/dashboard";
   };

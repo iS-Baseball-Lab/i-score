@@ -52,14 +52,14 @@ const POSITION_COLOR: Record<PosCategory, {
   dot: string;          // ドット
   filter: string;       // フィルタボタン選択時
 }> = {
-  投手:   {
+  投手: {
     accent: "bg-blue-500",
     accentText: "text-white",
     badge: "bg-blue-500/10 text-blue-600 border-blue-500/30 dark:text-blue-400",
     dot: "bg-blue-500",
     filter: "bg-blue-500/15 text-blue-700 border-blue-500/40 dark:text-blue-300",
   },
-  捕手:   {
+  捕手: {
     accent: "bg-orange-500",
     accentText: "text-white",
     badge: "bg-orange-500/10 text-orange-600 border-orange-500/30 dark:text-orange-400",
@@ -80,7 +80,7 @@ const POSITION_COLOR: Record<PosCategory, {
     dot: "bg-amber-500",
     filter: "bg-amber-500/15 text-amber-700 border-amber-500/40 dark:text-amber-300",
   },
-  DH:    {
+  DH: {
     accent: "bg-purple-500",
     accentText: "text-white",
     badge: "bg-purple-500/10 text-purple-600 border-purple-500/30 dark:text-purple-400",
@@ -221,7 +221,7 @@ function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardProps) {
   const isActive = player.isActive === 1 || player.isActive === true;
 
   const throwsLabel = player.throws === "R" ? "右" : player.throws === "L" ? "左" : null;
-  const batsLabel   = player.bats === "R"   ? "右" : player.bats === "L"   ? "左" : player.bats === "B" ? "両" : null;
+  const batsLabel = player.bats === "R" ? "右" : player.bats === "L" ? "左" : player.bats === "B" ? "両" : null;
 
   return (
     <div className={cn(
@@ -398,7 +398,7 @@ function PlayerRosterContent() {
   }, []);
 
   useEffect(() => {
-    const tid = localStorage.getItem("iScore_selectedTeamId");
+    const tid = localStorage.getItem("iscore_selectedTeamId");
     if (!tid) { setIsLoading(false); return; }
     setTeamId(tid);
     fetchPlayers(tid);

@@ -4,24 +4,24 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 // 💡 Activity, MapPin, Swords などのインポートを確実に行う
-import { 
-  Trophy, 
-  Users, 
-  PlayCircle, 
-  Plus, 
-  ChevronLeft, 
-  ChevronRight, 
-  Activity, 
-  Swords, 
-  Clock, 
-  CloudSun, 
-  Navigation, 
-  Wind, 
-  MapPin 
+import {
+  Trophy,
+  Users,
+  PlayCircle,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  Swords,
+  Clock,
+  CloudSun,
+  Navigation,
+  Wind,
+  MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchList } from "@/components/matches/match-list";
-import { ScoreTypeSelector } from "@/components/features/dashboard/ScoreTypeSelector"; 
+import { ScoreTypeSelector } from "@/components/features/dashboard/ScoreTypeSelector";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Match } from "@/types/match";
@@ -96,7 +96,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const teamId = localStorage.getItem("iScore_selectedTeamId");
+        const teamId = localStorage.getItem("iscore_selectedTeamId");
         if (!teamId) {
           setIsLoading(false);
           return;
@@ -180,9 +180,9 @@ export default function DashboardPage() {
             <div className="hidden sm:block h-8 w-px bg-border/50" />
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-blue-500/10 rounded-xl text-blue-500 shrink-0">
-                <Navigation 
-                  className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-700" 
-                  style={{ transform: `rotate(${weather ? weather.windDir : 45}deg)` }} 
+                <Navigation
+                  className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-700"
+                  style={{ transform: `rotate(${weather ? weather.windDir : 45}deg)` }}
                 />
               </div>
               <div>
@@ -215,7 +215,7 @@ export default function DashboardPage() {
             </h2>
           </div>
           <MatchList matches={paginatedMatches} isLoading={isLoading} />
-          
+
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4 mt-8">
               <Button

@@ -259,7 +259,7 @@ function TeamRequestsContent() {
 
         // 2. 選択中チームを特定
         const selectedTeamId =
-          localStorage.getItem("iScore_selectedTeamId") ?? "";
+          localStorage.getItem("iscore_selectedTeamId") ?? "";
         const membership =
           meJson.data.memberships.find((m) => m.teamId === selectedTeamId) ??
           meJson.data.memberships.find((m) => m.isMainTeam) ??

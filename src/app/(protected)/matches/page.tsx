@@ -19,7 +19,7 @@ export default function AllMatchesPage() {
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const teamId = localStorage.getItem("iScore_selectedTeamId");
+        const teamId = localStorage.getItem("iscore_selectedTeamId");
         if (!teamId) return;
 
         const res = await fetch(`/api/matches?teamId=${teamId}`);

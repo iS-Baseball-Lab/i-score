@@ -228,7 +228,7 @@ function MatchEditContent() {
         }
 
         // 3. チーム名
-        const activeTeamId = localStorage.getItem("iScore_selectedTeamId");
+        const activeTeamId = localStorage.getItem("iscore_selectedTeamId");
         if (activeTeamId) {
           const teamsRes = await fetch("/api/teams");
           const teamsData = (await teamsRes.json()) as { id: string; name: string }[];

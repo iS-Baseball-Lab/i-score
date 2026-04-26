@@ -399,7 +399,7 @@ export default function TeamMembersPage() {
         setMyUserId(me.id);
 
         // 2. 選択中チームを特定
-        const selectedTeamId = localStorage.getItem("iScore_selectedTeamId") ?? "";
+        const selectedTeamId = localStorage.getItem("iscore_selectedTeamId") ?? "";
         const membership = me.memberships.find(m => m.teamId === selectedTeamId)
           ?? me.memberships.find(m => m.isMainTeam)
           ?? me.memberships[0];
@@ -463,7 +463,7 @@ export default function TeamMembersPage() {
   };
 
   // ─── 表示分類 ─────────────────────────
-  const activeMembers  = members.filter(m => m.status === "active");
+  const activeMembers = members.filter(m => m.status === "active");
   const pendingMembers = members.filter(m => m.status === "pending");
   const canManage = myRole === ROLES.MANAGER || myRole === "SYSTEM_ADMIN";
 

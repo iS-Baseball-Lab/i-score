@@ -46,7 +46,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
 
   useEffect(() => {
     const fetchTeamName = async () => {
-      const teamId = localStorage.getItem("iScore_selectedTeamId");
+      const teamId = localStorage.getItem("iscore_selectedTeamId");
       if (!teamId) return;
       const teamRes = await fetch("/api/auth/me");
       if (teamRes.ok) {
@@ -96,9 +96,9 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
   const handleTouchEnd = () => {
     if (offsetX > 50) setOffsetX(80);
     else if (offsetX < -50) setOffsetX(-80);
-    else { 
-      setOffsetX(0); 
-      setSwipeId(null); 
+    else {
+      setOffsetX(0);
+      setSwipeId(null);
     }
     setIsScrolling(false);
   };

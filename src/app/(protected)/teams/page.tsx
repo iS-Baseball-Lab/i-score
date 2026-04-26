@@ -36,7 +36,7 @@ export default function TeamsPage() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('iScore_selectedCategory');
+    const saved = localStorage.getItem('iscore_selectedCategory');
     if (saved) setSelectedCategory(saved);
     fetchOrgs();
   }, []);
@@ -61,7 +61,7 @@ export default function TeamsPage() {
 
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
-    localStorage.setItem('iScore_selectedCategory', cat);
+    localStorage.setItem('iscore_selectedCategory', cat);
   };
 
   const handleSelectOrg = (org: Organization) => {
@@ -71,8 +71,8 @@ export default function TeamsPage() {
   };
 
   const handleTeamClick = (teamId: string) => {
-    localStorage.setItem("iScore_selectedTeamId", teamId);
-    if (selectedOrg) localStorage.setItem("iScore_selectedOrgId", selectedOrg.id);
+    localStorage.setItem("iscore_selectedTeamId", teamId);
+    if (selectedOrg) localStorage.setItem("iscore_selectedOrgId", selectedOrg.id);
     router.push('/dashboard');
   };
 

@@ -69,7 +69,7 @@ function MatchResultContent() {
         if (boxscoreRes.ok) setAtBats(await boxscoreRes.json());
 
         // 💡 ローカルストレージから自チームIDを取得して、チーム名を引っ張ってくる
-        const tid = localStorage.getItem("iScore_selectedTeamId");
+        const tid = localStorage.getItem("iscore_selectedTeamId");
         if (tid) {
           const teamsRes = await fetch('/api/teams');
           if (teamsRes.ok) {

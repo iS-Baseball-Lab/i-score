@@ -94,7 +94,7 @@ export default function TeamProfilePage() {
   useEffect(() => {
     const fetchTeamData = async () => {
       try {
-        const activeTeamId = localStorage.getItem("iScore_selectedTeamId");
+        const activeTeamId = localStorage.getItem("iscore_selectedTeamId");
         if (!activeTeamId) { setIsLoading(false); return; }
 
         const teamsResponse = await fetch("/api/teams", { cache: "no-store" });
