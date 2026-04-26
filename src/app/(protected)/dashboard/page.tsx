@@ -1,5 +1,5 @@
 // filepath: src/app/(protected)/dashboard/page.tsx
-/* 💡 ダッシュボード（管理者自動転送 ＆ リアルタイム天気 ＆ 現在地統合版） */
+/* 💡 ダッシュボード（環境ウィジェット連動スタイル ＆ オフライン耐性版） */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -47,8 +47,8 @@ export default function DashboardPage() {
           return;
         }
       } catch (err) {
-        // オフライン・通信エラー時は維持
-        console.warn("Auth check deferred due to connection.");
+        // オフライン時はログアウトさせず維持
+        console.warn("Auth check deferred. Network might be unstable.");
       }
     };
     checkAdminAndStartTimer();
@@ -147,9 +147,9 @@ export default function DashboardPage() {
           </h1>
         </section>
 
-        {/* --- 🌟 現在地ステータス（ページャーボタン完全同期・ぼかしなし版） --- */}
+        {/* --- 🌟 現在地ステータス（中央配置・透過・影なし・ウィジェット連動の角丸） --- */}
         <div className="flex justify-center px-1 mb-2">
-          <div className="flex items-center gap-2 py-2 px-6 rounded-full bg-primary/10 border border-primary/20 text-primary shadow-sm transition-all cursor-default">
+          <div className="flex items-center gap-2 py-2 px-6 rounded-3xl bg-primary/10 border border-primary/20 text-primary shadow-sm transition-all cursor-default">
             <MapPin className="h-4 w-4 animate-pulse" />
             <span className="text-sm sm:text-base font-black tracking-tight">
               現在地：{locationName || "取得中..."}
@@ -157,10 +157,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* --- 🌟 環境ウィジェット --- */}
+        {/* --- 🌟 環境ウィジェット（rounded-3xl がユーザー設定に連動） --- */}
         <section className="bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm rounded-3xl p-4 sm:p-5">
           <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-4 sm:gap-6">
-            {/* 時計 */}
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-primary/10 rounded-xl text-primary shrink-0"><Clock className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
@@ -168,10 +167,7 @@ export default function DashboardPage() {
                 <p className="text-base sm:text-lg font-black text-foreground tabular-nums leading-none mt-0.5">{timeString}</p>
               </div>
             </div>
-
             <div className="hidden sm:block h-8 w-px bg-border/50" />
-
-            {/* 天気（リアルデータ） */}
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-amber-500/10 rounded-xl text-amber-500 shrink-0"><CloudSun className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
@@ -183,10 +179,7 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-
             <div className="hidden sm:block h-8 w-px bg-border/50" />
-
-            {/* 風向き */}
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-blue-500/10 rounded-xl text-blue-500 shrink-0">
                 <Navigation 
@@ -201,10 +194,7 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-
             <div className="hidden sm:block h-8 w-px bg-border/50" />
-
-            {/* 風速 */}
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-teal-500/10 rounded-xl text-teal-500 shrink-0"><Wind className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
@@ -228,7 +218,6 @@ export default function DashboardPage() {
             <h3 className="text-lg sm:text-xl font-black tracking-tight mb-1">Quick Score</h3>
             <p className="text-xs sm:text-sm font-medium text-primary-foreground/80">試合結果を爆速で入力する</p>
           </button>
-
           <button onClick={() => router.push('/players')} className="flex flex-col items-start justify-between p-5 sm:p-6 rounded-3xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm hover:shadow-md hover:border-primary/40 active:scale-[0.98] transition-all group">
             <div className="p-3 bg-muted dark:bg-zinc-800 rounded-2xl group-hover:bg-primary/10 group-hover:text-primary transition-colors mb-4"><Users className="h-6 w-6" /></div>
             <div>
@@ -236,9 +225,8 @@ export default function DashboardPage() {
               <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">PLAYERS</p>
             </div>
           </button>
-
           <button onClick={() => router.push('/team')} className="flex flex-col items-start justify-between p-5 sm:p-6 rounded-3xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm hover:shadow-md hover:border-primary/40 active:scale-[0.98] transition-all group">
-            <div className="p-3 bg-muted dark:bg-zinc-800 rounded-2xl group-hover:bg-primary/10 group-hover:text-primary transition-colors mb-4"><Users className="h-6 w-6" /></div>
+            <div className="p-3 bg-muted dark:bg-zinc-800 rounded-2xl group-hover:bg-primary/10 group-hover:text-primary transition-colors mb-4"><Trophy className="h-6 w-6" /></div>
             <div>
               <h3 className="text-base sm:text-lg font-black text-foreground mb-1">チーム成績</h3>
               <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Analytics</p>
@@ -254,27 +242,25 @@ export default function DashboardPage() {
               See All Matches <ChevronRight className="h-4 w-4 ml-1.5" />
             </Button>
           </div>
-
           <MatchList matches={paginatedMatches} isLoading={isLoading} />
-
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4 mt-8">
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-full h-11 w-11 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
+                className="rounded-2xl h-11 w-11 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(p => p - 1)}
               >
                 <ChevronLeft className="h-6 w-6" />
               </Button>
-              <span className="text-sm font-black tabular-nums bg-white/50 dark:bg-zinc-800/50 backdrop-blur-sm px-4 py-2 rounded-full border border-border/50 shadow-sm">
+              <span className="text-sm font-black tabular-nums bg-white/50 dark:bg-zinc-800/50 px-4 py-2 rounded-xl border border-border/50 shadow-sm">
                 {currentPage} / {totalPages}
               </span>
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-full h-11 w-11 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
+                className="rounded-2xl h-11 w-11 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(p => p + 1)}
               >
@@ -283,7 +269,6 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
-
       </div>
     </div>
   );
