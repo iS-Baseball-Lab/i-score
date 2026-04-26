@@ -1,5 +1,4 @@
-// filepath: src/app/(protected)/dashboard/page.tsx
-/* 💡 ダッシュボード（環境ウィジェット連動スタイル ＆ オフライン耐性版） */
+// filepath: `src/app/(protected)/dashboard/page.tsx`
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -7,16 +6,11 @@ import { useRouter } from "next/navigation";
 import { Trophy, Users, PlayCircle, Plus, ChevronLeft, ChevronRight, Activity, Swords, Clock, CloudSun, Navigation, Wind, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchList } from "@/components/matches/match-list";
+import { ScoreTypeSelector } from "@/components/features/dashboard/ScoreTypeSelector"; 
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Match } from "@/types/match";
 import { getWindDirectionLabel, getWMOWeatherText, reverseGeocode, type OpenMeteoResponse } from "@/lib/weather";
-
-interface UserMembership {
-  teamId: string;
-  organizationName: string;
-  teamName: string;
-}
 
 interface WeatherData {
   temp: number;
@@ -28,7 +22,6 @@ interface WeatherData {
 export default function DashboardPage() {
   const router = useRouter();
   const [matches, setMatches] = useState<Match[]>([]);
-  const [teamInfo, setTeamInfo] = useState<{ org: string; name: string } | null>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [locationName, setLocationName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,6 +30,7 @@ export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // 💡 タイマー・マウント・管理者チェック
   useEffect(() => {
     setMounted(true);
     const checkAdminAndStartTimer = async () => {
@@ -47,7 +41,6 @@ export default function DashboardPage() {
           return;
         }
       } catch (err) {
-        // オフライン時はログアウトさせず維持
         console.warn("Auth check deferred. Network might be unstable.");
       }
     };
@@ -56,6 +49,7 @@ export default function DashboardPage() {
     return () => clearInterval(timer);
   }, [router]);
 
+  // 💡 天気・位置情報取得
   useEffect(() => {
     const fetchWeatherAndLocation = async (lat: number, lon: number) => {
       try {
@@ -86,6 +80,7 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // 💡 試合データ取得（チーム名取得部分はヘッダーで行うため削除）
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -93,15 +88,6 @@ export default function DashboardPage() {
         if (!teamId) {
           setIsLoading(false);
           return;
-        }
-
-        const teamRes = await fetch("/api/auth/me");
-        if (teamRes.ok) {
-          const res = (await teamRes.json()) as { data: { memberships: UserMembership[] } };
-          const currentMembership = res.data.memberships.find((m) => m.teamId === teamId);
-          if (currentMembership) {
-            setTeamInfo({ org: currentMembership.organizationName, name: currentMembership.teamName });
-          }
         }
 
         const matchRes = await fetch(`/api/matches?teamId=${teamId}`);
@@ -133,21 +119,17 @@ export default function DashboardPage() {
     <div className="w-full animate-in fade-in duration-500 bg-transparent min-h-screen pb-24">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 sm:space-y-8">
 
-        {/* --- 1. ヒーローセクション --- */}
+        {/* --- 1. タイトルセクション (Dashboardへ変更) --- */}
         <section>
-          <h2 className="text-sm font-black text-primary uppercase tracking-widest mb-1 flex items-center gap-2">
-            <Activity className="h-4 w-4" /> Overview
+          <h2 className="text-xs sm:text-sm font-black text-primary uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+            <Activity className="h-4 w-4" /> Dashboard
           </h2>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight flex flex-wrap gap-x-2">
-            {teamInfo ? (
-              <><span className="text-foreground">{teamInfo.org}</span><span className="text-primary">{teamInfo.name}</span></>
-            ) : (
-              <span className="text-foreground">Team Loading...</span>
-            )}
-          </h1>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            Game Management & Live Recording
+          </p>
         </section>
 
-        {/* --- 🌟 現在地ステータス（中央配置・透過・影なし・ウィジェット連動の角丸） --- */}
+        {/* --- 現在地ステータス --- */}
         <div className="flex justify-center px-1 mb-2">
           <div className="flex items-center gap-2 py-2 px-6 rounded-3xl bg-primary/10 border border-primary/20 text-primary shadow-sm transition-all cursor-default">
             <MapPin className="h-4 w-4 animate-pulse" />
@@ -157,7 +139,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* --- 🌟 環境ウィジェット（rounded-3xl がユーザー設定に連動） --- */}
+        {/* --- 環境ウィジェット --- */}
         <section className="bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm rounded-3xl p-4 sm:p-5">
           <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-4 sm:gap-6">
             <div className="flex items-center gap-3">
@@ -207,42 +189,21 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* --- 2. クイックアクション --- */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <button 
-            onClick={() => router.push('/matches/create?mode=quick')} 
-            className="col-span-2 lg:col-span-2 relative overflow-hidden flex flex-col items-start p-5 sm:p-6 rounded-3xl bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group border border-primary-foreground/10 text-left"
-          >
-            <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500"><PlayCircle className="w-32 h-32" /></div>
-            <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm mb-4"><Plus className="h-6 w-6 text-white" /></div>
-            <h3 className="text-lg sm:text-xl font-black tracking-tight mb-1">Quick Score</h3>
-            <p className="text-xs sm:text-sm font-medium text-primary-foreground/80">試合結果を爆速で入力する</p>
-          </button>
-          <button onClick={() => router.push('/players')} className="flex flex-col items-start justify-between p-5 sm:p-6 rounded-3xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm hover:shadow-md hover:border-primary/40 active:scale-[0.98] transition-all group">
-            <div className="p-3 bg-muted dark:bg-zinc-800 rounded-2xl group-hover:bg-primary/10 group-hover:text-primary transition-colors mb-4"><Users className="h-6 w-6" /></div>
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-foreground mb-1">選手名簿</h3>
-              <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">PLAYERS</p>
-            </div>
-          </button>
-          <button onClick={() => router.push('/team')} className="flex flex-col items-start justify-between p-5 sm:p-6 rounded-3xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm hover:shadow-md hover:border-primary/40 active:scale-[0.98] transition-all group">
-            <div className="p-3 bg-muted dark:bg-zinc-800 rounded-2xl group-hover:bg-primary/10 group-hover:text-primary transition-colors mb-4"><Trophy className="h-6 w-6" /></div>
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-foreground mb-1">チーム成績</h3>
-              <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Analytics</p>
-            </div>
-          </button>
+        {/* --- 2. スコア入力選択 --- */}
+        <section>
+          <ScoreTypeSelector />
         </section>
 
         {/* --- 3. 試合リスト --- */}
         <section className="pt-2 sm:pt-4">
-          <div className="flex items-center justify-between mb-4 px-1">
-            <h2 className="text-xs sm:text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2"><Swords className="h-4 w-4" /> Recent Matches</h2>
-            <Button variant="outline" size="lg" onClick={() => router.push('/matches')} className="text-[12px] font-black uppercase tracking-widest text-primary border-primary/40 hover:bg-primary/10 rounded-full px-6 h-10 shadow-sm transition-all active:scale-95">
-              See All Matches <ChevronRight className="h-4 w-4 ml-1.5" />
-            </Button>
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h2 className="text-lg font-black text-foreground flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-primary rounded-full" />
+              試合一覧
+            </h2>
           </div>
           <MatchList matches={paginatedMatches} isLoading={isLoading} />
+          
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4 mt-8">
               <Button
