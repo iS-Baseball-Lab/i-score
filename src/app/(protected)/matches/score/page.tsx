@@ -103,7 +103,7 @@ function ScorePageContent() {
 
       <footer className="pt-10 text-center opacity-20">
         <p className="text-[10px] font-black tracking-[0.8em] text-muted-foreground uppercase">
-          Tactical Edge • i-Score System
+          Tactical Edge • iScore System
         </p>
       </footer>
     </div>

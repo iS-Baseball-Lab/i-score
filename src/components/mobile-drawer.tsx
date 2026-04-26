@@ -44,7 +44,7 @@ export function MobileDrawer({ isOpen, onClose, onNavigate, onLogout }: Extended
         <div className="flex justify-between items-center mb-8 border-b border-border/40 pb-6">
           <div className="flex flex-col">
             <h2 className="text-3xl font-black italic uppercase tracking-tighter text-foreground leading-none">
-              i-Score
+              iScore
             </h2>
             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60 mt-1">
               Management Hub

@@ -139,10 +139,10 @@ interface RequestCardProps {
 function RequestCard({ request, onAction }: RequestCardProps) {
   const requestDate = request.joinedAt
     ? new Date(request.joinedAt * 1000).toLocaleDateString("ja-JP", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
     : null;
 
   return (
@@ -450,7 +450,7 @@ function TeamRequestsContent() {
       {/* フッター */}
       <footer className="py-4 opacity-20 text-center">
         <p className="text-[10px] font-black uppercase tracking-[0.4em]">
-          Team Management • i-Score
+          Team Management • iScore
         </p>
       </footer>
 

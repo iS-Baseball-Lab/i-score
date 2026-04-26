@@ -37,7 +37,7 @@ export default function PrivacyPage() {
 
           <section className="space-y-4">
             <p className="text-muted-foreground">
-              iS Baseball Lab（以下、「当ラボ」といいます。）は、当ラボが提供するアプリケーション「i-Score」（以下、「本サービス」といいます。）における、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下、「本ポリシー」といいます。）を定めます。
+              iS Baseball Lab（以下、「当ラボ」といいます。）は、当ラボが提供するアプリケーション「iScore」（以下、「本サービス」といいます。）における、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下、「本ポリシー」といいます。）を定めます。
             </p>
           </section>
 

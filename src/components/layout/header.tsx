@@ -75,13 +75,13 @@ export function Header() {
           {/* 🔥 md:hidden を削除！これでPCでもロゴが堂々と表示されます */}
           <img
             src="/logo.webp"
-            alt="i-Score Logo"
+            alt="iScore Logo"
             className="h-10 w-10 sm:h-12 sm:w-12 object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
           />
           <div className="flex flex-col justify-center">
             {/* 🔥 ホバー時に文字色がプライマリーカラーに変化するエフェクトを追加 */}
             <h1 className="text-xl sm:text-3xl font-black italic tracking-tighter text-foreground leading-none group-hover:text-primary transition-colors duration-300">
-              i-Score
+              iScore
             </h1>
             <div className="flex items-center gap-1 mt-0.5 opacity-60 md:hidden">
               <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary fill-primary hidden sm:block" />

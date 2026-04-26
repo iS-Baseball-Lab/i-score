@@ -16,7 +16,7 @@ import { AppShell } from "@/components/layout/app-shell";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "i-Score | Baseball Tactical Hub",
+  title: "iScore | Baseball Tactical Hub",
   description: "Next-gen baseball scoring and analytics platform.",
 };
 

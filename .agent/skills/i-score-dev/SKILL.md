@@ -1,14 +1,14 @@
 ---
-name: i-score-dev
-description: 次世代野球スコア登録アプリ「i-Score」の開発を支援し、技術スタック（Next.js, D1, Drizzle, Better-Auth）に基づいたコーディングと実装をガイドします。
+name: iScore-dev
+description: 次世代野球スコア登録アプリ「iScore」の開発を支援し、技術スタック（Next.js, D1, Drizzle, Better-Auth）に基づいたコーディングと実装をガイドします。
 ---
 
-# i-Score 開発スキル
+# iScore 開発スキル
 
 このスキルは、プロジェクト「i-Score」の開発において、AIアシスタントがプロジェクト固有の技術選定やコーディング標準を遵守するためのものです。
 
 ## 1. 技術スタックの概要
-i-Score は以下の技術スタックを採用しています。
+iScore は以下の技術スタックを採用しています。
 
 - **Frontend**: Next.js (App Router), React 19
 - **Backend/API**: Hono (Next.js 上で稼働)

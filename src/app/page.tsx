@@ -88,7 +88,7 @@ export default function LandingPage() {
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img src="/logo.webp" alt="iScore Logo" className="h-10 w-10 object-contain drop-shadow-sm" />
           <span className="text-3xl font-black italic tracking-tighter text-foreground drop-shadow-sm">
-            i-Score
+            iScore
           </span>
         </Link>
 
@@ -179,7 +179,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 opacity-80">
             <img src="/logo.webp" alt="iScore Logo" className="h-6 w-6 object-contain grayscale" />
-            <span className="text-lg font-black italic tracking-tighter text-foreground">i-Score</span>
+            <span className="text-lg font-black italic tracking-tighter text-foreground">iScore</span>
           </div>
           <p className="text-sm text-muted-foreground font-medium">
             © {new Date().getFullYear()} iS Baseball Lab. All rights reserved.

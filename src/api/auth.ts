@@ -54,7 +54,7 @@ app.get('/me', async (c) => {
       });
     });
   } catch (error) {
-    console.error("[i-Score Error]", error);
+    console.error("[iScore Error]", error);
   }
 
   return c.json({

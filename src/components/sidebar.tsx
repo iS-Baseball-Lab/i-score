@@ -184,7 +184,7 @@ export function Sidebar({
         {!isCollapsed && (
           <div className="pt-4 text-center">
             <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.4em] opacity-30">
-              i-Score OS v2.5
+              iScore OS v2.5
             </p>
           </div>
         )}

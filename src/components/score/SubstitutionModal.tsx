@@ -121,7 +121,7 @@ export function SubstitutionModal({ open, onOpenChange }: { open: boolean, onOpe
             <Repeat className="h-4 w-4" />
             <span className="text-[10px] font-black uppercase tracking-widest leading-none">Quick Swap Ready</span>
           </div>
-          <p className="text-[9px] font-bold">i-Score Personnel System</p>
+          <p className="text-[9px] font-bold">iScore Personnel System</p>
         </div>
       </DialogContent>
     </Dialog>
