@@ -14,9 +14,9 @@ import React from "react";
  * - ログアウト：セッションを終了しゲート（ログイン画面）へ戻る導線。
  */
 import Link from "next/link";
-import { 
-  ChevronDown, 
-  LogOut, 
+import {
+  ChevronDown,
+  LogOut,
   Menu,
   ChevronLeft,
   Shield
@@ -25,21 +25,21 @@ import { cn } from "@/lib/utils";
 import { NavItem, SidebarProps } from "@/types/navigation";
 import { Badge } from "@/components/ui/badge";
 
-export function Sidebar({ 
-  session, 
-  pathname, 
-  isCollapsed, 
+export function Sidebar({
+  session,
+  pathname,
+  isCollapsed,
   toggleSidebar,
   mainNavItems,
   bottomNavItems,
-  onLogout 
+  onLogout
 }: SidebarProps) {
 
   // 💡 チーム情報のモック（実際には session.memberships などから取得）
   const currentTeam = {
     name: "Prime Bears",
     roleLabel: "監督",
-    logo: "/logo.png"
+    logo: "/logo.webp"
   };
 
   /**
@@ -55,17 +55,17 @@ export function Sidebar({
         href={item.href}
         className={cn(
           "flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 group relative",
-          isActive 
-            ? "bg-primary/10 text-primary" 
+          isActive
+            ? "bg-primary/10 text-primary"
             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
         )}
       >
         <Icon className={cn(
-          "h-5 w-5 shrink-0 transition-transform duration-300", 
+          "h-5 w-5 shrink-0 transition-transform duration-300",
           isActive && "stroke-[2.5px]",
           !isActive && "group-hover:scale-110"
         )} />
-        
+
         {!isCollapsed && (
           <span className="text-sm font-black italic tracking-tight uppercase animate-in fade-in duration-500">
             {item.name}
@@ -92,7 +92,7 @@ export function Sidebar({
       "fixed left-0 top-0 h-screen z-50 bg-background/40 backdrop-blur-3xl border-r border-border/40 transition-all duration-500 ease-in-out hidden md:flex flex-col shadow-none",
       isCollapsed ? "w-20" : "w-64"
     )}>
-      
+
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           1. チームスイッチャーエリア
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
@@ -105,7 +105,7 @@ export function Sidebar({
           <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
             <img src={currentTeam.logo} alt="Team Logo" className="h-6 w-6 object-contain" />
           </div>
-          
+
           {/* チーム名とロール（展開時のみ） */}
           {!isCollapsed && (
             <div className="flex-1 text-left overflow-hidden animate-in fade-in duration-500">
@@ -119,7 +119,7 @@ export function Sidebar({
               </div>
             </div>
           )}
-          
+
           {!isCollapsed && (
             <ChevronDown className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
           )}
@@ -136,7 +136,7 @@ export function Sidebar({
         )}>
           {isCollapsed ? "•" : "Operational Menu"}
         </p>
-        
+
         {mainNavItems.map((item) => (
           <NavLink key={item.href} item={item} />
         ))}
@@ -146,12 +146,12 @@ export function Sidebar({
           3. フッターエリア（設定・ログアウト・開閉）
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="px-3 py-6 border-t border-border/40 space-y-1.5 bg-muted/5">
-        
+
         {/* 下部ナビゲーション（設定など） */}
         {bottomNavItems.map((item) => (
           <NavLink key={item.href} item={item} />
         ))}
-        
+
         {/* 🚪 ログアウトボタン */}
         <button
           onClick={onLogout}
@@ -167,7 +167,7 @@ export function Sidebar({
         </button>
 
         {/* コラップス（折りたたみ）制御ボタン */}
-        <button 
+        <button
           onClick={toggleSidebar}
           className="w-full flex items-center justify-center pt-6 opacity-20 hover:opacity-100 transition-opacity"
         >

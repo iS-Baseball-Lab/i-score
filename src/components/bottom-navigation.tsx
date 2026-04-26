@@ -59,8 +59,8 @@ export function BottomNavigation({ activeTab, onNavigate, onOpenDrawer }: Bottom
               activeTab === "dashboard" ? "ring-2 ring-primary/50" : "opacity-90 hover:opacity-100"
             )}>
               <img
-                src="/logo.png"
-                alt="i-Score"
+                src="/logo.webp"
+                alt="iScore"
                 className={cn("h-10 w-10 object-contain transition-transform duration-500", activeTab !== "dashboard" && "grayscale opacity-70")}
               />
             </div>

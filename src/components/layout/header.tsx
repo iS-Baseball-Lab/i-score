@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link"; // 🔥 追加：Next.jsの最強リンクコンポーネント
 import { Zap, Crown } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
-import { UserSession } from "@/types/auth"; 
+import { UserSession } from "@/types/auth";
 import { TeamSwitcher } from "@/components/layout/team-switcher";
 import { UserProfileMenu } from "@/components/layout/user-profile-menu";
 
@@ -33,7 +33,7 @@ export function Header() {
             "Pragma": "no-cache"
           }
         });
-        
+
         if (!response.ok) throw new Error("Failed to fetch user");
         const json = await response.json() as AuthResponse;
         if (json.success) setUser(json.data);
@@ -67,16 +67,16 @@ export function Header() {
       <div className="flex h-16 sm:h-20 items-center justify-between px-3 sm:px-8">
 
         {/* 🌟 左側: ロゴ & アプリタイトル (最強のLinkコンポーネント化) */}
-        <Link 
-          href="/dashboard" 
+        <Link
+          href="/dashboard"
           className="flex items-center gap-2.5 sm:gap-4 shrink-0 group outline-none"
           title="ダッシュボードへ戻る"
         >
           {/* 🔥 md:hidden を削除！これでPCでもロゴが堂々と表示されます */}
-          <img 
-            src="/logo.png" 
-            alt="i-Score Logo" 
-            className="h-10 w-10 sm:h-12 sm:w-12 object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-300" 
+          <img
+            src="/logo.webp"
+            alt="i-Score Logo"
+            className="h-10 w-10 sm:h-12 sm:w-12 object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
           />
           <div className="flex flex-col justify-center">
             {/* 🔥 ホバー時に文字色がプライマリーカラーに変化するエフェクトを追加 */}
@@ -94,7 +94,7 @@ export function Header() {
 
         {/* 右側: ツールエリア */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 w-full justify-end">
-          
+
           {isAdmin && (
             <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 pl-1 pr-2 sm:pr-3 py-1 sm:py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 shadow-sm select-none">
               <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border border-amber-500/30 bg-amber-500/20 flex items-center justify-center shrink-0">
@@ -108,17 +108,17 @@ export function Header() {
           )}
 
           {/* チームスイッチャー（子コンポーネント） */}
-          <TeamSwitcher 
-            activeTeam={activeTeam} 
-            memberships={user?.memberships || []} 
-            onTeamSwitch={handleTeamSwitch} 
+          <TeamSwitcher
+            activeTeam={activeTeam}
+            memberships={user?.memberships || []}
+            onTeamSwitch={handleTeamSwitch}
           />
 
           {/* ユーザープロファイルメニュー（子コンポーネント） */}
-          <UserProfileMenu 
-            user={user} 
-            isLoading={isLoading} 
-            onLogout={handleLogout} 
+          <UserProfileMenu
+            user={user}
+            isLoading={isLoading}
+            onLogout={handleLogout}
           />
 
         </div>

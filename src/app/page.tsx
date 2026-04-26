@@ -86,7 +86,7 @@ export default function LandingPage() {
       <header className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 h-20 transition-all duration-300 ${isScrolled ? "bg-background/80 backdrop-blur-md border-b border-border/50" : "bg-transparent"
         }`}>
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <img src="/logo.png" alt="i-Score Logo" className="h-10 w-10 object-contain drop-shadow-sm" />
+          <img src="/logo.webp" alt="iScore Logo" className="h-10 w-10 object-contain drop-shadow-sm" />
           <span className="text-3xl font-black italic tracking-tighter text-foreground drop-shadow-sm">
             i-Score
           </span>
@@ -178,7 +178,7 @@ export default function LandingPage() {
       <footer className="relative z-10 w-full border-t border-border/40 bg-background/60 backdrop-blur-md py-8 mt-auto">
         <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 opacity-80">
-            <img src="/logo.png" alt="i-Score Logo" className="h-6 w-6 object-contain grayscale" />
+            <img src="/logo.webp" alt="iScore Logo" className="h-6 w-6 object-contain grayscale" />
             <span className="text-lg font-black italic tracking-tighter text-foreground">i-Score</span>
           </div>
           <p className="text-sm text-muted-foreground font-medium">
