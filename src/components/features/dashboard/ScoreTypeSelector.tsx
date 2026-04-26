@@ -3,70 +3,69 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Zap, PencilLine, ChevronRight, Trophy } from "lucide-react";
+import { Zap, PencilLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const ScoreTypeSelector = () => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col gap-4 p-1">
-      {/* 🌟 MAIN: Real Score - 情熱のプライマリーボタン */}
+    <div className="grid grid-cols-2 gap-3 px-1">
+      {/* 🌟 MAIN: Real Score - 左側に配置し、塗り（Solid）で圧倒的な存在感 */}
       <button
         onClick={() => router.push('/matches/new')}
         className={cn(
-          "relative group overflow-hidden flex items-center gap-5 p-6 rounded-[32px] transition-all active:scale-[0.97]",
-          "bg-primary text-primary-foreground shadow-xl shadow-primary/20 border border-white/10"
+          "relative group overflow-hidden flex flex-col items-center justify-center p-5 transition-all active:scale-[0.96]",
+          "bg-primary text-primary-foreground shadow-lg shadow-primary/20 border border-white/10",
+          "rounded-[inherit]" // 💡 親の角丸設定（Dashboard側のウィジェット等）を継承
         )}
       >
-        {/* 背景の光彩エフェクト */}
-        <div className="absolute -right-8 -bottom-8 opacity-20 group-hover:scale-125 transition-transform duration-700">
-          <PencilLine className="w-40 h-40 rotate-12" />
+        {/* 背景の透かしアイコン */}
+        <div className="absolute -right-2 -bottom-2 opacity-10 group-hover:scale-110 transition-transform duration-500">
+          <PencilLine className="w-20 h-20 rotate-12" />
         </div>
 
-        {/* アイコン：白背景で際立たせる */}
-        <div className="relative z-10 p-4 bg-white/20 backdrop-blur-md rounded-2xl shadow-inner border border-white/30">
-          <PencilLine className="h-7 w-7 text-white" />
-        </div>
-
-        {/* テキスト：力強く */}
-        <div className="relative z-10 flex-1 text-left">
-          <div className="flex items-center gap-2 mb-0.5">
-            <h3 className="text-xl font-black tracking-tighter uppercase">Real Score</h3>
-            <span className="px-2 py-0.5 bg-white text-primary text-[9px] font-black rounded-full uppercase tracking-tighter">
-              Recommend
-            </span>
+        <div className="relative z-10 flex flex-col items-center text-center gap-3">
+          {/* アイコンサイズを統一 (h-6 w-6) */}
+          <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20">
+            <PencilLine className="h-6 w-6 text-white" />
           </div>
-          <p className="text-xs font-bold text-primary-foreground/70 leading-relaxed">
-            一球一球のドラマを刻む、本格的スコアリング
-          </p>
+          
+          <div>
+            <h3 className="text-sm sm:text-base font-black tracking-tighter uppercase leading-none mb-1">
+              Real Score
+            </h3>
+            <p className="text-[9px] font-bold text-primary-foreground/60 leading-tight">
+              一球一球を<br/>本格的に記録
+            </p>
+          </div>
         </div>
-
-        <ChevronRight className="relative z-10 h-6 w-6 text-white/50 group-hover:translate-x-1 transition-transform" />
       </button>
 
-      {/* ⚡️ SUB: Quick Score - スマートなアウトラインボタン */}
+      {/* ⚡️ SUB: Quick Score - 右側に配置し、太い枠線（2px）でスマートに存在感 */}
       <button
         onClick={() => router.push('/matches/create?mode=quick')}
         className={cn(
-          "relative group flex items-center gap-4 p-5 rounded-[28px] transition-all active:scale-[0.98]",
-          "bg-card border-2 border-primary/20 hover:border-primary/40 text-left shadow-sm"
+          "relative group overflow-hidden flex flex-col items-center justify-center p-5 transition-all active:scale-[0.96]",
+          "bg-card border-[3px] border-primary text-foreground shadow-sm", // 💡 枠線を太く(3px)して存在感を強調
+          "rounded-[inherit]" // 💡 角丸を統一
         )}
       >
-        <div className="p-3 bg-amber-500/10 rounded-2xl border border-amber-500/20">
-          <Zap className="h-6 w-6 text-amber-600" />
-        </div>
+        <div className="relative z-10 flex flex-col items-center text-center gap-3">
+          {/* アイコンサイズ・スタイルをRealと統一 */}
+          <div className="p-3 bg-amber-500/10 rounded-2xl border border-amber-500/20">
+            <Zap className="h-6 w-6 text-amber-600" />
+          </div>
 
-        <div className="flex-1">
-          <h3 className="text-base font-black text-foreground tracking-tight flex items-center gap-2">
-            Quick Score
-          </h3>
-          <p className="text-[11px] font-bold text-muted-foreground">
-            試合結果のみを最短10秒でスピード記録
-          </p>
+          <div>
+            <h3 className="text-sm sm:text-base font-black tracking-tighter uppercase leading-none mb-1">
+              Quick Score
+            </h3>
+            <p className="text-[9px] font-bold text-muted-foreground leading-tight">
+              結果のみを<br/>爆速で記録
+            </p>
+          </div>
         </div>
-
-        <ChevronRight className="h-5 w-5 text-muted-foreground/30" />
       </button>
     </div>
   );
