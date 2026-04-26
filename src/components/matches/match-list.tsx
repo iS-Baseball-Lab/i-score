@@ -15,7 +15,7 @@ interface MatchListProps {
   onDelete?: (id: string) => void;
 }
 
-// 🔥 現場仕様：スコアのフォーマット関数（x・ハイフン対応）
+// 🔥 現場仕様：スコアのフォーマット関数
 interface FormatScoreProps {
   score: number | null | undefined;
   isBottom: boolean;
@@ -38,7 +38,9 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [swipeId, setSwipeId] = useState<string | null>(null);
   const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0); // 💡 追加：縦方向の開始位置
   const [offsetX, setOffsetX] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false); // 💡 追加：スクロール中かどうかのフラグ
 
   const [teamFullName, setTeamFullName] = useState("");
 
@@ -60,31 +62,45 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
 
   if (isLoading) return <div className="space-y-3">{[1, 2, 3].map((i) => (<div key={i} className="h-28 w-full rounded-2xl bg-muted/50 animate-pulse" />))}</div>;
 
-  // 🌟 スマートなスワイプ挙動（コンテキストが変わったら自動で閉じる）
   const handleTouchStart = (e: React.TouchEvent, id: string) => {
-    // 💡 修正：スクロールで閉じないようにするため、ここでの expandedId 重複チェックは維持しつつ、
-    // スクロールイベントに紐づくリセット処理がないことを確認
     setStartX(e.touches[0].clientX);
+    setStartY(e.touches[0].clientY); // 💡 縦の開始位置を記録
     setSwipeId(id);
+    setIsScrolling(false); // リセット
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const currentX = e.touches[0].clientX;
-    const diff = currentX - startX;
+    const currentY = e.touches[0].clientY;
+    const diffX = currentX - startX;
+    const diffY = currentY - startY;
 
-    // スワイプ（横移動）が明確に発生した時だけ、操作の邪魔にならないよう閉じる
-    // 💡 縦スクロール時には diff (横移動) が小さいため、expandedId は維持されます
-    if (Math.abs(diff) > 30 && expandedId !== null) {
-      setExpandedId(null);
+    // 💡 縦スクロール判定：縦の移動量が横の移動量より大きい場合はスクロールとみなす
+    if (!isScrolling && Math.abs(diffY) > Math.abs(diffX)) {
+      setIsScrolling(true);
+      return;
     }
 
-    if (Math.abs(diff) < 100) setOffsetX(diff);
+    // スクロール中なら横スワイプを処理しない
+    if (isScrolling) return;
+
+    // 横スワイプの感度調整（5px以上動いたらスワイプ開始）
+    if (Math.abs(diffX) > 5) {
+      if (expandedId !== null) {
+        setExpandedId(null);
+      }
+      if (Math.abs(diffX) < 100) setOffsetX(diffX);
+    }
   };
 
   const handleTouchEnd = () => {
     if (offsetX > 50) setOffsetX(80);
     else if (offsetX < -50) setOffsetX(-80);
-    else { setOffsetX(0); setSwipeId(null); }
+    else { 
+      setOffsetX(0); 
+      setSwipeId(null); 
+    }
+    setIsScrolling(false);
   };
 
   const handleDelete = async (id: string) => {
@@ -136,7 +152,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
             {/* スワイプ時の背面ボタン */}
             <div className={cn(
               "absolute inset-0 flex items-center justify-between px-1 transition-opacity duration-200",
-              Math.abs(offsetX) > 0 ? "opacity-100" : "opacity-0 pointer-events-none"
+              (isSwiping && Math.abs(offsetX) > 10) ? "opacity-100" : "opacity-0 pointer-events-none"
             )}>
               <button
                 onClick={() => router.push(`/matches/edit?id=${match.id}`)}
@@ -154,7 +170,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
               </button>
             </div>
 
-            {/* カード本体 */}
             <div
               onTouchStart={(e) => handleTouchStart(e, match.id)}
               onTouchMove={(e) => handleTouchMove(e)}
@@ -162,7 +177,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
               style={{ transform: isSwiping ? `translateX(${offsetX}px)` : 'translateX(0)' }}
               className={cn(
                 "relative z-10 rounded-2xl border transition-all duration-300 ease-out",
-                // ✨ 修正：backdrop-blur-sm を削除し、透過なしの bg-primary/10 (または bg-secondary) へ変更
                 isExpanded
                   ? "bg-primary/10 border-primary shadow-md shadow-primary/5"
                   : "bg-card border-border/50 shadow-sm"
@@ -175,6 +189,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                   setOffsetX(0); setSwipeId(null);
                 }}
               >
+                {/* 既存の表示ロジックを維持 */}
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
@@ -220,22 +235,16 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                   </div>
                 </div>
 
-                {/* 🌟 展開時：イニングスコア */}
                 {isExpanded && (
                   <div className="mt-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm">
                       <div className="overflow-x-auto">
                         <table className="w-full text-center whitespace-nowrap">
-                          {/* 💡 修正：背景の透過・ぼかしを排除し、視認性の高い配色へ */}
                           <thead className="bg-primary/5 border-b border-border/50">
                             <tr>
-                              <th className="py-2 px-3 text-left font-normal text-muted-foreground text-xs w-20 md:w-32">
-                                TEAM
-                              </th>
+                              <th className="py-2 px-3 text-left font-normal text-muted-foreground text-xs w-20 md:w-32">TEAM</th>
                               {Array.from({ length: inningCount }).map((_, i) => (
-                                <th key={i} className="py-2 px-1 sm:px-2 text-sm md:text-base font-semibold text-foreground">
-                                  {i + 1}
-                                </th>
+                                <th key={i} className="py-2 px-1 sm:px-2 text-sm md:text-base font-semibold text-foreground">{i + 1}</th>
                               ))}
                               <th className="py-2 px-3 text-sm md:text-base font-bold text-primary">R</th>
                             </tr>
@@ -249,12 +258,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                               </td>
                               {Array.from({ length: inningCount }).map((_, i) => (
                                 <td key={`top-${i}`} className="py-2 text-muted-foreground">
-                                  {formatScoreDisplay({
-                                    score: topScores[i],
-                                    isBottom: false,
-                                    isInningFinal: i === inningCount - 1,
-                                    isHomeWinning
-                                  })}
+                                  {formatScoreDisplay({ score: topScores[i], isBottom: false, isInningFinal: i === inningCount - 1, isHomeWinning })}
                                 </td>
                               ))}
                               <td className="py-2 px-3 font-bold text-primary">{firstScore}</td>
@@ -267,12 +271,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                               </td>
                               {Array.from({ length: inningCount }).map((_, i) => (
                                 <td key={`bottom-${i}`} className="py-2 text-foreground font-semibold">
-                                  {formatScoreDisplay({
-                                    score: bottomScores[i],
-                                    isBottom: true,
-                                    isInningFinal: i === inningCount - 1,
-                                    isHomeWinning
-                                  })}
+                                  {formatScoreDisplay({ score: bottomScores[i], isBottom: true, isInningFinal: i === inningCount - 1, isHomeWinning })}
                                 </td>
                               ))}
                               <td className="py-2 px-3 font-bold text-primary">{secondScore}</td>
