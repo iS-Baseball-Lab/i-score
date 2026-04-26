@@ -26,7 +26,7 @@ export function ThemeSwitcher({ variant = "grid" }: { variant?: "grid" | "dropdo
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    const saved = localStorage.getItem("i-score-color-theme") || "blue";
+    const saved = localStorage.getItem("iscore-color-theme") || "blue";
     setActiveTheme(saved);
     applyTheme(saved);
     setMounted(true);
@@ -38,7 +38,7 @@ export function ThemeSwitcher({ variant = "grid" }: { variant?: "grid" | "dropdo
     THEMES.forEach((t) => root.classList.remove(`theme-${t.id}`));
     // 新しいテーマクラスを追加
     root.classList.add(`theme-${themeId}`);
-    localStorage.setItem("i-score-color-theme", themeId);
+    localStorage.setItem("iscore-color-theme", themeId);
     setActiveTheme(themeId);
   };
 

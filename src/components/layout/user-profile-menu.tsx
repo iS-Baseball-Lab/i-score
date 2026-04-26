@@ -68,8 +68,8 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
   const unreadNotificationsCount = 3;
 
   useEffect(() => {
-    const savedColor = localStorage.getItem("i-score-color-theme") || "blue";
-    const savedDesign = localStorage.getItem("i-score-design-theme") || "modern";
+    const savedColor = localStorage.getItem("iscore-color-theme") || "blue";
+    const savedDesign = localStorage.getItem("iscore-design-theme") || "modern";
 
     setActiveThemeColor(savedColor);
     setActiveDesign(savedDesign);
@@ -87,7 +87,7 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
     const root = document.documentElement;
     THEMES.forEach((t) => root.classList.remove(`theme-${t.id}`));
     root.classList.add(`theme-${themeId}`);
-    localStorage.setItem("i-score-color-theme", themeId);
+    localStorage.setItem("iscore-color-theme", themeId);
     setActiveThemeColor(themeId);
   };
 
@@ -95,7 +95,7 @@ export function UserProfileMenu({ user, isLoading, onLogout }: UserProfileMenuPr
     const root = document.documentElement;
     DESIGNS.forEach((d) => root.classList.remove(`design-${d.id}`));
     root.classList.add(`design-${designId}`);
-    localStorage.setItem("i-score-design-theme", designId);
+    localStorage.setItem("iscore-design-theme", designId);
     setActiveDesign(designId);
   };
 

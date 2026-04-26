@@ -74,7 +74,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
         <p>
           Developed by{" "}
           <a
-            href="https://github.com/Insomnia-Scorer/i-score"
+            href="https://github.com/Insomnia-Scorer/iscore"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground transition-colors font-bold"

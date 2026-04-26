@@ -31,7 +31,7 @@ export default function LandingPage() {
     const systemThemeMedia = window.matchMedia("(prefers-color-scheme: dark)");
 
     // 1. 保存されたテーマがあれば読み込む
-    const savedTheme = localStorage.getItem("i-score-theme") as Theme | null;
+    const savedTheme = localStorage.getItem("iscore-theme") as Theme | null;
     if (savedTheme) {
       setTheme(savedTheme);
     }
@@ -58,7 +58,7 @@ export default function LandingPage() {
   // 💡 テーマを切り替えて保存する関数
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
-    localStorage.setItem("i-score-theme", newTheme);
+    localStorage.setItem("iscore-theme", newTheme);
   };
 
   useEffect(() => {

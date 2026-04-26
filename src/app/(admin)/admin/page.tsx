@@ -14,7 +14,7 @@ export default function AdminDashboardPage() {
         href="/"
         icon={Settings}
         title="システム管理"
-        subtitle="i-score プラットフォーム全体の管理を行います。"
+        subtitle="iScore プラットフォーム全体の管理を行います。"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

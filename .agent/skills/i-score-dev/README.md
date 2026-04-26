@@ -1,4 +1,4 @@
-# i-score-dev Skill
+# iscore-dev Skill
 
 このフォルダには、iScore プロジェクトの開発を支援するための AI アシスタント用スキルが含まれています。
 
