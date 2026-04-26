@@ -57,17 +57,25 @@ export function BottomNavigation({ activeTab, onNavigate, onOpenDrawer }: Bottom
               activeTab === "dashboard" ? "bg-primary/30" : "bg-transparent"
             )} />
 
-            {/* 🔥 コンテナを特大化: h-16 w-16 (64px) -> h-20 w-20 (80px) */}
-            {/* 🚨 脱・グラスモーフィズム: backdrop-blur-md を削除し、ソリッドな bg-card を採用。影(shadow-md)を足して立体感を強調 */}
+            {/* 🔥 コンテナを調整
+                - サイズは h-20 w-20 (80px) のまま。
+                - 🔥 Border を削除 (`border-[3px] border-background`)。
+                - 🔥 Background を削除 (`bg-card`)。
+                - `overflow-hidden` と `rounded-full` は維持して丸くトリミング。
+                - 影 (`shadow-md`) は維持。
+            */}
             <div className={cn(
-              "relative flex items-center justify-center h-20 w-20 rounded-full border-[3px] border-background bg-card transition-all duration-300 active:scale-95 overflow-hidden shadow-md",
+              "relative flex items-center justify-center h-20 w-20 rounded-full transition-all duration-300 active:scale-95 overflow-hidden shadow-md",
               activeTab === "dashboard" ? "ring-2 ring-primary/50" : "opacity-90 hover:opacity-100"
             )}>
-              {/* 🔥 画像サイズを拡大: h-10 w-10 (40px) -> h-14 w-14 (56px) */}
+              {/* 🔥 画像をコンテナいっぱいに広げる
+                  - サイズを h-14 w-14 -> h-full w-full に。
+                  - 🚨 `object-contain` -> `object-cover` に変更し、コンテナを完全に埋める。
+              */}
               <img
                 src="/logo.webp"
                 alt="iScore"
-                className={cn("h-14 w-14 object-contain transition-transform duration-500", activeTab !== "dashboard" && "grayscale opacity-70")}
+                className={cn("h-full w-full object-cover transition-transform duration-500", activeTab !== "dashboard" && "grayscale opacity-70")}
               />
             </div>
           </button>
