@@ -9,60 +9,63 @@ import { cn } from "@/lib/utils";
 export const ScoreTypeSelector = () => {
   const router = useRouter();
 
+  // 💡 カスタム指示に基づき、角丸はプロジェクト標準の rounded-3xl をベースに調整
+  const cardStyle = "rounded-[24px] sm:rounded-[32px]"; 
+
   return (
-    <div className="grid grid-cols-2 gap-3 px-1">
-      {/* 🌟 MAIN: Real Score - 左側に配置し、塗り（Solid）で圧倒的な存在感 */}
+    <div className="grid grid-cols-2 gap-4 px-1">
+      {/* 🌟 MAIN: Real Score - 左側に配置 */}
       <button
         onClick={() => router.push('/matches/new')}
         className={cn(
-          "relative group overflow-hidden flex flex-col items-center justify-center p-5 transition-all active:scale-[0.96]",
+          "relative group overflow-hidden flex flex-col items-center justify-center p-6 transition-all active:scale-[0.96]",
           "bg-primary text-primary-foreground shadow-lg shadow-primary/20 border border-white/10",
-          "rounded-[inherit]" // 💡 親の角丸設定（Dashboard側のウィジェット等）を継承
+          cardStyle
         )}
       >
-        {/* 背景の透かしアイコン */}
+        {/* 背景の透かしアイコン：さりげない演出 */}
         <div className="absolute -right-2 -bottom-2 opacity-10 group-hover:scale-110 transition-transform duration-500">
           <PencilLine className="w-20 h-20 rotate-12" />
         </div>
 
         <div className="relative z-10 flex flex-col items-center text-center gap-3">
-          {/* アイコンサイズを統一 (h-6 w-6) */}
+          {/* アイコンサイズ: 現場で見やすいサイズ */}
           <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20">
-            <PencilLine className="h-6 w-6 text-white" />
+            <PencilLine className="h-7 w-7 text-white" />
           </div>
           
-          <div>
-            <h3 className="text-sm sm:text-base font-black tracking-tighter uppercase leading-none mb-1">
+          <div className="space-y-1">
+            <h3 className="text-base sm:text-lg font-black tracking-tighter uppercase leading-tight">
               Real Score
             </h3>
-            <p className="text-[9px] font-bold text-primary-foreground/60 leading-tight">
-              一球一球を<br/>本格的に記録
+            {/* 説明文を1行に凝縮 & フォントサイズ調整 */}
+            <p className="text-[10px] sm:text-xs font-bold text-primary-foreground/70 whitespace-nowrap">
+              一球一球を本格的に記録
             </p>
           </div>
         </div>
       </button>
 
-      {/* ⚡️ SUB: Quick Score - 右側に配置し、太い枠線（2px）でスマートに存在感 */}
+      {/* ⚡️ SUB: Quick Score - 右側に配置 */}
       <button
         onClick={() => router.push('/matches/create?mode=quick')}
         className={cn(
-          "relative group overflow-hidden flex flex-col items-center justify-center p-5 transition-all active:scale-[0.96]",
-          "bg-card border-[3px] border-primary text-foreground shadow-sm", // 💡 枠線を太く(3px)して存在感を強調
-          "rounded-[inherit]" // 💡 角丸を統一
+          "relative group overflow-hidden flex flex-col items-center justify-center p-6 transition-all active:scale-[0.96]",
+          "bg-card border-[4px] border-primary text-foreground shadow-sm", // 💡 枠線をさらに太く(4px)
+          cardStyle
         )}
       >
         <div className="relative z-10 flex flex-col items-center text-center gap-3">
-          {/* アイコンサイズ・スタイルをRealと統一 */}
           <div className="p-3 bg-amber-500/10 rounded-2xl border border-amber-500/20">
-            <Zap className="h-6 w-6 text-amber-600" />
+            <Zap className="h-7 w-7 text-amber-600" />
           </div>
 
-          <div>
-            <h3 className="text-sm sm:text-base font-black tracking-tighter uppercase leading-none mb-1">
+          <div className="space-y-1">
+            <h3 className="text-base sm:text-lg font-black tracking-tighter uppercase leading-tight">
               Quick Score
             </h3>
-            <p className="text-[9px] font-bold text-muted-foreground leading-tight">
-              結果のみを<br/>爆速で記録
+            <p className="text-[10px] sm:text-xs font-bold text-muted-foreground whitespace-nowrap">
+              結果のみを爆速で記録
             </p>
           </div>
         </div>
