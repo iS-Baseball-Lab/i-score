@@ -1,3 +1,4 @@
+// filepath: `src/components/layout/EmptyState.tsx`
 import React from "react";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,18 +14,21 @@ export function EmptyState({ icon: Icon, title, description, className }: EmptyS
   return (
     <div className={cn(
       "flex flex-col items-center justify-center text-center p-10 rounded-3xl transition-all",
-      // 💡 視認性向上：透過を抑え、カードの存在感を強調
-      "bg-card border-2 border-dashed border-border/60 shadow-sm",
+      // 💡 透過度を 60% (bg-card/60) に設定。backdrop-blurを薄くかけて洗練さをプラス。
+      "bg-card/60 backdrop-blur-[2px] border-2 border-dashed border-border/40 shadow-sm",
       className
     )}>
-      <div className="p-4 bg-primary/5 rounded-full mb-4 border border-primary/10">
-        <Icon className="h-8 w-8 text-primary/40" />
+      {/* アイコン周りも少し透けさせて馴染ませる */}
+      <div className="p-4 bg-primary/5 rounded-full mb-4 border border-primary/5">
+        <Icon className="h-8 w-8 text-primary/30" />
       </div>
-      <h3 className="text-base font-black text-foreground/80 uppercase tracking-wider leading-tight">
+
+      <h3 className="text-base font-black text-foreground/70 uppercase tracking-wider leading-tight">
         {title}
       </h3>
+
       {description && (
-        <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mt-3">
+        <p className="text-[10px] sm:text-xs font-bold text-muted-foreground/50 uppercase tracking-[0.3em] mt-3">
           {description}
         </p>
       )}
