@@ -304,20 +304,20 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 
+    /* 💡 波線を復活させつつ、色の濃淡を最適化 */
     background-image:
-      /* 1. 左上のプライマリーカラーの光：少し広がりを抑えて濃度を調整 */
-      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) 5%, transparent) 0%, transparent 50vw),
+      /* 1. 角の光（オーラ） */
+      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
+      radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
       
-      /* 2. 右下の光：対角線上のバランスをとる */
-      radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) 5%, transparent) 0%, transparent 50vw),
-      
-      /* 3. 波紋テクスチャ：背景色との境界をより滑らかに */
-      repeating-radial-gradient(circle at 0 0, transparent 0, var(--background) 40px),
-      
-      /* 4. 全体のオーバーレイ：わずかにノイズ感を加えて「板」っぽさを消す */
-      linear-gradient(to bottom, var(--background), var(--background));
+      /* 2. ⚾️ 波線の復活：var(--background) と var(--wavy-color) の交互配置でクッキリさせる */
+      repeating-radial-gradient(
+        circle at 0 0, 
+        var(--background) 0, 
+        var(--background) calc(var(--wavy-size) * 0.5), 
+        var(--wavy-color) var(--wavy-size)
+      );
 
     background-attachment: fixed;
-    /* 💡 背景が要素と一緒にスクロールしないように固定することで、高級感を出します */
   }
 }
