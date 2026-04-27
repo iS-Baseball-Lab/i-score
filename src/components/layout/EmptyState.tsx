@@ -15,7 +15,7 @@ export function EmptyState({ icon: Icon, title, description, className }: EmptyS
     <div className={cn(
       "flex flex-col items-center justify-center text-center p-10 rounded-3xl transition-all",
       // 💡 透過度を 60% (bg-card/60) に設定。backdrop-blurを薄くかけて洗練さをプラス。
-      "bg-card/60 backdrop-blur-[2px] border-2 border-dashed border-border/40 shadow-sm",
+      "bg-card/50 border-2 border-dashed border-border/40 shadow-xs",
       className
     )}>
       {/* アイコン周りも少し透けさせて馴染ませる */}
