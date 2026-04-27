@@ -305,11 +305,19 @@
     font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 
     background-image:
-      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
-      radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
-      repeating-radial-gradient(circle at 0 0, transparent 0, var(--background) var(--wavy-size)),
-      repeating-linear-gradient(var(--wavy-color), var(--wavy-color));
+      /* 1. 左上のプライマリーカラーの光：少し広がりを抑えて濃度を調整 */
+      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) 5%, transparent) 0%, transparent 50vw),
+      
+      /* 2. 右下の光：対角線上のバランスをとる */
+      radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) 5%, transparent) 0%, transparent 50vw),
+      
+      /* 3. 波紋テクスチャ：背景色との境界をより滑らかに */
+      repeating-radial-gradient(circle at 0 0, transparent 0, var(--background) 40px),
+      
+      /* 4. 全体のオーバーレイ：わずかにノイズ感を加えて「板」っぽさを消す */
+      linear-gradient(to bottom, var(--background), var(--background));
 
     background-attachment: fixed;
+    /* 💡 背景が要素と一緒にスクロールしないように固定することで、高級感を出します */
   }
 }
