@@ -3,25 +3,18 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-// 💡 Activity, MapPin, Swords などのインポートを確実に行う
-import {
-  Trophy,
-  Users,
-  PlayCircle,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  Activity,
-  Swords,
-  Clock,
-  CloudSun,
-  Navigation,
-  Wind,
-  MapPin
+import { 
+  ChevronRight, 
+  Activity, 
+  Clock, 
+  CloudSun, 
+  Navigation, 
+  Wind, 
+  MapPin 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchList } from "@/components/matches/match-list";
-import { ScoreTypeSelector } from "@/components/features/dashboard/ScoreTypeSelector";
+import { ScoreTypeSelector } from "@/components/features/dashboard/ScoreTypeSelector"; 
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Match } from "@/types/match";
@@ -42,8 +35,6 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mounted, setMounted] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
   useEffect(() => {
     setMounted(true);
@@ -55,7 +46,7 @@ export default function DashboardPage() {
           return;
         }
       } catch (err) {
-        console.warn("Auth check deferred. Network might be unstable.");
+        console.warn("Auth check deferred.");
       }
     };
     checkAdminAndStartTimer();
@@ -63,6 +54,7 @@ export default function DashboardPage() {
     return () => clearInterval(timer);
   }, [router]);
 
+  // 天気・位置情報取得 (ロジック維持)
   useEffect(() => {
     const fetchWeatherAndLocation = async (lat: number, lon: number) => {
       try {
@@ -80,27 +72,21 @@ export default function DashboardPage() {
         }
         const name = await reverseGeocode(lat, lon);
         setLocationName(name);
-      } catch (e) {
-        console.error("Weather fetch error", e);
-      }
+      } catch (e) { console.error(e); }
     };
-
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => fetchWeatherAndLocation(pos.coords.latitude, pos.coords.longitude),
-        () => console.log("Geolocation access denied")
+        (pos) => fetchWeatherAndLocation(pos.coords.latitude, pos.coords.longitude)
       );
     }
   }, []);
 
+  // データ取得
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const teamId = localStorage.getItem("iscore_selectedTeamId");
-        if (!teamId) {
-          setIsLoading(false);
-          return;
-        }
+        const teamId = localStorage.getItem("iScore_selectedTeamId");
+        if (!teamId) { setIsLoading(false); return; }
         const matchRes = await fetch(`/api/matches?teamId=${teamId}`);
         if (matchRes.ok) {
           const matchData = (await matchRes.json()) as Match[];
@@ -108,18 +94,14 @@ export default function DashboardPage() {
           setMatches(sorted);
         }
       } catch (error) {
-        if (navigator.onLine) {
-          toast.error("データの読み込みに失敗しました");
-        }
-      } finally {
-        setIsLoading(false);
-      }
+        if (navigator.onLine) toast.error("データの読み込みに失敗しました");
+      } finally { setIsLoading(false); }
     };
     fetchDashboardData();
   }, []);
 
-  const totalPages = Math.ceil(matches.length / itemsPerPage);
-  const paginatedMatches = matches.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  // 💡 直近3件のみを抽出
+  const recentMatches = matches.slice(0, 3);
 
   if (!mounted) return null;
 
@@ -128,21 +110,21 @@ export default function DashboardPage() {
 
   return (
     <div className="w-full animate-in fade-in duration-500 bg-transparent min-h-screen pb-24">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-10">
 
-        {/* --- 1. タイトルセクション (究極の中央配置 & サイズアップ) --- */}
-        <section className="text-center space-y-3">
-          <h2 className="text-sm sm:text-base font-black text-primary uppercase tracking-[0.3em] flex items-center justify-center gap-2">
-            <Activity className="h-5 w-5" /> Dashboard
+        {/* --- 1. タイトルセクション (フォントサイズ拡大) --- */}
+        <section className="text-center space-y-4">
+          <h2 className="text-base sm:text-lg font-black text-primary uppercase tracking-[0.4em] flex items-center justify-center gap-3">
+            <Activity className="h-6 w-6" /> Dashboard
           </h2>
-          <h1 className="text-xs sm:text-sm font-black text-muted-foreground uppercase tracking-[0.2em] opacity-80 leading-relaxed">
+          <h1 className="text-sm sm:text-base font-black text-muted-foreground uppercase tracking-[0.25em] opacity-80 leading-relaxed">
             Game Management & Live Recording
           </h1>
         </section>
 
-        {/* --- 現在地ステータス --- */}
+        {/* --- 現在地 --- */}
         <div className="flex justify-center px-1">
-          <div className="flex items-center gap-2 py-2.5 px-8 rounded-3xl bg-primary/10 border border-primary/20 text-primary shadow-sm transition-all cursor-default">
+          <div className="flex items-center gap-2 py-3 px-10 rounded-3xl bg-primary/10 border border-primary/20 text-primary shadow-sm transition-all cursor-default">
             <MapPin className="h-4 w-4 animate-pulse" />
             <span className="text-sm sm:text-base font-black tracking-tight">
               現在地：{locationName || "取得中..."}
@@ -150,27 +132,27 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* --- 2. スコア入力選択 (ScoreTypeSelector) --- */}
+        {/* --- 2. スコア入力選択 --- */}
         <section>
           <ScoreTypeSelector />
         </section>
 
-        {/* --- 🌟 環境ウィジェット (rounded-3xl を維持) --- */}
+        {/* --- 環境ウィジェット --- */}
         <section className="bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm rounded-3xl p-4 sm:p-6">
-          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-4 sm:gap-6 text-center sm:text-left">
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-primary/10 rounded-xl text-primary shrink-0"><Clock className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">{dateString}</p>
-                <p className="text-base sm:text-lg font-black text-foreground tabular-nums leading-none mt-0.5">{timeString}</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">{dateString}</p>
+                <p className="text-base sm:text-lg font-black text-foreground tabular-nums leading-none mt-1">{timeString}</p>
               </div>
             </div>
             <div className="hidden sm:block h-8 w-px bg-border/50" />
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-amber-500/10 rounded-xl text-amber-500 shrink-0"><CloudSun className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">Weather</p>
-                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-0.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Weather</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-1">
                   {weather ? (
                     <>{getWMOWeatherText(weather.weatherCode)} <span className="text-muted-foreground text-xs ml-0.5">{weather.temp}°C</span></>
                   ) : "---"}
@@ -180,14 +162,14 @@ export default function DashboardPage() {
             <div className="hidden sm:block h-8 w-px bg-border/50" />
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-blue-500/10 rounded-xl text-blue-500 shrink-0">
-                <Navigation
-                  className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-700"
-                  style={{ transform: `rotate(${weather ? weather.windDir : 45}deg)` }}
+                <Navigation 
+                  className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-700" 
+                  style={{ transform: `rotate(${weather ? weather.windDir : 45}deg)` }} 
                 />
               </div>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">Wind Dir</p>
-                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-0.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Wind Dir</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-1">
                   {weather ? getWindDirectionLabel(weather.windDir) : "---"}
                 </p>
               </div>
@@ -196,8 +178,8 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-teal-500/10 rounded-xl text-teal-500 shrink-0"><Wind className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase">Wind Spd</p>
-                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-0.5 tabular-nums">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Wind Spd</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-none mt-1 tabular-nums">
                   {weather ? weather.windSpd : "--"} <span className="text-muted-foreground text-xs font-bold">m/s</span>
                 </p>
               </div>
@@ -205,42 +187,38 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* --- 3. 試合リスト (中央配置の見出し) --- */}
-        <section className="pt-4">
-          <div className="flex items-center justify-center mb-6">
-            <h2 className="text-lg sm:text-xl font-black text-foreground flex items-center gap-3 uppercase tracking-widest">
-              <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-              試合一覧
-              <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+        {/* --- 3. 試合結果 (3件のみ + 3連ドット + 全件ボタン) --- */}
+        <section className="pt-4 space-y-6">
+          <div className="flex flex-col items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-black text-foreground flex items-center gap-4 uppercase tracking-widest">
+              {/* 💡 3連ドットへの変更 */}
+              <div className="flex gap-1">
+                <span className="w-1.5 h-1.5 bg-primary/40 rounded-full" />
+                <span className="w-1.5 h-1.5 bg-primary/60 rounded-full" />
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+              </div>
+              試合結果
+              <div className="flex gap-1">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                <span className="w-1.5 h-1.5 bg-primary/60 rounded-full" />
+                <span className="w-1.5 h-1.5 bg-primary/40 rounded-full" />
+              </div>
             </h2>
+            <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase">Latest 3 Matches</p>
           </div>
-          <MatchList matches={paginatedMatches} isLoading={isLoading} />
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-2xl h-11 w-11 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => p - 1)}
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-              <span className="text-sm font-black tabular-nums bg-white/50 dark:bg-zinc-800/50 px-4 py-2 rounded-xl border border-border/50 shadow-sm">
-                {currentPage} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-2xl h-11 w-11 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => p + 1)}
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            </div>
-          )}
+          <MatchList matches={recentMatches} isLoading={isLoading} />
+          
+          {/* 💡 全ての試合結果ページへのボタン */}
+          <div className="flex justify-center pt-2">
+            <Button
+              onClick={() => router.push('/matches')}
+              className="bg-white/50 dark:bg-zinc-800/50 hover:bg-primary/10 text-primary border-2 border-primary/20 rounded-full px-8 h-12 font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 group shadow-sm"
+            >
+              全ての試合結果を表示
+              <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
         </section>
       </div>
     </div>
