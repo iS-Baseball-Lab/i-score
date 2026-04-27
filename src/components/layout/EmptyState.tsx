@@ -14,11 +14,11 @@ export function EmptyState({ icon: Icon, title, description, className }: EmptyS
   return (
     <div className={cn(
       "flex flex-col items-center justify-center text-center p-10 rounded-3xl transition-all",
-      // 💡 透過度を 60% (bg-card/60) に設定。backdrop-blurを薄くかけて洗練さをプラス。
+      // 💡 ユーザー最適化設定：bg-card/50, dashed border, shadow-xs
       "bg-card/50 border-2 border-dashed border-border/40 shadow-xs",
       className
     )}>
-      {/* アイコン周りも少し透けさせて馴染ませる */}
+      {/* アイコン部分もトーンを合わせて微調整 */}
       <div className="p-4 bg-primary/5 rounded-full mb-4 border border-primary/5">
         <Icon className="h-8 w-8 text-primary/30" />
       </div>
