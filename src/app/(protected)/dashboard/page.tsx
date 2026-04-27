@@ -225,7 +225,7 @@ export default function DashboardPage() {
 
         {/* --- 4. チーム成績 (SEASON STANDINGS) --- */}
         <section className="space-y-6">
-          <SectionHeader title="チーム成績" subtitle="Season Standings" />
+          <SectionHeader title="チーム成績" subtitle="Season Standings" showPulse />
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="sm:col-span-1 bg-primary text-primary-foreground rounded-3xl p-6 flex flex-col items-center justify-center shadow-lg shadow-primary/20">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Win Rate</p>
@@ -264,7 +264,7 @@ export default function DashboardPage() {
 
         {/* --- 5. 試合予定 (UPCOMING MATCHES) --- */}
         <section className="space-y-10">
-          <SectionHeader title="試合予定" subtitle="Upcoming Matches" />
+          <SectionHeader title="試合予定" subtitle="Upcoming Matches" showPulse />
           <EmptyState 
             icon={CalendarDays}
             title="現在、予定されている試合はありません"
