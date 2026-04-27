@@ -10,6 +10,9 @@ export const ScoreTypeSelector = () => {
   const router = useRouter();
   const cardStyle = "rounded-3xl"; 
 
+  // 💡 共通の文字間隔スタイル
+  const titleTracking = "tracking-[0.25em] sm:tracking-[0.4em]";
+
   return (
     <div className="grid grid-cols-2 gap-4 px-1">
       {/* --- Real Score (本格記録) --- */}
@@ -28,11 +31,14 @@ export const ScoreTypeSelector = () => {
           <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner">
             <PencilLine className="h-9 w-9 text-white" />
           </div>
-          <div className="space-y-2">
-            <h3 className="text-2xl sm:text-3xl font-black tracking-tighter uppercase leading-none">
+          <div className="space-y-3"> {/* 間隔を少し広げました */}
+            <h3 className={cn(
+              "text-xl sm:text-2xl font-black uppercase leading-none pl-[0.25em] sm:pl-[0.4em]", // 💡 tracking分のズレをplで補正
+              titleTracking
+            )}>
               Real
             </h3>
-            <p className="text-[11px] sm:text-xs font-bold text-primary-foreground/70 uppercase tracking-widest whitespace-nowrap">
+            <p className="text-[10px] sm:text-xs font-bold text-primary-foreground/70 uppercase tracking-[0.3em] whitespace-nowrap">
               本格記録
             </p>
           </div>
@@ -52,11 +58,14 @@ export const ScoreTypeSelector = () => {
           <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20">
             <Zap className="h-9 w-9 text-amber-600" />
           </div>
-          <div className="space-y-2">
-            <h3 className="text-2xl sm:text-3xl font-black tracking-tighter uppercase leading-none">
+          <div className="space-y-3">
+            <h3 className={cn(
+              "text-xl sm:text-2xl font-black uppercase leading-none pl-[0.25em] sm:pl-[0.4em]",
+              titleTracking
+            )}>
               Quick
             </h3>
-            <p className="text-[11px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest whitespace-nowrap">
+            <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-[0.3em] whitespace-nowrap">
               結果入力
             </p>
           </div>
