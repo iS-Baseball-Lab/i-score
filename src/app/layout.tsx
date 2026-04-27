@@ -16,8 +16,14 @@ import { AppShell } from "@/components/layout/app-shell";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "iScore | Baseball Tactical Hub",
+  title: "iScore",
   description: "Next-gen baseball scoring and analytics platform.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/apple-logo.png",
+  },
+  // 💡 PWA設定（ホーム画面インストール時の挙動）
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
