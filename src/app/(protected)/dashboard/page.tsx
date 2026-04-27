@@ -11,8 +11,7 @@ import {
   Navigation, 
   Wind, 
   MapPin,
-  CalendarDays,
-  Swords
+  CalendarDays
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchList } from "@/components/matches/match-list";
@@ -21,7 +20,6 @@ import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Match } from "@/types/match";
 import { getWindDirectionLabel, getWMOWeatherText, reverseGeocode, type OpenMeteoResponse } from "@/lib/weather";
-// 💡 cn 関数のインポートを確実に追加
 import { cn } from "@/lib/utils";
 
 interface WeatherData {
@@ -40,7 +38,7 @@ export default function DashboardPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mounted, setMounted] = useState(false);
 
-  // 1. マウント管理 & 時計タイマー
+  // 1. マウント管理 & 時計
   useEffect(() => {
     setMounted(true);
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -94,7 +92,9 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
-        const teamId = typeof window !== "undefined" ? localStorage.getItem("iScore_selectedTeamId") : null;
+        // 💡 修正：小文字の s (iscore_selectedTeamId) に合わせました
+        const teamId = typeof window !== "undefined" ? localStorage.getItem("iscore_selectedTeamId") : null;
+        
         if (!teamId) {
           setIsLoading(false);
           return;
@@ -130,7 +130,7 @@ export default function DashboardPage() {
   const timeString = currentTime.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const dateString = currentTime.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
 
-  // 💡 共通見出しコンポーネント (cn関数の未定義エラーを回避)
+  // 共通見出し
   const SectionHeader = ({ title, subtitle, showPulse = false }: { title: string, subtitle: string, showPulse?: boolean }) => (
     <div className="flex flex-col items-center gap-3">
       <h2 className="text-xl sm:text-2xl font-black text-foreground flex items-center gap-5 uppercase tracking-[0.15em]">
@@ -154,7 +154,7 @@ export default function DashboardPage() {
     <div className="w-full animate-in fade-in duration-500 bg-transparent min-h-screen pb-24">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-16">
 
-        {/* --- 1. タイトルエリア --- */}
+        {/* 1. タイトルエリア */}
         <section className="text-center space-y-2.5">
           <h2 className="text-2xl sm:text-3xl font-black text-primary uppercase tracking-[0.5em] flex items-center justify-center gap-3">
             <Activity className="h-8 w-8" /> Dashboard
@@ -164,7 +164,7 @@ export default function DashboardPage() {
           </h1>
         </section>
 
-        {/* --- 現在地 --- */}
+        {/* 現在地 */}
         <div className="flex justify-center px-1">
           <div className="flex items-center gap-2 py-3 px-10 rounded-3xl bg-primary/10 border border-primary/20 text-primary shadow-sm transition-all cursor-default">
             <MapPin className="h-4 w-4 animate-pulse" />
@@ -174,12 +174,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* --- 2. スコア入力選択 --- */}
+        {/* 2. スコア入力選択 */}
         <section>
           <ScoreTypeSelector />
         </section>
 
-        {/* --- 環境ウィジェット --- */}
+        {/* 環境ウィジェット */}
         <section className="bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm rounded-3xl p-5 sm:p-6">
           <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-4 sm:gap-6 text-center sm:text-left">
             <div className="flex items-center gap-3">
@@ -229,7 +229,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* --- 3. 試合予定 (UPCOMING MATCHES) --- */}
+        {/* 3. 試合予定 (モック) */}
         <section className="space-y-8">
           <SectionHeader title="試合予定" subtitle="Upcoming Matches" />
           <div className="relative group overflow-hidden p-10 rounded-3xl border-2 border-dashed border-border/40 bg-card/30 flex flex-col items-center justify-center text-center transition-all hover:border-primary/20">
@@ -241,7 +241,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* --- 4. 試合結果 (LATEST MATCHES) --- */}
+        {/* 4. 試合結果 */}
         <section className="space-y-8">
           <SectionHeader title="試合結果" subtitle="Latest 3 Matches" showPulse />
           <div className="min-h-[100px]">
