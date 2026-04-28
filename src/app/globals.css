@@ -64,7 +64,7 @@
    ⚾️ 3. BASE VARIABLES (LIGHT MODE)
    ======================================================= */
 :root {
-  --background: oklch(0.95 0 0);
+  --background: oklch(0.93 0 0);
   --foreground: oklch(0.145 0 0);
 
   --card: oklch(1 0 0);
@@ -88,8 +88,8 @@
   --ring: oklch(0.58 0.15 250);
   --radius: 0.625rem;
 
-  --bg-glow: 2%;
-  --wavy-color: color-mix(in srgb, #616670 20%, transparent);
+  --bg-glow: 4%;
+  --wavy-color: color-mix(in srgb, #616670 10%, transparent);
   --wavy-size: 5px;
 
   --chart-1: oklch(0.809 0.105 251.813);
@@ -135,8 +135,8 @@
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.7 0.15 250);
 
-  --bg-glow: 6%;
-  --wavy-color: color-mix(in srgb, #9ca3af 20%, transparent);
+  --bg-glow: 8%;
+  --wavy-color: color-mix(in srgb, #9ca3af 10%, transparent);
 
   --chart-1: oklch(0.809 0.105 251.813);
   --chart-2: oklch(0.623 0.214 259.815);
