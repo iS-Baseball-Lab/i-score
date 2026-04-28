@@ -1,4 +1,4 @@
-// src/app/(protected)/matches/score/page.tsx
+// filepath: `src/app/(protected)/matches/score/page.tsx`
 "use client";
 
 import React, { useEffect, Suspense } from "react";
@@ -8,10 +8,7 @@ import { Scoreboard } from "@/components/score/Scoreboard";
 import { ControlPanel } from "@/components/score/ControlPanel";
 import { PlayArea } from "@/components/score/PlayArea";
 import { PlayLog } from "@/components/score/PlayLog";
-import { AIAssistant } from "@/components/score/AIAssistant";
-import { Loader2, AlertCircle, ChevronLeft, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 function ScorePageContent() {
   const router = useRouter();
@@ -21,83 +18,57 @@ function ScorePageContent() {
 
   useEffect(() => {
     if (matchId) initMatch(matchId);
-  }, [matchId, initMatch]);
 
-  if (!matchId) {
-    return (
-      <div className="flex min-h-[80vh] items-center justify-center p-6">
-        <Card className="max-w-md w-full border-2 border-dashed border-border/40 bg-card/50 rounded-[40px] shadow-none">
-          <CardContent className="pt-10 flex flex-col items-center text-center space-y-4">
-            <AlertCircle className="h-16 w-16 text-rose-500/50" />
-            <h2 className="text-2xl font-black italic uppercase tracking-tighter">Match ID Missing</h2>
-            <p className="text-xs font-bold text-muted-foreground leading-relaxed uppercase tracking-widest">
-              正しい試合データが見つかりません。<br />ダッシュボードからやり直してください。
-            </p>
-            <Button onClick={() => router.push('/dashboard')} className="rounded-full px-8 font-black">BACK TO DASHBOARD</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+    // 💡 Pixel 10 Proでの没入感を高めるため、スクロールを完全にロック
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [matchId, initMatch]);
 
   if (isLoading && !state.matchId) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center space-y-6">
-          <Loader2 className="h-12 w-12 animate-spin text-primary/30 mx-auto" />
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] animate-pulse">Entering Stadium...</p>
-        </div>
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-full bg-transparent flex flex-col overflow-hidden animate-in fade-in duration-700">
+    /**
+     * 💡 フルスクリーン・コックピット
+     * - z-50 で既存のヘッダー/ナビの上に被せる
+     * - h-[100dvh] でモバイルブラウザのツールバーを考慮した全画面
+     */
+    <div className="fixed inset-0 z-[100] bg-background h-[100dvh] w-full flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-500 ease-out">
 
-      {/* 🏟 ミニマル・ヘッダー */}
-      <header className="px-6 pt-4 flex justify-between items-center shrink-0">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/60">Live Operations</span>
-          </div>
+      {/* 1. 上部：コンパクト・スコアボード (25%) */}
+      <header className="h-[22%] shrink-0 flex items-end px-4 pb-2 bg-gradient-to-b from-muted/50 to-transparent">
+        <div className="w-full">
+          <Scoreboard variant="compact" />
         </div>
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Settings className="h-5 w-5 text-muted-foreground" />
-        </Button>
       </header>
 
-      {/* 1. スコアボード (BSOランプ込み) */}
-      <section className="px-4 py-2 shrink-0">
-        <Scoreboard />
-      </section>
-
-      {/* 2. フィールド & AIアシスタント */}
+      {/* 2. 中央：タクティカル・フィールド (53%) */}
       <main className="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
-        <div className="absolute top-0 w-full px-6 z-10">
-          <AIAssistant />
+        {/* 背景の装飾的なフィールドライン */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+          <div className="h-full w-full border-[100px] border-white rounded-full scale-150" />
         </div>
 
-        <div className="w-full max-w-sm aspect-square p-4 flex items-center justify-center">
+        <div className="w-full max-w-[320px] aspect-square scale-110 sm:scale-125">
           <PlayArea />
         </div>
 
-        {/* プレイログ（直近1件のみ表示して空間を稼ぐ） */}
-        <div className="w-full px-8 opacity-40">
+        {/* 最新ログの1件のみをフィールド下にフローティング */}
+        <div className="absolute bottom-4 w-full px-10 text-center">
           <PlayLog limit={1} />
         </div>
       </main>
 
-      {/* 3. 究極のアクションコントロール (黄金の親指ゾーン) */}
-      <footer className="px-4 pb-10 pt-4 bg-gradient-to-t from-background via-background/95 to-transparent shrink-0">
-        <ControlPanel />
-        <div className="mt-6 flex justify-center items-center gap-4 opacity-10">
-          <span className="h-px w-8 bg-foreground" />
-          <p className="text-[8px] font-black tracking-[0.8em] uppercase italic">iScore Tactics</p>
-          <span className="h-px w-8 bg-foreground" />
+      {/* 3. 下部：プロ・コントロールパネル (25%) */}
+      {/* 💡 ボトムナビの位置からせり上がってくるアニメーションを想定 */}
+      <footer className="h-[25%] shrink-0 bg-card/80 backdrop-blur-xl border-t-2 border-border/40 px-4 pt-4 pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]">
+        <div className="max-w-md mx-auto h-full">
+          <ControlPanel />
         </div>
       </footer>
 
@@ -107,7 +78,7 @@ function ScorePageContent() {
 
 export default function ScorePage() {
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>}>
+    <Suspense fallback={<div className="h-screen bg-background" />}>
       <ScoreProvider>
         <ScorePageContent />
       </ScoreProvider>
