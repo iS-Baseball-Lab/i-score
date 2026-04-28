@@ -178,7 +178,7 @@ export default function LineupPage() {
         {/* 💡 プレイボールボタン (Fixed解除・通常フロー配置) */}
         <div className="pt-8">
           <Button
-            onClick={() => router.push(`/matches/play?id=${matchId}`)}
+            onClick={() => router.push(`/matches/score?id=${matchId}`)}
             className="w-full h-20 rounded-full text-xl font-black uppercase tracking-[0.3em] shadow-sm shadow-primary/30 active:scale-95 transition-all"
           >
             PLAYBALL
