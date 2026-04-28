@@ -64,7 +64,7 @@
    ⚾️ 3. BASE VARIABLES (LIGHT MODE)
    ======================================================= */
 :root {
-  --background: oklch(0.98 0 0);
+  --background: oklch(0.95 0 0);
   --foreground: oklch(0.145 0 0);
 
   --card: oklch(1 0 0);
@@ -88,8 +88,8 @@
   --ring: oklch(0.58 0.15 250);
   --radius: 0.625rem;
 
-  --bg-glow: 3%;
-  --wavy-color: color-mix(in srgb, #616670 10%, transparent);
+  --bg-glow: 4%;
+  --wavy-color: color-mix(in srgb, #616670 20%, transparent);
   --wavy-size: 5px;
 
   --chart-1: oklch(0.809 0.105 251.813);
@@ -112,7 +112,7 @@
    ⚾️ 4. DARK MODE VARIABLES
    ======================================================= */
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(0.22 0 0);
   --foreground: oklch(0.985 0 0);
 
   --card: oklch(0.145 0 0);
@@ -135,8 +135,8 @@
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.7 0.15 250);
 
-  --bg-glow: 8%;
-  --wavy-color: color-mix(in srgb, #9ca3af 10%, transparent);
+  --bg-glow: 10%;
+  --wavy-color: color-mix(in srgb, #9ca3af 20%, transparent);
 
   --chart-1: oklch(0.809 0.105 251.813);
   --chart-2: oklch(0.623 0.214 259.815);
@@ -309,14 +309,12 @@
       /* 1. 角の光（オーラ） */
       radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
       radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--primary) var(--bg-glow), transparent) 0%, transparent 45vw),
-      
+
       /* 2. ⚾️ 波線の復活：var(--background) と var(--wavy-color) の交互配置でクッキリさせる */
-      repeating-radial-gradient(
-        circle at 0 0, 
-        var(--background) 0, 
-        var(--background) calc(var(--wavy-size) * 0.5), 
-        var(--wavy-color) var(--wavy-size)
-      );
+      repeating-radial-gradient(circle at 0 0,
+        var(--background) 0,
+        var(--background) calc(var(--wavy-size) * 0.5),
+        var(--wavy-color) var(--wavy-size));
 
     background-attachment: fixed;
   }
