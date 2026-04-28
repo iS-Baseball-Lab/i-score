@@ -1,145 +1,110 @@
-// src/components/score/ControlPanel.tsx
+// filepath: `src/components/score/ControlPanel.tsx`
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { useScore } from "@/contexts/ScoreContext";
-/**
- * 💡 究極の操作パネル・コンポーネント
- * 1. 意匠: カプセル型 (rounded-full) のボタンを主軸に、触り心地の良さを追求。
- * 2. 整理: メインアクション（BSO）を上段に、補助アクション（交代・終了）を下段に配置。
- * 3. 規則: 影なし。border-border/40。透過背景の活用。
- */
 import { Button } from "@/components/ui/button";
-import {
-  Circle,
-  X,
-  RotateCcw,
-  UserCog,
-  History,
-  Flag,
-  ChevronRight,
-  Loader2
-} from "lucide-react";
-import { FieldModal } from "./FieldModal";
-import { SubstitutionModal } from "./SubstitutionModal";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { RotateCcw, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner"; // 💡 ここを追加
 
 export function ControlPanel() {
   const router = useRouter();
-  const { state, recordPitch, recordInPlay, changeInning, isLoading, finishMatch } = useScore();
 
-  const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
-  const [isSubModalOpen, setIsSubModalOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  // 💡 Context から recordPitch, finishMatch 等を抽出
+  const { state, recordPitch, finishMatch } = useScore();
 
-  const handlePitch = async (type: "ball" | "strike" | "foul" | "swinging_strike") => {
-    if (!state.batterId || !state.pitcherId) {
-      toast.error("打者と投手を選択してください");
-      setIsSubModalOpen(true);
-      return;
-    }
-    setIsProcessing(true);
-    try { await recordPitch(type); } finally { setIsProcessing(false); }
+  const [flashColor, setFlashColor] = useState<string | null>(null);
+
+  // 💡 タクタイル・フラッシュの実行
+  const triggerFlash = (color: string) => {
+    setFlashColor(color);
+    setTimeout(() => setFlashColor(null), 300);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 relative">
 
-      {/* メイン投球ボタン: 直感的な2x2グリッド */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Button
-          onClick={() => handlePitch("strike")}
-          disabled={isProcessing}
-          className="h-28 rounded-[40px] bg-yellow-500 hover:bg-yellow-600 text-black border-none shadow-none flex flex-col gap-2 transition-all active:scale-95"
-        >
-          <X className="h-8 w-8 stroke-[3.5px]" />
-          <span className="text-lg font-black italic tracking-tighter">STRIKE</span>
-        </Button>
-        <Button
-          onClick={() => handlePitch("ball")}
-          disabled={isProcessing}
-          className="h-28 rounded-[40px] bg-green-500 hover:bg-green-600 text-black border-none shadow-none flex flex-col gap-2 transition-all active:scale-95"
-        >
-          <Circle className="h-8 w-8 stroke-[3.5px]" />
-          <span className="text-lg font-black italic tracking-tighter">BALL</span>
-        </Button>
-        <Button
-          onClick={() => handlePitch("foul")}
-          variant="outline"
-          className="h-28 rounded-[40px] border-border/60 bg-muted/20 hover:bg-muted/40 text-foreground shadow-none flex flex-col gap-2 transition-all active:scale-95"
-        >
-          <RotateCcw className="h-8 w-8 opacity-40" />
-          <span className="text-lg font-black italic tracking-tighter">FOUL</span>
-        </Button>
-        <Button
-          onClick={() => setIsFieldModalOpen(true)}
-          className="h-28 rounded-[40px] bg-primary text-primary-foreground border-none shadow-none flex flex-col gap-2 transition-all active:scale-95 ring-4 ring-primary/10"
-        >
-          <ChevronRight className="h-8 w-8 stroke-[3.5px]" />
-          <span className="text-lg font-black italic tracking-tighter">IN PLAY</span>
-        </Button>
-      </div>
+      {/* 💡 タクタイル・フラッシュ・オーバーレイ */}
+      {flashColor && (
+        <div
+          className={cn(
+            "fixed inset-0 pointer-events-none z-50 transition-opacity duration-300 animate-in fade-in fill-mode-forwards",
+            flashColor === "amber" && "shadow-[inset_0_0_100px_rgba(245,158,11,0.2)] bg-amber-500/5",
+            flashColor === "blue" && "shadow-[inset_0_0_100px_rgba(59,130,246,0.2)] bg-blue-500/5",
+            flashColor === "rose" && "shadow-[inset_0_0_100px_rgba(244,63,94,0.2)] bg-rose-500/5"
+          )}
+        />
+      )}
 
-      {/* 補助アクション: 整理整頓されたカプセル型メニュー */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* 1. 主要カウントボタン (recordPitch に連動) */}
+      <div className="grid grid-cols-4 gap-3">
         <Button
           variant="outline"
-          onClick={() => setIsSubModalOpen(true)}
-          className="flex-1 h-14 rounded-full border-border/40 bg-card/40 backdrop-blur-md font-black gap-2 hover:bg-muted/50"
-        >
-          <UserCog className="h-5 w-5 text-primary" /> 選手交代
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => changeInning()}
-          className="flex-1 h-14 rounded-full border-border/40 bg-card/40 backdrop-blur-md font-black gap-2 hover:bg-muted/50"
-        >
-          <History className="h-5 w-5 text-primary" /> チェンジ
-        </Button>
-        <Button
-          variant="outline"
-          onClick={async () => {
-            if (window.confirm("試合を終了しますか？")) {
-              await finishMatch();
-              router.push(`/matches/result?id=${state.matchId}`);
-            }
+          className="h-16 rounded-2xl border-2 border-amber-500/20 bg-amber-500/5 text-amber-600 font-black text-lg active:scale-95 transition-all shadow-sm"
+          onClick={() => {
+            recordPitch("ball");
+            triggerFlash("amber");
           }}
-          className="flex-1 h-14 rounded-full border-red-500/20 bg-red-500/5 text-red-500 font-black gap-2 hover:bg-red-500 hover:text-white transition-all"
         >
-          <Flag className="h-5 w-5" /> 試合終了
+          BALL
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-16 rounded-2xl border-2 border-blue-500/20 bg-blue-500/5 text-blue-600 font-black text-lg active:scale-95 transition-all shadow-sm"
+          onClick={() => {
+            recordPitch("strike");
+            triggerFlash("blue");
+          }}
+        >
+          STR
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-16 rounded-2xl border-2 border-rose-500/20 bg-rose-500/5 text-rose-600 font-black text-lg col-span-2 active:scale-95 transition-all shadow-sm"
+          onClick={() => {
+            // 現在の Context に recordOut がないため、視覚的フィードバックのみ実行
+            triggerFlash("rose");
+            toast.info("アウトの直接記録は調整中です。三振やインプレイ結果で自動更新されます。");
+          }}
+        >
+          OUT
         </Button>
       </div>
 
-      {/* 選手・投球数インテルカード */}
-      <div className="flex items-center gap-4 p-5 rounded-[40px] bg-muted/10 border border-border/20 backdrop-blur-sm">
-        <div className="flex-1">
-          <p className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] px-2">Current Batter</p>
-          <p className="font-black text-lg italic text-foreground px-2 truncate leading-tight">
-            {state.batterId ? `ID: ${state.batterId.substring(0, 8)}` : "SELECT PLAYER"}
-          </p>
-        </div>
-        <div className="h-10 w-px bg-border/20" />
-        <div className="text-right">
-          <p className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] px-2">Pitch Count</p>
-          <p className="font-black text-2xl italic text-primary tabular-nums px-2">
-            {isProcessing ? <Loader2 className="h-5 w-5 animate-spin ml-auto" /> : state.pitchCount}
-          </p>
-        </div>
+      {/* 2. プレイ結果ボタン */}
+      <div className="grid grid-cols-3 gap-3">
+        <Button className="h-16 rounded-2xl bg-foreground text-background font-black shadow-sm active:scale-95 transition-all">HIT</Button>
+        <Button className="h-16 rounded-2xl bg-primary text-primary-foreground font-black shadow-sm active:scale-95 transition-all">BUNT</Button>
+        <Button variant="outline" className="h-16 rounded-2xl border-2 font-black shadow-sm active:scale-95 transition-all">ERROR</Button>
       </div>
 
-      {/* モーダル群 */}
-      <FieldModal
-        open={isFieldModalOpen}
-        onOpenChange={setIsFieldModalOpen}
-        onResult={(result, rbi, advances) => {
-          recordInPlay(result, rbi, advances);
-          setIsFieldModalOpen(false);
-          toast.success("プレイを記録しました");
-        }}
-      />
-      <SubstitutionModal open={isSubModalOpen} onOpenChange={setIsSubModalOpen} />
+      {/* 3. 補助ボタン・試合終了 */}
+      <div className="flex justify-between items-center px-2">
+        <Button
+          variant="ghost"
+          className="text-muted-foreground gap-2 font-bold"
+          onClick={() => {
+            toast.info("Undo機能は現在調整中です");
+          }}
+        >
+          <RotateCcw className="h-4 w-4" /> Undo
+        </Button>
+
+        <Button
+          onClick={async () => {
+            await finishMatch();
+            router.push(`/matches/result?id=${state.matchId}`);
+          }}
+          className="bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-2xl px-6 h-12 shadow-sm shadow-emerald-500/20 active:scale-95 transition-all"
+        >
+          Finish Match
+          <CheckCircle2 className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }

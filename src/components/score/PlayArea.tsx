@@ -1,90 +1,85 @@
-// src/components/score/PlayArea.tsx
+// filepath: `src/components/score/PlayArea.tsx`
 "use client";
 
+import React from "react";
 import { useScore } from "@/contexts/ScoreContext";
-/**
- * 💡 プレイエリア・コンポーネント (究極UI版)
- * 1. 意匠: bg-card/20 と backdrop-blur-xl で「ダイヤモンド」を表現。
- * 2. 視覚: 芝生を感じさせる放射状のラインと、光り輝くベース。
- * 3. 規則: 影なし。角丸40px。border-border/40。
- * 4. 反応: ランナーの状態に合わせてベースが OKLCH Primary に発光。
- */
-import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { User } from "lucide-react";
 
 export function PlayArea() {
   const { state } = useScore();
+  const { runners } = state;
 
-  const hasRunner1 = !!state.runners.base1;
-  const hasRunner2 = !!state.runners.base2;
-  const hasRunner3 = !!state.runners.base3;
+  // 💡 ベースの共通コンポーネント：パルスアニメーションと質感を注入
+  const Base = ({ baseNum, isRunner }: { baseNum: 1 | 2 | 3; isRunner: boolean }) => {
+    // ベースの位置計算（45度回転したダイヤモンド用）
+    const positions = {
+      1: "right-0 top-1/2 -translate-y-1/2 translate-x-1/2",
+      2: "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2",
+      3: "left-0 top-1/2 -translate-y-1/2 -translate-x-1/2",
+    };
 
-  const Base = ({ active, label, className }: { active: boolean, label: string, className: string }) => (
-    <div className={cn("absolute w-12 h-12 flex items-center justify-center transition-all duration-700", className)}>
-      <div className={cn(
-        "absolute inset-0 rotate-45 border-2 rounded-lg transition-all duration-500",
-        active
-          ? "bg-primary border-primary ring-8 ring-primary/10 scale-110"
-          : "bg-background/40 border-border/40"
-      )} />
-      {active && (
-        <div className="relative z-10 animate-in zoom-in duration-300">
-          <User className="h-6 w-6 text-primary-foreground stroke-[3px]" />
+    return (
+      <div className={cn("absolute w-8 h-8 sm:w-10 sm:h-10 transition-all duration-700", positions[baseNum])}>
+        {/* 💡 走者がいる時の脈動エフェクト */}
+        {isRunner && (
+          <div className="absolute inset-0 rounded-sm bg-primary/40 animate-ping" />
+        )}
+
+        {/* ベース本体 */}
+        <div
+          className={cn(
+            "absolute inset-0 rotate-45 rounded-sm border-2 transition-all duration-500",
+            isRunner
+              ? "bg-primary border-primary shadow-[0_0_15px_rgba(var(--primary),0.5)] z-10 scale-110"
+              : "bg-background border-border/40 z-0"
+          )}
+        >
+          {/* ベースの厚み表現 */}
+          <div className="absolute inset-[2px] border border-white/10 rounded-sm" />
         </div>
-      )}
-      <span className={cn(
-        "absolute -bottom-7 text-[10px] font-black uppercase tracking-widest transition-opacity duration-500",
-        active ? "text-primary opacity-100" : "text-muted-foreground opacity-30"
-      )}>
-        {label}
-      </span>
-    </div>
-  );
+      </div>
+    );
+  };
 
   return (
-    <Card className="bg-card/20 backdrop-blur-xl border-border/40 rounded-[40px] overflow-hidden shadow-none aspect-square max-w-sm mx-auto relative group">
-      {/* 🏟 背景デザイン：芝生の同心円パターン */}
-      <div className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-10">
-        <div className="absolute inset-0 bg-[repeating-radial-gradient(circle_at_50%_50%,transparent_0,transparent_40px,var(--primary)_41px,transparent_42px)]" />
+    <div className="relative w-full max-w-[280px] aspect-square mx-auto">
+
+      {/* 🏟 ダイヤモンド（土のライン） */}
+      <div className="absolute inset-4 border-2 border-dashed border-border/20 rotate-45 rounded-sm" />
+
+      {/* 1, 2, 3塁 */}
+      <Base baseNum={1} isRunner={!!runners.base1} />
+      <Base baseNum={2} isRunner={!!runners.base2} />
+      <Base baseNum={3} isRunner={!!runners.base3} />
+
+      {/* 🏠 ホームベース（五角形） */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-10 h-10 flex flex-col items-center">
+        <div className="w-8 h-5 bg-background border-2 border-border/40" />
+        <div className="w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[12px] border-t-background relative -mt-[2px]">
+          <div className="absolute -top-[14px] -left-[18px] w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-t-[14px] border-t-border/40 -z-10" />
+        </div>
       </div>
 
-      <CardContent className="p-0 h-full flex items-center justify-center">
-        <div className="relative w-64 h-64">
-
-          {/* ダイヤモンドの境界線 (透過ライン) */}
-          <div className="absolute inset-6 border border-dashed border-border/40 rotate-45 rounded-sm" />
-
-          {/* 各塁の配置 */}
-          <Base active={hasRunner2} label="2nd" className="top-0 left-1/2 -translate-x-1/2" />
-          <Base active={hasRunner3} label="3rd" className="top-1/2 left-0 -translate-y-1/2" />
-          <Base active={hasRunner1} label="1st" className="top-1/2 right-0 -translate-y-1/2" />
-
-          {/* 本塁 (Home Plate) */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-12 flex items-center justify-center">
-            <div
-              className="absolute inset-0 bg-muted/40 backdrop-blur-md border border-border/40"
-              style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 60%, 50% 100%, 0% 60%)' }}
-            />
-            <span className="relative z-10 text-[9px] font-black text-muted-foreground/40 mt-1 uppercase tracking-widest">Home</span>
+      {/* 投球フォーカス：マウンド */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative group">
+          <div className="absolute inset-0 bg-primary/5 rounded-full scale-[2] blur-xl opacity-50" />
+          <div className="relative bg-card/80 backdrop-blur-md border border-border/40 rounded-2xl px-3 py-1.5 flex items-center gap-2 shadow-sm">
+            <div className="w-2 h-2 rounded-full bg-primary/40" />
+            <span className="text-[10px] font-black italic tracking-tighter uppercase opacity-60">Pitcher</span>
           </div>
-
-          {/* マウンド (投手板) */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-2 w-10 bg-border/20 rounded-full" />
-        </div>
-      </CardContent>
-
-      {/* 状態ラベル */}
-      <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-        <div className={cn(
-          "px-5 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-[0.2em] transition-all",
-          (hasRunner1 || hasRunner2 || hasRunner3)
-            ? "bg-primary text-primary-foreground border-primary"
-            : "bg-muted/10 text-muted-foreground/40 border-border/20"
-        )}>
-          {(hasRunner1 || hasRunner2 || hasRunner3) ? "Runners Occupied" : "Bases Empty"}
         </div>
       </div>
-    </Card>
+
+      {/* 打者フォーカス：ホーム周辺 */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+        <div className="bg-primary/10 border border-primary/20 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-700">
+          <User className="w-3 h-3 text-primary" />
+          <span className="text-[11px] font-black italic tracking-tighter uppercase text-primary">Batter</span>
+        </div>
+      </div>
+
+    </div>
   );
 }
