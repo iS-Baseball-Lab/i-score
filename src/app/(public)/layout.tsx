@@ -2,23 +2,31 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Trophy } from "lucide-react"; // 💡 ロゴ用アイコン
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
+  // 💡 ロゴコンポーネントを共通化
+  const Logo = () => (
+    <div className="flex items-center gap-2 group">
+      <div className="relative">
+        {/* アイコンの背景に薄い光を配置してロゴっぽさを演出 */}
+        <div className="absolute inset-0 bg-primary/20 blur-md rounded-full group-hover:bg-primary/40 transition-all" />
+        <Trophy className="relative h-6 w-6 text-primary rotate-[-10deg] group-hover:rotate-0 transition-transform duration-300" />
+      </div>
+      <span className="text-xl font-black italic tracking-tighter text-primary">
+        iScore<span className="text-foreground/80">Cloud</span>
+      </span>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       
-      {/* 🚀 LP共通ヘッダー：トップページと全く同じデザインを適用 */}
+      {/* 🚀 ヘッダー */}
       <header className="h-16 border-b border-border/40 flex items-center justify-between px-6 sticky top-0 bg-background/80 backdrop-blur-md z-50">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="text-xl font-black italic tracking-tighter text-primary hover:opacity-80 transition-opacity">
-            iScoreCloud
-          </Link>
-          {/* デスクトップ向けの簡易ナビ（必要なら） */}
-          <nav className="hidden md:flex gap-6">
-            <Link href="/#features" className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors">FEATURES</Link>
-            <Link href="/#pricing" className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors">PRICING</Link>
-          </nav>
-        </div>
+        <Link href="/">
+          <Logo />
+        </Link>
 
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" asChild className="text-xs font-bold">
@@ -30,48 +38,38 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </div>
       </header>
 
-      {/* 🏟 コンテンツエリア：余白を抑えつつ、背景との一体感を出す */}
+      {/* コンテンツ */}
       <main className="flex-1 w-full max-w-4xl mx-auto py-10 px-4">
-        {/* 背景のグロー（LPの雰囲気を踏襲） */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-64 bg-primary/5 blur-[120px] pointer-events-none -z-10" />
-        
-        <div className="relative">
-          {children}
-        </div>
+        {children}
       </main>
 
-      {/* 🚀 LP共通フッター：トップページのフッター構造と同期 */}
-      <footer className="border-t border-border/40 bg-muted/10 py-12">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            <div className="col-span-1 md:col-span-2">
-              <Link href="/" className="text-xl font-black italic tracking-tighter text-primary">
-                iScoreCloud
+      {/* 🚀 フッター */}
+      <footer className="border-t border-border/40 bg-muted/10 py-12 mt-auto">
+        <div className="max-w-6xl mx-auto px-6 text-center md:text-left">
+          <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
+            <div className="space-y-4">
+              <Link href="/">
+                <Logo />
               </Link>
-              <p className="mt-4 text-xs text-muted-foreground max-w-xs leading-relaxed">
-                野球スコアの記録を、究極の体験へ。
-                Pixel 10 Pro に最適化された次世代のスコアリングプラットフォーム。
+              <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
+                次世代の野球スコアリングプラットフォーム。
+                データの力で、すべての試合をドラマチックに。
               </p>
             </div>
-            <div>
-              <h4 className="text-[10px] font-black tracking-widest text-foreground mb-4 uppercase">Product</h4>
-              <ul className="space-y-2 text-xs text-muted-foreground font-bold">
-                <li><Link href="/#features" className="hover:text-primary transition-colors">機能</Link></li>
-                <li><Link href="/#pricing" className="hover:text-primary transition-colors">料金プラン</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-[10px] font-black tracking-widest text-foreground mb-4 uppercase">Legal</h4>
-              <ul className="space-y-2 text-xs text-muted-foreground font-bold">
-                <li><Link href="/terms" className="hover:text-primary transition-colors">利用規約</Link></li>
-                <li><Link href="/privacy" className="hover:text-primary transition-colors">プライバシーポリシー</Link></li>
-              </ul>
+            
+            {/* リンク集などは以前のまま ... */}
+            <div className="flex gap-10">
+               <div className="space-y-3 text-left">
+                  <h4 className="text-[10px] font-black tracking-widest uppercase">Legal</h4>
+                  <ul className="space-y-2 text-xs text-muted-foreground font-bold">
+                    <li><Link href="/terms" className="hover:text-primary">利用規約</Link></li>
+                    <li><Link href="/privacy" className="hover:text-primary">プライバシーポリシー</Link></li>
+                  </ul>
+               </div>
             </div>
           </div>
-          <div className="border-t border-border/20 pt-8 text-center">
-            <p className="text-[10px] text-muted-foreground/60 font-medium">
-              © 2026 iScoreCloud. Baseball Evolution Starts Here.
-            </p>
+          <div className="mt-12 pt-8 border-t border-border/20">
+            <p className="text-[10px] text-muted-foreground/40 font-medium">© 2026 iScoreCloud</p>
           </div>
         </div>
       </footer>
