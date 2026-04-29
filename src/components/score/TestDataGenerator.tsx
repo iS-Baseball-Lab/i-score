@@ -1,64 +1,103 @@
-// src/components/score/TestDataGenerator.tsx
+// filepath: `src/components/score/TestDataGenerator.tsx`
 "use client";
 
 import { useScore } from "@/contexts/ScoreContext";
 import { Button } from "@/components/ui/button";
-import { DatabaseZap } from "lucide-react";
+import { DatabaseZap, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function TestDataGenerator() {
-  const { state, recordInPlay } = useScore();
+  const { state, updateScore, recordPitch } = useScore();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const generateScenario = async () => {
     if (!state.matchId) {
-      toast.error("Match IDが見つかりません。初期化後に実行してください。");
+      toast.error("試合が初期化されていません");
       return;
     }
 
-    toast.loading("ドラマチックな試合データを生成中...");
+    setIsGenerating(true);
+    const loadingToast = toast.loading("熱戦のデータを生成中...");
 
     try {
-      // 1. 1回表：先制点 (2点)
-      await recordInPlay("2-run Home Run", 2, []);
+      /**
+       * 💡 シナリオ：7回裏 2死満塁、逆転のチャンス
+       * 1. 序盤のスコアをセット（5-3で負けている状態）
+       * 2. カウントを「2-3（フルカウント）」へ
+       * 3. ランナーをフルベースへ
+       */
       
-      // 2. 3回裏：相手の反撃 (1点)
-      // ※ Contextの仕様上、isTopを切り替える必要がありますが、
-      // ここでは簡易的に現在の攻撃側にスコアを足していきます。
-      await recordInPlay("RBI Single", 1, []);
-      
-      // 3. 4回表：追加点 (3点)
-      await recordInPlay("Bases-clearing Double", 3, []);
+      // スコアとイニングの更新（API経由で永続化）
+      await updateScore({
+        inning: 7,
+        isTop: false, // 裏の攻撃
+        myScore: 3,
+        opponentScore: 5,
+        // イニングごとのスコアを流し込む（掲示板が賑やかになります）
+        myInningScores: [0, 1, 0, 0, 2, 0, 0],
+        opponentInningScores: [2, 0, 0, 3, 0, 0, 0],
+        runners: {
+          base1: { id: "p1", name: "鈴木" },
+          base2: { id: "p2", name: "佐藤" },
+          base3: { id: "p3", name: "田中" },
+        },
+        balls: 3,
+        strikes: 2,
+        outs: 2
+      });
 
-      // 4. ダミーログの直接挿入（APIを叩く）
+      // ログに熱いメッセージを刻む
       await fetch(`/api/matches/${state.matchId}/logs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: crypto.randomUUID(),
-          inningText: "5回裏",
-          resultType: "out",
-          description: "4-6-3のダブルプレー！ピンチを凌ぐ！",
+          inningText: "7回裏",
+          resultType: "info",
+          description: "🔥 2死満塁！一打逆転の絶好機で4番・高橋が打席に入る！",
         }),
       });
 
-      toast.success("テストデータの注入が完了しました！");
-      // 画面をリロードして反映
+      toast.dismiss(loadingToast);
+      toast.success("テストデータ注入完了！");
+      
+      // 💡 状態を即時反映させるためにリロード
       window.location.reload();
+      
     } catch (e) {
+      console.error(e);
+      toast.dismiss(loadingToast);
       toast.error("生成に失敗しました");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   return (
-    <div className="fixed top-20 right-4 z-[200]">
+    <div className="fixed bottom-32 right-6 z-[200]">
       <Button 
         onClick={generateScenario}
+        disabled={isGenerating}
         variant="destructive"
-        className="rounded-full shadow-2xl gap-2 font-black italic animate-pulse"
+        className="h-14 px-6 rounded-2xl shadow-[0_10px_40px_rgba(220,38,38,0.4)] border-2 border-white/20 bg-red-600 hover:bg-red-500 text-white font-black italic gap-3 animate-bounce-subtle active:scale-90 transition-all"
       >
-        <DatabaseZap className="h-4 w-4" />
-        DEBUG: FILL DATA
+        {isGenerating ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <DatabaseZap className="h-5 w-5" />
+        )}
+        DEBUG: FILL DRAMA
       </Button>
+
+      <style jsx global>{`
+        @keyframes bounce-subtle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+        .animate-bounce-subtle {
+          animation: bounce-subtle 2s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }
