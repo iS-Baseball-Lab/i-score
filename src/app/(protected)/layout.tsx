@@ -1,16 +1,19 @@
 // src/app/(protected)/layout.tsx
 import React from "react";
 import { ProtectedClientLayout } from "@/components/layout/protected-client-layout";
+import { AppShell } from "@/components/layout/app-shell"; // 💡 追加
 
-/**
- * 💡 保護ルート共通レイアウト
- * セッションの検証やリダイレクト処理は、すべてクライアント側(ProtectedClientLayout)で
- * useSession を用いて安全に実行されます。
- */
 export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <ProtectedClientLayout>{children}</ProtectedClientLayout>;
+  return (
+    <ProtectedClientLayout>
+      {/* 💡 ログイン必須ページにだけ、ナビゲーション付きのAppShellを適用 */}
+      <AppShell>
+        {children}
+      </AppShell>
+    </ProtectedClientLayout>
+  );
 }
