@@ -60,9 +60,7 @@ export default function RootLayout({
               }}
             />
 
-            <AppShell>
-              {children}
-            </AppShell>
+            {children}
 
           </ThemeProvider>
         </DensityProvider>
