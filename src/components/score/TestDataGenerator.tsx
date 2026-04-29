@@ -14,63 +14,68 @@ export function TestDataGenerator() {
 
   const generateScenario = async () => {
     if (!matchId) {
-      toast.error("URLに試合IDが見つかりません (?id=xxx を確認してください)");
+      toast.error("IDが見つかりません");
       return;
     }
 
     setIsGenerating(true);
-    const loadingToast = toast.loading("DBにドラマチックな展開を直接注入中...");
+    const loadingToast = toast.loading("データを注入中...");
 
     try {
-      // 💡 1. スコアデータを直接API経由で上書き
-      // ※ エンドポイント名はプロジェクトの構成に合わせて適宜調整してください
-      const scoreRes = await fetch(`/api/matches/${matchId}`, {
+      // 💡 1. 試合の基本ステータスを更新
+      const res = await fetch(`/api/matches/${matchId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          // 数値データ
           inning: 7,
           isTop: false,
           myScore: 3,
           opponentScore: 5,
-          myInningScores: [0, 1, 0, 0, 2, 0, 0],
-          opponentInningScores: [2, 0, 0, 3, 0, 0, 0],
           balls: 3,
           strikes: 2,
           outs: 2,
-          // 走者状態の強制注入
+          // 💡 イニングスコア（配列がそのままDBに入らない場合は文字列化を試す）
+          myInningScores: [0, 1, 0, 0, 2, 0, 0],
+          opponentInningScores: [2, 0, 0, 3, 0, 0, 0],
+          // 💡 走者（Contextが期待する { base1: { name: "..." } } の形式）
           runners: {
-            base1: { id: "p1", name: "鈴木" },
-            base2: { id: "p2", name: "佐藤" },
-            base3: { id: "p3", name: "田中" },
-          }
+            base1: { id: "p1", name: "鈴木", position: "1B" },
+            base2: { id: "p2", name: "佐藤", position: "2B" },
+            base3: { id: "p3", name: "田中", position: "3B" },
+          },
+          status: "IN_PROGRESS" // 試合中ステータスを確実にする
         }),
       });
 
-      if (!scoreRes.ok) throw new Error("スコア更新に失敗しました");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "更新に失敗しました");
+      }
 
-      // 💡 2. 熱い実況ログも直接注入
+      // 💡 2. ログを1件追加（これが表示されればAPIは生きています）
       await fetch(`/api/matches/${matchId}/logs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           inningText: "7回裏",
           resultType: "info",
-          description: "🔥 2死満塁！一打逆転の絶好機！(iscorecloud.com Debug)",
+          description: "【テスト】2死満塁、逆転のチャンス！",
         }),
       });
 
       toast.dismiss(loadingToast);
-      toast.success("データ注入完了！戦況をロードします...");
+      toast.success("注入成功！再読み込みします...");
       
-      // 💡 3. DBが変わったので、強制リロードして Context を再起動させる
+      // 💡 3. 少し長めに待ってからリロード
       setTimeout(() => {
-        window.location.reload();
-      }, 800);
+        window.location.href = `/matches/score?id=${matchId}&t=${Date.now()}`; // キャッシュ回避
+      }, 1000);
       
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      console.error("DEBUG ERROR:", e);
       toast.dismiss(loadingToast);
-      toast.error("APIエラー: DBへの注入に失敗しました");
+      toast.error(`エラー: ${e.message}`);
     } finally {
       setIsGenerating(false);
     }
@@ -81,7 +86,7 @@ export function TestDataGenerator() {
       onClick={generateScenario}
       disabled={isGenerating}
       variant="destructive"
-      className="h-10 px-4 rounded-xl shadow-xl border border-white/20 bg-red-600 hover:bg-red-500 text-white font-black italic gap-2 animate-pulse active:scale-95 transition-all"
+      className="h-10 px-4 rounded-xl shadow-xl border border-white/20 bg-red-600 text-white font-black italic gap-2 animate-pulse"
     >
       {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <DatabaseZap className="h-4 w-4" />}
       FILL DATA
