@@ -10,28 +10,29 @@ import { LayoutDashboard, Users, Trophy, Settings, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * 💡 フローティング・サークルナビ（アイコン最大化エディション）
- * 中央のロゴを円いっぱいに広げ、現場での視認性とブランド力を最大化。
+ * 💡 フローティング・マキシマム・ナビ
+ * ロゴを円いっぱいに広げ、重厚な影で浮遊感を演出した iScore 究極の操作系
  */
 export function FloatingNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // 💡 規約: ナビゲーション（パス変更）が発生したら自動で閉じる
+  // 💡 規約: ナビゲーションが発生したら自動で閉じる
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
   const menuItems = [
     { icon: LayoutDashboard, label: "HOME", href: "/dashboard", angle: -140 },
-    { icon: Trophy, label: "GAME", href: "/matches", angle: -110 },
+    { icon: Trophy, label: "MATCH", href: "/matches", angle: -110 },
     { icon: Users, label: "TEAM", href: "/teams", angle: -70 },
-    { icon: Settings, label: "SETTING", href: "/settings", angle: -40 },
+    { icon: Settings, label: "CONFIG", href: "/settings", angle: -40 },
   ];
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
-      {/* 🌟 背景オーバーレイ（脱・グラスモーフィズム：コントラスト重視） */}
+    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]">
+      
+      {/* 🌟 背景オーバーレイ（脱・グラスモーフィズム：屋外視認性重視） */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -39,13 +40,14 @@ export function FloatingNav() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-background/80 z-[-1]" 
+            className="fixed inset-0 bg-background/90 z-[-1]" 
           />
         )}
       </AnimatePresence>
 
       <div className="relative flex items-center justify-center">
-        {/* 🌟 サブメニュー項目 */}
+        
+        {/* 🌟 扇状に展開するメニュー */}
         <AnimatePresence>
           {isOpen &&
             menuItems.map((item, index) => (
@@ -54,23 +56,23 @@ export function FloatingNav() {
                 initial={{ scale: 0, x: 0, y: 0 }}
                 animate={{
                   scale: 1,
-                  x: Math.cos((item.angle * Math.PI) / 180) * 110, // 距離を少し広げて視認性UP
-                  y: Math.sin((item.angle * Math.PI) / 180) * 110,
+                  x: Math.cos((item.angle * Math.PI) / 180) * 115, // 距離を広げて干渉を防ぐ
+                  y: Math.sin((item.angle * Math.PI) / 180) * 115,
                 }}
                 exit={{ scale: 0, x: 0, y: 0 }}
-                transition={{ type: "spring", stiffness: 350, damping: 25, delay: index * 0.03 }}
+                transition={{ type: "spring", stiffness: 400, damping: 28, delay: index * 0.02 }}
                 className="absolute"
               >
-                <Link href={item.href} className="group flex flex-col items-center gap-1">
+                <Link href={item.href} className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90">
                   <div className={cn(
-                    "w-14 h-14 rounded-full flex items-center justify-center shadow-2xl border-2 transition-all active:scale-90",
+                    "w-15 h-15 rounded-full flex items-center justify-center shadow-xl border-2 transition-all",
                     pathname === item.href 
                       ? "bg-primary border-primary text-primary-foreground" 
                       : "bg-background border-border text-foreground"
                   )}>
-                    <item.icon className="w-6 h-6" />
+                    <item.icon className="w-7 h-7" />
                   </div>
-                  <span className="text-[10px] font-black text-foreground bg-background px-2 py-0.5 rounded-full border border-border shadow-sm">
+                  <span className="text-[9px] font-black tracking-widest text-foreground bg-background px-2.5 py-1 rounded-full border border-border shadow-sm uppercase">
                     {item.label}
                   </span>
                 </Link>
@@ -78,47 +80,50 @@ export function FloatingNav() {
             ))}
         </AnimatePresence>
 
-        {/* ⚾️ メイン・センターボタン（アイコンを円いっぱいに） */}
+        {/* ⚾️ センター・FAB・ボタン（限界拡大ロゴ & 3D Shadow） */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "relative w-20 h-20 rounded-full flex items-center justify-center shadow-[0_10px_40px_rgba(var(--primary),0.4)] transition-all active:scale-95 z-50 overflow-hidden",
-            isOpen ? "bg-background border-4 border-primary" : "bg-primary"
+            "relative w-22 h-22 rounded-full flex items-center justify-center transition-all active:scale-95 z-50 overflow-hidden",
+            // 💡 複数の影を重ねることで、画面から浮き上がっている感を演出
+            "shadow-[0_15px_35px_rgba(0,0,0,0.3),0_5px_15px_rgba(var(--primary),0.2)]",
+            isOpen ? "bg-background ring-4 ring-primary" : "bg-primary"
           )}
         >
           <AnimatePresence mode="wait">
             {isOpen ? (
               <motion.div
                 key="close"
-                initial={{ opacity: 0, rotate: -90 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: 90 }}
+                initial={{ opacity: 0, scale: 0.5, rotate: -180 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                exit={{ opacity: 0, scale: 0.5, rotate: 180 }}
                 className="flex items-center justify-center"
               >
-                <X className="w-10 h-10 text-primary" />
+                <X className="w-12 h-12 text-primary stroke-[3]" />
               </motion.div>
             ) : (
               <motion.div
                 key="logo"
-                initial={{ opacity: 0, scale: 0.5 }}
+                initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                className="relative w-full h-full p-1" // 💡 p-1 程度の微細な余白で円いっぱいに
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="relative w-full h-full"
               >
+                {/* 💡 円の直径（w-22=88px）の 90% 以上を占領するように配置 */}
                 <Image
                   src="/logo.webp"
                   alt="iScore"
                   fill
-                  className="object-contain p-2" // 💡 画像自体のトリミングに合わせて調整
+                  className="object-contain p-0.5" // 💡 0.5 の微細なパディングで円いっぱいに
                   priority
                 />
               </motion.div>
             )}
           </AnimatePresence>
           
-          {/* 通知バッジ */}
+          {/* 通知インジケーター（試合中など） */}
           {!isOpen && (
-            <div className="absolute top-2 right-2 w-5 h-5 bg-destructive border-4 border-primary rounded-full" />
+            <div className="absolute top-4 right-4 w-4 h-4 bg-red-500 border-4 border-primary rounded-full shadow-md" />
           )}
         </button>
       </div>
