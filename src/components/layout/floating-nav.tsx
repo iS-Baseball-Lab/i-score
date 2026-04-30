@@ -40,7 +40,7 @@ export function FloatingNav() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-background/90 z-[-1]" 
+            className="fixed inset-0 bg-background/90 z-[-1] rounded-full" 
           />
         )}
       </AnimatePresence>
@@ -88,7 +88,7 @@ export function FloatingNav() {
             "relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden",
             "shadow-[0_25px_50px_rgba(0,0,0,0.4),0_10px_20px_rgba(var(--primary),0.3)]",
             isOpen 
-              ? "bg-background/40 ring-[6px] ring-primary/50 backdrop-blur-md rounded-full"
+              ? "bg-background/40 ring-[6px] ring-primary/50 backdrop-blur-md"
               : "bg-primary ring-[0px] ring-transparent"
           )}
         >
