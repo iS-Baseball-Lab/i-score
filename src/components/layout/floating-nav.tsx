@@ -10,8 +10,8 @@ import { LayoutDashboard, Users, Trophy, Settings, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * 💡 フローティング・マキシマム・ナビ
- * ロゴを円いっぱいに広げ、重厚な影で浮遊感を演出した iScore 究極の操作系
+ * 💡 フローティング・マキシマム・ナビ（真円・常時浮遊エディション）
+ * 中央のボタンを常に真円に保ち、重厚な影で浮遊感を演出した iScore 究極の操作系
  */
 export function FloatingNav() {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,7 +56,7 @@ export function FloatingNav() {
                 initial={{ scale: 0, x: 0, y: 0 }}
                 animate={{
                   scale: 1,
-                  x: Math.cos((item.angle * Math.PI) / 180) * 115, // 距離を広げて干渉を防ぐ
+                  x: Math.cos((item.angle * Math.PI) / 180) * 115,
                   y: Math.sin((item.angle * Math.PI) / 180) * 115,
                 }}
                 exit={{ scale: 0, x: 0, y: 0 }}
@@ -80,13 +80,14 @@ export function FloatingNav() {
             ))}
         </AnimatePresence>
 
-        {/* ⚾️ センター・FAB・ボタン（限界拡大ロゴ & 3D Shadow） */}
+        {/* ⚾️ センター・FAB・ボタン（常時真円 & 浮遊シャドウ） */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
+            // 💡 rounded-full を常に適用し、真円を死守
             "relative w-22 h-22 rounded-full flex items-center justify-center transition-all active:scale-95 z-50 overflow-hidden",
-            // 💡 複数の影を重ねることで、画面から浮き上がっている感を演出
-            "shadow-[0_15px_35px_rgba(0,0,0,0.3),0_5px_15px_rgba(var(--primary),0.2)]",
+            // 💡 常に強力な影（Shadow）を適用して浮遊感を出す[cite: 1]
+            "shadow-[0_15px_35px_rgba(0,0,0,0.35),0_5px_15px_rgba(var(--primary),0.25)]",
             isOpen ? "bg-background ring-4 ring-primary" : "bg-primary"
           )}
         >
@@ -109,22 +110,16 @@ export function FloatingNav() {
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="relative w-full h-full"
               >
-                {/* 💡 円の直径（w-22=88px）の 90% 以上を占領するように配置 */}
                 <Image
                   src="/logo.webp"
                   alt="iScore"
                   fill
-                  className="object-contain p-0.5" // 💡 0.5 の微細なパディングで円いっぱいに
+                  className="object-contain p-0.5" 
                   priority
                 />
               </motion.div>
             )}
           </AnimatePresence>
-          
-          {/* 通知インジケーター（試合中など） */}
-          {!isOpen && (
-            <div className="absolute top-4 right-4 w-4 h-4 bg-red-500 border-4 border-primary rounded-full shadow-md" />
-          )}
         </button>
       </div>
     </div>
