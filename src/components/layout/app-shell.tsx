@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
-import { BottomNavigation } from "@/components/bottom-navigation";
+import { FloatingNavigation } from "@/components/floating-nav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -43,7 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <BottomNavigation
+      <FloatingNavigation
         activeTab={activeTab}
         onNavigate={handleNavigate}
         onOpenDrawer={handleOpenDrawer}
