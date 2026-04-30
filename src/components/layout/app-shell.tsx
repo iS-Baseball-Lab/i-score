@@ -43,7 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <FloatingNavigation
+      <FloatingNav
         activeTab={activeTab}
         onNavigate={handleNavigate}
         onOpenDrawer={handleOpenDrawer}
