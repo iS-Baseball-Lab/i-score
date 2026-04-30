@@ -40,7 +40,7 @@ export function FloatingNav() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-background/90 z-[-1] rounded-full shadow-sm" 
+            className="fixed inset-0 bg-background/90 z-[-1] rounded-full shadow-md" 
           />
         )}
       </AnimatePresence>
@@ -85,7 +85,7 @@ export function FloatingNav() {
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             // 💡 どんな時も rounded-full を最優先に。overflow-hidden で四角を許さない
-            "relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden",
+            "relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden shadow-md",
             "shadow-[0_25px_50px_rgba(0,0,0,0.4),0_10px_20px_rgba(var(--primary),0.3)]",
             isOpen 
               ? "bg-background/40 ring-[6px] ring-primary/50 backdrop-blur-md"
