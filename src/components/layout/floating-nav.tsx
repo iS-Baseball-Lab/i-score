@@ -10,9 +10,9 @@ import { LayoutDashboard, Users, Trophy, MoreHorizontal, UserSquare2, X } from "
 import { cn } from "@/lib/utils";
 
 /**
- * 💡 フローティング・マキシマム・ナビ（ALL-SAME-SIZE エディション）
- * ボタンサイズを w-18 で統一し、選択中は光るようなアニメーションで表現。
- * 配置半径は 130px、角度は -150度〜-30度。
+ * 💡 フローティング・マキシマム・ナビ（黄金比配置 & ソーラーエフェクト）
+ * 全ボタン w-18 固定。背後から漏れ出す光のアニメーションで選択状態を表現。
+ * 半径135px、角度-145~-35度で、中央寄りと美しさを両立。
  */
 export function FloatingNav() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,17 +22,17 @@ export function FloatingNav() {
   useEffect(() => setIsOpen(false), [pathname]);
 
   const menuItems = [
-    { icon: Users, label: "TEAM", href: "/team", angle: -150 },
-    { icon: UserSquare2, label: "PLAYER", href: "/players", angle: -120 },
+    { icon: Users, label: "TEAM", href: "/team", angle: -145 },
+    { icon: UserSquare2, label: "PLAYER", href: "/players", angle: -117.5 },
     { icon: LayoutDashboard, label: "HOME", href: "/dashboard", angle: -90 },
-    { icon: Trophy, label: "EVENT", href: "/tournaments", angle: -60 }, // 💡 パスを再確認
-    { icon: MoreHorizontal, label: "MENU", href: "/menu", angle: -30 },
+    { icon: Trophy, label: "EVENT", href: "/tournaments", angle: -62.5 }, // 💡 パス修正完了
+    { icon: MoreHorizontal, label: "MENU", href: "/menu", angle: -35 },
   ];
 
   return (
     <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]">
       
-      {/* 🌟 背景オーバーレイ（漆黒に近いソリッド背景で視認性死守） */}
+      {/* 🌟 背景オーバーレイ（漆黒 98%：屋外視認性の極致） */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -44,11 +44,11 @@ export function FloatingNav() {
             className="fixed inset-0 bg-zinc-950/98 z-[-1] rounded-full" 
           />
         )}
-      </AnimatePresence>
+      </AnPresence>
 
       <div className="relative flex items-center justify-center">
         
-        {/* 🌟 サブボタン：全項目 w-18 で統一 */}
+        {/* 🌟 サブボタン：全項目 w-18 固定・中央寄り配置 */}
         <AnimatePresence>
           {isOpen &&
             menuItems.map((item, index) => {
@@ -59,26 +59,30 @@ export function FloatingNav() {
                   initial={{ scale: 0, x: 0, y: 0 }}
                   animate={{
                     scale: 1,
-                    x: Math.cos((item.angle * Math.PI) / 180) * 130, // 💡 半径 130px で中央寄せ
-                    y: Math.sin((item.angle * Math.PI) / 180) * 130,
+                    // 💡 距離 135px で中央への寄せと間隔を最適化
+                    x: Math.cos((item.angle * Math.PI) / 180) * 135,
+                    y: Math.sin((item.angle * Math.PI) / 180) * 135,
                   }}
                   exit={{ scale: 0, x: 0, y: 0 }}
                   transition={{ type: "spring", stiffness: 600, damping: 35, delay: index * 0.01 }}
                   className="absolute"
                 >
-                  <Link href={item.href} className="relative group flex items-center justify-center">
-                    {/* 💡 アクティブ時のアニメーションリング */}
+                  <Link href={item.href} className="relative flex items-center justify-center">
+                    
+                    {/* 💡 ソーラーエフェクト：ボタンの背後から広がる光の波紋 */}
                     {isActive && (
-                      <motion.div
-                        layoutId="active-glow"
-                        className="absolute inset-[-4px] rounded-full border-2 border-primary"
-                        animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
-                        transition={{ repeat: Infinity, duration: 2 }}
-                      />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <motion.div
+                          className="absolute w-full h-full rounded-full bg-primary/40"
+                          animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
+                          transition={{ repeat: Infinity, duration: 1.5, ease: "easeOut" }}
+                        />
+                        <div className="absolute inset-[-4px] rounded-full border-2 border-primary/60" />
+                      </div>
                     )}
                     
                     <div className={cn(
-                      "w-18 h-18 rounded-full flex flex-col items-center justify-center gap-1 shadow-2xl border-[3px] transition-all relative z-10",
+                      "w-18 h-18 rounded-full flex flex-col items-center justify-center gap-1 shadow-2xl border-[3px] transition-colors relative z-10",
                       isActive 
                         ? "bg-primary border-primary text-primary-foreground" 
                         : "bg-white border-zinc-200 text-zinc-900" 
@@ -94,7 +98,7 @@ export function FloatingNav() {
             })}
         </AnimatePresence>
 
-        {/* ⚾️ センターボタン：w-24 (96px) ＋ 爆速ハンドリング */}
+        {/* ⚾️ センターボタン（w-24 / 96px / 常時真円・爆速） */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
