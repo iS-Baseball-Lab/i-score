@@ -10,8 +10,8 @@ import { LayoutDashboard, Users, Trophy, MoreHorizontal, UserSquare2, X } from "
 import { cn } from "@/lib/utils";
 
 /**
- * 💡 フローティング・マキシマム・ナビ（5項目・インボタンラベル仕様）
- * アイコンとテキストをボタン内に凝縮し、デザインの純度と現場視認性を最大化。
+ * 💡 フローティング・マキシマム・ナビ（究極視認性エディション）
+ * 屋外の太陽光下でも迷わないハイコントラスト設計と、爆速レスポンスを両立。
  */
 export function FloatingNav() {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,7 +31,7 @@ export function FloatingNav() {
   return (
     <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]">
       
-      {/* 🌟 背景オーバーレイ（監督直伝・真円防衛） */}
+      {/* 🌟 背景オーバーレイ：脱・グラスモーフィズム。ソリッドな濃色でコントラストを稼ぐ */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -40,14 +40,14 @@ export function FloatingNav() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-background/90 z-[-1] rounded-full" 
+            className="fixed inset-0 bg-zinc-950/95 z-[-1] rounded-full" 
           />
         )}
       </AnimatePresence>
 
       <div className="relative flex items-center justify-center">
         
-        {/* 🌟 5つのナビ項目（インボタンラベル） */}
+        {/* 🌟 5つのサブボタン：ハイコントラスト設計 */}
         <AnimatePresence>
           {isOpen &&
             menuItems.map((item, index) => (
@@ -56,7 +56,7 @@ export function FloatingNav() {
                 initial={{ scale: 0, x: 0, y: 0 }}
                 animate={{
                   scale: 1,
-                  x: Math.cos((item.angle * Math.PI) / 180) * 135, // 距離を微調整
+                  x: Math.cos((item.angle * Math.PI) / 180) * 135,
                   y: Math.sin((item.angle * Math.PI) / 180) * 135,
                 }}
                 exit={{ scale: 0, x: 0, y: 0 }}
@@ -65,13 +65,13 @@ export function FloatingNav() {
               >
                 <Link href={item.href} className="active:scale-90 transition-transform">
                   <div className={cn(
-                    "w-18 h-18 rounded-full flex flex-col items-center justify-center shadow-2xl border-2 gap-1",
+                    "w-18 h-18 rounded-full flex flex-col items-center justify-center gap-1 shadow-2xl border-[3px]",
                     pathname === item.href 
-                      ? "bg-primary border-primary text-primary-foreground scale-110 shadow-primary/20" 
-                      : "bg-background border-border text-foreground"
+                      ? "bg-primary border-primary text-primary-foreground scale-110 ring-4 ring-primary/20" 
+                      : "bg-white border-zinc-200 text-zinc-900" // 💡 白背景に黒文字の絶対的視認性
                   )}>
-                    <item.icon className="w-7 h-7" />
-                    <span className="text-[8px] font-black tracking-tighter leading-none">
+                    <item.icon className="w-7 h-7 stroke-[2.5]" />
+                    <span className="text-[9px] font-black tracking-tighter leading-none">
                       {item.label}
                     </span>
                   </div>
@@ -80,14 +80,14 @@ export function FloatingNav() {
             ))}
         </AnimatePresence>
 
-        {/* ⚾️ センターボタン（w-24 / 96px / 常時真円・爆速アイコン） */}
+        {/* ⚾️ センターボタン：w-24 / 96px / 常時真円・爆速アイコン */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             "relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden",
-            "shadow-[0_20px_50px_rgba(0,0,0,0.4),0_8px_20px_rgba(var(--primary),0.3)]",
+            "shadow-[0_25px_60px_rgba(0,0,0,0.5),0_10px_25px_rgba(var(--primary),0.3)]",
             isOpen 
-              ? "bg-background/20 ring-[6px] ring-primary/40 backdrop-blur-md" 
+              ? "bg-white ring-[8px] ring-primary/60" // 💡 展開時は白ボタンに太いブランドカラーのリング
               : "bg-primary"
           )}
         >
@@ -102,7 +102,7 @@ export function FloatingNav() {
                   transition={{ duration: 0.1, ease: "circOut" }}
                   className="flex items-center justify-center w-full h-full rounded-full"
                 >
-                  <X className="w-14 h-14 text-primary stroke-[4]" />
+                  <X className="w-14 h-14 text-primary stroke-[5]" />
                 </motion.div>
               ) : (
                 <motion.div
