@@ -44,7 +44,7 @@ export function FloatingNav() {
             className="fixed inset-0 bg-zinc-950/98 z-[-1] rounded-full" 
           />
         )}
-      </AnPresence>
+      </AnimatePresence>
 
       <div className="relative flex items-center justify-center">
         
