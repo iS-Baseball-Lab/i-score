@@ -40,7 +40,7 @@ export function FloatingNav() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-background/90 z-[-1] rounded-full shadow-[0_25px_50px_rgba(0,0,0,0.4),0_10px_20px_rgba(var(--primary),0.3)]" 
+            className="fixed inset-0 bg-background/90 z-[-1] rounded-full shadow-sm" 
           />
         )}
       </AnimatePresence>
