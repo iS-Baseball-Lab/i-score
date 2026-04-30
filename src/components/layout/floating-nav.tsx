@@ -10,30 +10,29 @@ import { LayoutDashboard, Users, Trophy, MoreHorizontal, UserSquare2, X } from "
 import { cn } from "@/lib/utils";
 
 /**
- * 💡 フローティング・マキシマム・ナビ（超凝縮・HOME頂点・広域アーク仕様）
- * 半径100px、角度 -175度 〜 45度の可動域の中で、HOMEを真上に配置。
- * 屋外視認性を考慮した漆黒ソリッド背景と、ボタンサイズ w-18 固定。
+ * 💡 フローティング・マキシマム・ナビ（超凝縮・HOME頂点・広域アーク修正版）
+ * HOMEを真上(-90度)に固定し、指示された範囲(-175度〜45度)を美しく埋める。
  */
 export function FloatingNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // 💡 規約: 画面遷移が発生したら自動クローズ。
+  // 💡 規約: 画面遷移が発生したら自動クローズ。現場でのコンテキスト保護。
   useEffect(() => setIsOpen(false), [pathname]);
 
-  // 💡 HOME(-90)を頂点にし、左端(-175)と右端(45)を繋ぐバランス配置
+  // 💡 監督の指示に基づく完全な角度再配分
   const menuItems = [
-    { icon: Users, label: "TEAM", href: "/team", angle: -175 },         // 左：真横よりわずかに下
+    { icon: Users, label: "TEAM", href: "/team", angle: -175 },         // 左端（真横より少し下）
     { icon: UserSquare2, label: "PLAYER", href: "/players", angle: -132.5 }, // 左中間
     { icon: LayoutDashboard, label: "HOME", href: "/dashboard", angle: -90 },   // ⭐ 真上（頂点）
-    { icon: Trophy, label: "EVENT", href: "/tournaments", angle: -22.5 }, // 右中間
-    { icon: MoreHorizontal, label: "MENU", href: "/menu", angle: 45 },          // 右：斜め下まで回り込み
+    { icon: Trophy, label: "EVENT", href: "/tournaments", angle: -22.5 }, // 右中間（-90と45の等分）
+    { icon: MoreHorizontal, label: "MENU", href: "/menu", angle: 45 },          // 右端（斜め下）
   ];
 
   return (
     <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]">
       
-      {/* 🌟 背景オーバーレイ：脱・グラスモーフィズム。ソリッドな漆黒で視認性最大化。 */}
+      {/* 🌟 背景オーバーレイ：脱・グラスモーフィズム。ソリッドな漆黒(bg-zinc-950/98)で視認性最大化。 */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -60,7 +59,7 @@ export function FloatingNav() {
                   initial={{ scale: 0, x: 0, y: 0 }}
                   animate={{
                     scale: 1,
-                    // 💡 半径 100px 凝縮配置
+                    // 💡 半径 100px 凝縮配置。親指を伸ばさず「転がす」操作感。
                     x: Math.cos((item.angle * Math.PI) / 180) * 100,
                     y: Math.sin((item.angle * Math.PI) / 180) * 100,
                   }}
@@ -99,7 +98,7 @@ export function FloatingNav() {
             })}
         </AnimatePresence>
 
-        {/* ⚾️ センターボタン：w-24 (96px) ＋ 爆速ハンドリング ＋ 真円絶対固定 */}
+        {/* ⚾️ センターボタン：w-24 (96px) ＋ 爆速アイコン */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
