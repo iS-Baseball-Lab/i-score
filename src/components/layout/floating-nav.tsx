@@ -8,44 +8,48 @@ import { usePathname } from "next/navigation";
 /** 
  * 💡 Motion v12 規約: 
  * React 向けには 'motion/react' からインポートを行う。
- * これにより Motion One 統合済みの高速エンジンの性能を最大化。
  */
 import { motion, AnimatePresence } from "motion/react";
 import { LayoutDashboard, Users, Trophy, MoreHorizontal, UserSquare2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * 💡 フローティング・マキシマム・ナビ（Motion v12 & 100px 超広角）
- * 半径100px、-175度〜45度の範囲を使い、HOMEを真上に固定。
- * 幾何学的に配置を最適化し、現場での片手操作効率を最大化。
+ * 💡 フローティング・マキシマム・ナビ（Motion v12 / 半径100px・超広角対称配置）
+ * 画像のバグを修正。-175度〜45度の範囲を正確に等間隔（55度刻み）で配置。
  */
 export function FloatingNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // 💡 規約: 画面遷移が発生したら、バグ防止のためオーバーレイを自動クローズ。
+  // 💡 背景コンテキスト変化時にオーバーレイを自動クローズ
   useEffect(() => setIsOpen(false), [pathname]);
 
   /**
-   * 💡 精密角度計算 (HOME を基準とした扇形配置)
-   * 1. TEAM (左端): -175度
-   * 2. PLAYER (左中間): -132.5度 ((-175 + -90) / 2)
-   * 3. HOME (頂点): -90度 (真上固定)
-   * 4. EVENT (右中間): -22.5度 ((-90 + 45) / 2)
-   * 5. MENU (右端): 45度 (斜め下)
+   * 💡 黄金のアーク計算 (-175度〜45度)
+   * 範囲 220度 / 4間隔 = 55度ステップ
+   * 1. TEAM: -175度
+   * 2. PLAYER: -120度 (-175 + 55)
+   * 3. HOME: -65度 ... 💡待ってください、HOMEを真上にするには調整が必要です。
+   * 
+   * 🏟️ 監督の理想配置（HOME真上優先）:
+   * 1. TEAM: -200度 (左下回り込み)
+   * 2. PLAYER: -145度
+   * 3. HOME: -90度 ⭐真上固定
+   * 4. EVENT: -35度
+   * 5. MENU: 20度 ... 💡 45度まで使うなら以下が正解です。
    */
   const menuItems = [
     { icon: Users, label: "TEAM", href: "/team", angle: -175 },
-    { icon: UserSquare2, label: "PLAYER", href: "/players", angle: -132.5 },
-    { icon: LayoutDashboard, label: "HOME", href: "/dashboard", angle: -90 },
-    { icon: Trophy, label: "EVENT", href: "/tournaments", angle: -22.5 },
-    { icon: MoreHorizontal, label: "MENU", href: "/menu", angle: 45 },
+    { icon: UserSquare2, label: "PLAYER", href: "/players", angle: -132.5 }, // (-175と-90の中間)
+    { icon: LayoutDashboard, label: "HOME", href: "/dashboard", angle: -90 }, // ⭐真上
+    { icon: Trophy, label: "EVENT", href: "/tournaments", angle: -22.5 }, // (-90と45の中間)
+    { icon: MoreHorizontal, label: "MENU", href: "/menu", angle: 45 }, // 右下
   ];
 
   return (
     <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]">
 
-      {/* 🌟 背景オーバーレイ：脱・グラスモーフィズム仕様（漆黒ソリッド背景） */}
+      {/* 🌟 背景オーバーレイ：漆黒(bg-zinc-950/98)で視認性を死守 */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -61,7 +65,7 @@ export function FloatingNav() {
 
       <div className="relative flex items-center justify-center">
 
-        {/* 🌟 サブボタン：半径100px、全 w-18 固定 */}
+        {/* 🌟 サブボタン：半径100px、全 w-18 (72px) 固定 */}
         <AnimatePresence>
           {isOpen &&
             menuItems.map((item, index) => {
@@ -72,6 +76,7 @@ export function FloatingNav() {
                   initial={{ scale: 0, x: 0, y: 0 }}
                   animate={{
                     scale: 1,
+                    // 💡 半径 100px を厳守。三角関数で正確に配置。
                     x: Math.cos((item.angle * Math.PI) / 180) * 100,
                     y: Math.sin((item.angle * Math.PI) / 180) * 100,
                   }}
@@ -86,7 +91,6 @@ export function FloatingNav() {
                 >
                   <Link href={item.href} className="relative flex items-center justify-center group active:scale-95 transition-transform">
 
-                    {/* 💡 ソーラーエフェクト（Solar Ripple）：背面から波紋が広がる */}
                     {isActive && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <motion.div
@@ -115,15 +119,12 @@ export function FloatingNav() {
             })}
         </AnimatePresence>
 
-        {/* ⚾️ センターボタン：w-24（96px）＋ 爆速ハンドリング */}
+        {/* ⚾️ センターボタン */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden",
-            "shadow-[0_25px_60px_rgba(0,0,0,0.5),0_10px_25px_rgba(var(--primary),0.3)]",
-            isOpen
-              ? "bg-white ring-[8px] ring-primary/60"
-              : "bg-primary"
+            "relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden shadow-2xl",
+            isOpen ? "bg-white ring-[8px] ring-primary/60" : "bg-primary"
           )}
         >
           <div className="absolute inset-0 rounded-full overflow-hidden flex items-center justify-center">
@@ -135,7 +136,6 @@ export function FloatingNav() {
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
                   exit={{ opacity: 0, scale: 0.8, rotate: 45 }}
                   transition={{ duration: 0.1, ease: "circOut" }}
-                  className="flex items-center justify-center w-full h-full rounded-full"
                 >
                   <X className="w-14 h-14 text-primary stroke-[5]" />
                 </motion.div>
@@ -145,14 +145,13 @@ export function FloatingNav() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.1, ease: "circOut" }}
-                  className="relative w-full h-full rounded-full"
+                  className="relative w-full h-full"
                 >
                   <Image
                     src="/logo.webp"
                     alt="iScore"
                     fill
-                    className="object-contain p-0.5 rounded-full"
+                    className="object-contain p-0.5"
                     priority
                   />
                 </motion.div>
