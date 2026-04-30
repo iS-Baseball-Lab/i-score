@@ -3,14 +3,14 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import Link from "next/link"; // 💡 これが抜けていたためエラーが出ていました
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Chrome, Loader2, Trophy, ShieldCheck, Image as ImageIcon } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 /**
- * 💡 ログインページ：ソーシャル特化型ゲート
+ * 💡 ログインページ：公式ソーシャル特化型ゲート
  */
 export default function LoginPage() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function LoginPage() {
     setLoadingProvider(provider);
     
     try {
-      // 実際にはここで各プロバイダーのOAuthエンドポイントへリダイレクトします
+      // 実際にはOAuthエンドポイントへリダイレクト
       await new Promise(resolve => setTimeout(resolve, 1000)); 
       toast.success(`${provider.toUpperCase()} でスタジアムに入場しました！`);
       router.push("/dashboard");
@@ -33,20 +33,20 @@ export default function LoginPage() {
   return (
     <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-background p-6 relative overflow-hidden">
       
-      {/* 🏟 背景演出 */}
+      {/* 🏟 背景演出（ナイターの照明と芝生をイメージ） */}
       <div className="absolute top-[-20%] right-[-10%] w-[60%] aspect-square bg-primary/15 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-20%] left-[-10%] w-[60%] aspect-square bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="w-full max-w-[360px] space-y-12 z-10 animate-in fade-in zoom-in-95 duration-1000">
+      <div className="w-full max-w-[360px] space-y-16 z-10 animate-in fade-in zoom-in-95 duration-1000">
         
         {/* ⚾️ センターロゴ */}
-        <div className="flex flex-col items-center space-y-6">
-          <div className="relative w-24 h-24 drop-shadow-[0_0_20px_rgba(var(--primary),0.4)] transition-transform duration-700 hover:scale-110">
+        <div className="flex flex-col items-center space-y-6 pt-8">
+          <div className="relative w-28 h-28 drop-shadow-[0_0_20px_rgba(var(--primary),0.4)] transition-transform duration-700 hover:scale-110">
             <Image
               src="/logo.webp"
               alt="iScore Logo"
               fill
-              className="object-contain"
+              className="object-contain text-transparent" // アプリ外ロゴのためtext-transparent
               priority
             />
           </div>
@@ -54,82 +54,64 @@ export default function LoginPage() {
             <h1 className="text-5xl font-black italic tracking-tighter text-primary leading-none select-none">
               iScore<span className="text-foreground">Cloud</span>
             </h1>
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-[1px] w-4 bg-muted-foreground/30" />
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em]">
-                Authentic Scorer
-              </p>
-              <div className="h-[1px] w-4 bg-muted-foreground/30" />
-            </div>
+            <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.4em] select-none">
+              Authentic Scorer
+            </p>
           </div>
         </div>
 
-        {/* 🔓 ログインアクション */}
-        <div className="space-y-4">
-          <p className="text-center text-[11px] font-black text-muted-foreground/60 uppercase tracking-widest mb-6">
-            Quick Entry to Stadium
+        {/* 🔓 ログインアクション（公式ロゴ採用） */}
+        <div className="space-y-6">
+          <p className="text-center text-[11px] font-black text-muted-foreground/60 uppercase tracking-widest select-none">
+            Welcome to the Stadium
           </p>
           
           <div className="grid gap-4">
-            {/* LINE ログイン */}
+            {/* 🟢 LINE ログイン：公式グリーンとロゴ */}
             <Button 
               onClick={() => handleSocialLogin("line")}
               disabled={!!loadingProvider}
-              className="h-16 w-full rounded-[20px] bg-[#06C755] hover:bg-[#05b34c] text-white font-black text-base gap-4 shadow-xl shadow-emerald-900/10 active:scale-95 transition-all border-none"
+              className="h-16 w-full rounded-[24px] bg-[#06C755] hover:bg-[#05b34c] text-white font-black text-base gap-4 shadow-xl shadow-emerald-900/10 active:scale-95 transition-all border-none"
             >
               {loadingProvider === "line" ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <Loader2 className="h-7 w-7 animate-spin" />
               ) : (
-                <div className="bg-white/20 p-1.5 rounded-lg">
-                  <MessageCircle className="h-6 w-6 fill-white text-[#06C755]" />
+                // 💡 公式LINEロゴ（透過画像等を想定）
+                <div className="relative h-8 w-8">
+                  <Image src="/line-logo.png" alt="LINE Logo" fill className="object-contain" />
                 </div>
               )}
               LINEで入場
             </Button>
 
-            {/* Google ログイン */}
+            {/* ⚪️ Google ログイン：公式マルチカラーロゴ */}
             <Button 
               onClick={() => handleSocialLogin("google")}
               disabled={!!loadingProvider}
               variant="secondary"
-              className="h-16 w-full rounded-[20px] bg-white text-black hover:bg-zinc-100 font-black text-base gap-4 shadow-xl shadow-black/5 active:scale-95 transition-all border border-zinc-200"
+              className="h-16 w-full rounded-[24px] bg-white text-black hover:bg-zinc-100 font-black text-base gap-4 shadow-xl shadow-black/5 active:scale-95 transition-all border border-zinc-200"
             >
               {loadingProvider === "google" ? (
-                <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+                <Loader2 className="h-7 w-7 animate-spin text-zinc-400" />
               ) : (
-                <div className="bg-zinc-100 p-1.5 rounded-lg">
-                  <Chrome className="h-6 w-6 text-[#4285F4]" />
+                // 💡 公式Googleロゴ（マルチカラーG）
+                <div className="relative h-7 w-7">
+                  <Image src="/google-logo.png" alt="Google Logo" fill className="object-contain" />
                 </div>
               )}
               Googleで入場
             </Button>
           </div>
         </div>
-
-        {/* 🏆 ベネフィット */}
-        <div className="grid grid-cols-3 gap-2 py-4 border-y border-border/40">
-          <div className="flex flex-col items-center gap-1.5">
-            <Trophy className="h-4 w-4 text-muted-foreground/50" />
-            <span className="text-[9px] font-black text-muted-foreground uppercase">本格スコア</span>
-          </div>
-          <div className="flex flex-col items-center gap-1.5">
-            <ShieldCheck className="h-4 w-4 text-muted-foreground/50" />
-            <span className="text-[9px] font-black text-muted-foreground uppercase">安全管理</span>
-          </div>
-          <div className="flex flex-col items-center gap-1.5">
-            <ImageIcon className="h-4 w-4 text-muted-foreground/50" />
-            <span className="text-[9px] font-black text-muted-foreground uppercase">画像出力</span>
-          </div>
-        </div>
       </div>
 
       {/* 💡 規約・ポリシーリンク */}
-      <footer className="absolute bottom-8 w-full flex flex-col items-center gap-4 animate-in fade-in duration-1000 delay-500">
+      <footer className="absolute bottom-10 w-full flex flex-col items-center gap-4 animate-in fade-in duration-1000 delay-500">
         <div className="flex gap-6">
           <Link href="/terms" className="text-[10px] font-black text-muted-foreground/40 hover:text-primary tracking-widest uppercase transition-colors">Terms</Link>
           <Link href="/privacy" className="text-[10px] font-black text-muted-foreground/40 hover:text-primary tracking-widest uppercase transition-colors">Privacy</Link>
         </div>
-        <p className="text-[9px] font-medium text-muted-foreground/20 tracking-tighter">© 2026 iS Baseball Lab / iScoreCloud</p>
+        <p className="text-[9px] font-medium text-muted-foreground/10 tracking-tighter select-none">© 2026 iScoreCloud / iS Baseball Lab</p>
       </footer>
     </div>
   );
