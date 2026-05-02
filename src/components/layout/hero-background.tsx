@@ -1,66 +1,72 @@
 // filepath: src/components/layout/hero-background.tsx
-/* 💡 現場視認性ルール: グリッドを「物理的な太さ」と「発光」で確実に描画。暗闇を払拭する Data-Viz デザイン。 */
 "use client";
 
-import React from "react";
-/** 
- * 💡 Motion v12 規約: React 向けには 'motion/react' からインポートを行う。
- */
+import React, { useMemo } from "react";
 import { motion } from "motion/react";
 
+/**
+ * 💡 i-score Cyber Grid Background (v12)
+ * 格子状の線上を光のパルスが無差別に、かつ高速に交差する近未来デザイン。
+ * ライト/ダーク両対応のタクティカル・ビジュアル。
+ */
 export function HeroBackground() {
+  // 🌟 パルスの生成（無差別な動きを作るためのランダムデータ）
+  const pulses = useMemo(() => [...Array(12)].map((_, i) => ({
+    id: i,
+    top: `${Math.random() * 100}%`,
+    left: `${Math.random() * 100}%`,
+    duration: 2 + Math.random() * 4,
+    delay: Math.random() * 5,
+    direction: i % 3 === 0 ? "horizontal" : i % 3 === 1 ? "vertical" : "diagonal",
+  })), []);
+
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#050505]">
-      {/* 🌟 究極のダイヤモンド・グリッド (SVG Pattern)
-          線の太さを 2px に、色を純白に近い Slate-200 に設定。
-          さらに微細なドロップシャドウ（filter）を加え、線そのものが浮き出るように設計。 */}
-      <svg className="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-background transition-colors duration-500">
+      {/* 🌟 ダイヤモンド・グリッド（SVG基盤） */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.15] dark:opacity-[0.25]" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <pattern 
-            id="diamond-grid" 
-            width="120" 
-            height="207.8" 
-            patternUnits="userSpaceOnUse"
-            patternTransform="scale(0.8) rotate(0)"
-          >
-            {/* スコアブックのマス目：視認性向上のため strokeWidth を 2.0 まで強化 */}
+          <pattern id="cyber-grid" width="80" height="138.5" patternUnits="userSpaceOnUse">
             <path 
-              d="M 60 0 L 120 103.9 L 60 207.8 L 0 103.9 Z" 
+              d="M 40 0 L 80 69.25 L 40 138.5 L 0 69.25 Z" 
               fill="none" 
-              stroke="#e2e8f0" 
-              strokeWidth="2.0"
-              strokeLinejoin="round"
+              stroke="currentColor" 
+              strokeWidth="1.5"
+              className="text-foreground/40"
             />
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="url(#diamond-grid)" />
+        <rect width="100%" height="100%" fill="url(#cyber-grid)" />
       </svg>
 
-      {/* 🌟 データのハイウェイ（パルス）: 
-          厚みを 6px に強化し、Primaryカラーの強力なネオンエフェクトを追加。 */}
-      {[...Array(4)].map((_, i) => (
+      {/* 🌟 高速交差パルス・レイヤー */}
+      {pulses.map((p) => (
         <motion.div
-          key={i}
-          initial={{ x: "-100%", opacity: 0 }}
-          animate={{ x: "200%", opacity: [0, 1, 0] }}
-          transition={{ 
-            duration: 10 + i * 4, 
-            repeat: Infinity, 
-            ease: "linear", 
-            delay: i * 2.5 
+          key={p.id}
+          initial={p.direction === "horizontal" ? { x: "-100%", y: p.top } : p.direction === "vertical" ? { y: "-100%", x: p.left } : { x: "-50%", y: "-50%", opacity: 0 }}
+          animate={
+            p.direction === "horizontal" ? { x: "200%" } : 
+            p.direction === "vertical" ? { y: "200%" } : 
+            { x: ["0%", "150%"], y: ["0%", "150%"], opacity: [0, 1, 0] }
+          }
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            ease: "circIn",
+            delay: p.delay,
           }}
-          className="absolute h-[6px] w-full bg-gradient-to-r from-transparent via-primary to-transparent blur-[4px] shadow-[0_0_20px_rgba(var(--primary),0.8)]"
-          style={{ top: `${15 + i * 25}%` }}
+          className={cn(
+            "absolute blur-[2px] shadow-[0_0_15px_rgba(var(--primary),0.8)]",
+            p.direction === "horizontal" ? "h-[2px] w-40 bg-gradient-to-r from-transparent via-primary to-transparent" :
+            p.direction === "vertical" ? "w-[2px] h-40 bg-gradient-to-b from-transparent via-primary to-transparent" :
+            "w-32 h-[2px] bg-gradient-to-br from-transparent via-primary to-transparent rotate-45"
+          )}
         />
       ))}
 
-      {/* 🌟 中央のマウンド・ライト（結界）
-          Primaryカラーの光をより広範囲(80%)に、より明るく(0.3)照射し、黒背景を「濃紺の空間」へ。 */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(var(--primary),0.3)_0%,rgba(var(--primary),0.05)_50%,transparent_80%)]" />
-
-      {/* 🌟 コーナー・シャドウ（ヴィネット）
-          周辺を絞ることで、中央のダイヤモンド・グリッドが光り輝いて見える対比を作る。 */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_30%,rgba(0,0,0,0.9)_100%)]" />
+      {/* 🌟 センター・スポットライト（ロゴとの共鳴） */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(var(--primary),0.1)_0%,transparent_70%)]" />
     </div>
   );
 }
+
+import { cn } from "@/lib/utils";
