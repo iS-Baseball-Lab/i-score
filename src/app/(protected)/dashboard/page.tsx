@@ -174,7 +174,7 @@ export default function DashboardPage() {
         </section>
 
         {/* --- 3. 環境ウィジェット --- */}
-        <section className="bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-border/40 shadow-sm rounded-3xl p-6 sm:p-8">
+        <section className="bg-card/50 dark:bg-zinc-900/50 border border-border/40 shadow-sm rounded-3xl p-6 sm:p-8">
           <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-6 sm:gap-8 text-center sm:text-left">
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-primary/10 rounded-xl text-primary shrink-0"><Clock className="h-5 w-5 sm:h-6 sm:w-6" /></div>
