@@ -168,12 +168,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* --- 2. スコア入力選択 (Real / Quick) --- */}
-        <section>
-          <ScoreTypeSelector />
-        </section>
-
-        {/* --- 3. 環境ウィジェット --- */}
+        {/* --- 2. 環境ウィジェット --- */}
         <section className="bg-card dark:bg-zinc-900 border border-border/40 shadow-sm rounded-3xl p-6 sm:p-8">
           <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-6 sm:gap-8 text-center sm:text-left">
             <div className="flex items-center gap-3">
@@ -221,6 +216,11 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+        </section>
+        
+        {/* --- 3. スコア入力選択 (Real / Quick) --- */}
+        <section>
+          <ScoreTypeSelector />
         </section>
 
         {/* --- 4. チーム成績 (SEASON STANDINGS) --- */}
