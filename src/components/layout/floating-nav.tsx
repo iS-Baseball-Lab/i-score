@@ -6,17 +6,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 /** 
- * 💡 Motion v12 規約: React 向けには 'motion/react' を使用。
+ * 💡 Motion v12 規約: React 向けには 'motion/react' からインポートを行う。
+ * layout プロパティにより、サイズ変更(w-24 ↔ w-18)を自然なアニメーションで繋ぎます。
  */
 import { motion, AnimatePresence } from "motion/react";
 import { LayoutDashboard, Users, Trophy, MoreHorizontal, UserSquare2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/**
- * 💡 フローティング・マキシマム・ナビ（Motion v12 / センター小型化・包囲型）
- * センターボタンを w-18 に小型化し、全ボタンのサイズを統一。
- * 半径100px、-210度〜30度の範囲で HOME を真上（-90度）に固定。
- */
 export function FloatingNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -24,10 +20,14 @@ export function FloatingNav() {
   // 💡 規約: ページ遷移などのコンテキスト変化時に自動クローズ
   useEffect(() => setIsOpen(false), [pathname]);
 
+  /**
+   * 🏟️ ダイヤモンド布陣：絶対角度定義
+   * TEAMを下げ、HOMEを頂点(-90度)に据える究極の等間隔配置
+   */
   const menuItems = [
     { icon: Users, label: "TEAM", href: "/team", angle: -210 },
     { icon: UserSquare2, label: "PLAYER", href: "/players", angle: -150 },
-    { icon: LayoutDashboard, label: "HOME", href: "/dashboard", angle: -90 }, // ⭐ 真上
+    { icon: LayoutDashboard, label: "HOME", href: "/dashboard", angle: -90 }, // ⭐ 頂点
     { icon: Trophy, label: "EVENT", href: "/tournaments", angle: -30 },
     { icon: MoreHorizontal, label: "MENU", href: "/menu", angle: 30 },
   ];
@@ -35,6 +35,7 @@ export function FloatingNav() {
   return (
     <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]">
 
+      {/* 背景オーバーレイ（脱・グラスモーフィズム：漆黒ソリッド） */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -50,7 +51,7 @@ export function FloatingNav() {
 
       <div className="relative flex items-center justify-center">
 
-        {/* 🌟 センター・リング（結界エフェクト）：ボタンサイズ w-18 に合わせて調整 */}
+        {/* 🌟 センター・リング（結界エフェクト）：開閉に合わせてスケールを追従 */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -62,6 +63,7 @@ export function FloatingNav() {
           )}
         </AnimatePresence>
 
+        {/* 🌟 サブボタン・ダイヤモンド展開 */}
         <AnimatePresence>
           {isOpen &&
             menuItems.map((item, index) => {
@@ -77,7 +79,7 @@ export function FloatingNav() {
                   initial={{ scale: 0, x: 0, y: 0 }}
                   animate={{ scale: 1, x, y }}
                   exit={{ scale: 0, x: 0, y: 0 }}
-                  transition={{ type: "spring", stiffness: 700, damping: 30, delay: index * 0.01 }}
+                  transition={{ type: "spring", stiffness: 700, damping: 32, delay: index * 0.01 }}
                   className="absolute"
                 >
                   <Link href={item.href} className="relative flex items-center justify-center active:scale-95 transition-transform">
@@ -95,7 +97,7 @@ export function FloatingNav() {
                       isActive ? "bg-primary border-primary text-primary-foreground" : "bg-white border-zinc-200 text-zinc-900"
                     )}>
                       <item.icon className="w-7 h-7 stroke-[2.5]" />
-                      <span className="text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+                      <span className="text-[8px] font-black uppercase tracking-tighter leading-none">{item.label}</span>
                     </div>
                   </Link>
                 </motion.div>
@@ -103,13 +105,18 @@ export function FloatingNav() {
             })}
         </AnimatePresence>
 
-        {/* ⚾️ センターボタン：w-24 -> w-18 へ小型化。全項目とサイズを統一！ */}
-        <button
+        {/* ⚾️ センターボタン：可変サイズ・マウンドシステム */}
+        <motion.button
+          layout // 💡 サイズ変更をスムーズに
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "relative w-18 h-18 rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden shadow-2xl",
-            isOpen ? "bg-white ring-[6px] ring-primary/60 shadow-none" : "bg-primary"
+            "relative rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden shadow-2xl",
+            // 🌟 閉じている時は w-24 (大), 開いている時は w-18 (小)
+            isOpen
+              ? "w-18 h-18 bg-white ring-[6px] ring-primary/60 shadow-none"
+              : "w-24 h-24 bg-primary ring-0"
           )}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
         >
           <AnimatePresence mode="wait">
             {isOpen ? (
@@ -118,10 +125,10 @@ export function FloatingNav() {
                 initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
                 animate={{ opacity: 1, scale: 1, rotate: 0 }}
                 exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
-                transition={{ type: "spring", stiffness: 600, damping: 25 }}
+                transition={{ duration: 0.15 }}
                 className="flex items-center justify-center"
               >
-                {/* 💡 アイコンも w-10 で洗練されたバランスに */}
+                {/* 💡 ボタン縮小に合わせ、×アイコンも w-9 で美しく */}
                 <X className="w-9 h-9 text-primary stroke-[5]" />
               </motion.div>
             ) : (
@@ -136,7 +143,7 @@ export function FloatingNav() {
               </motion.div>
             )}
           </AnimatePresence>
-        </button>
+        </motion.button>
       </div>
     </div>
   );
