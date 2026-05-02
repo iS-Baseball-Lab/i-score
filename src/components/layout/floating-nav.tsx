@@ -5,37 +5,31 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-/** 
- * 💡 Motion v12 規約: React 向けには 'motion/react' からインポートを行う。
- * layout プロパティにより、サイズ変更(w-24 ↔ w-18)を自然なアニメーションで繋ぎます。
- */
 import { motion, AnimatePresence } from "motion/react";
 import { LayoutDashboard, Users, Trophy, MoreHorizontal, UserSquare2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * 💡 iScoreCloud 規約: 
+ * センターボタンは閉鎖時 w-24（シンボル）、展開時 w-18（操作性）の可変サイズ。
+ * 閉鎖時の過剰なエフェクトを排除し、ロゴの美しさを際立たせる。
+ */
 export function FloatingNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // 💡 規約: ページ遷移などのコンテキスト変化時に自動クローズ
   useEffect(() => setIsOpen(false), [pathname]);
 
-  /**
-   * 🏟️ ダイヤモンド布陣：絶対角度定義
-   * TEAMを下げ、HOMEを頂点(-90度)に据える究極の等間隔配置
-   */
   const menuItems = [
     { icon: Users, label: "TEAM", href: "/team", angle: -210 },
     { icon: UserSquare2, label: "PLAYER", href: "/players", angle: -150 },
-    { icon: LayoutDashboard, label: "HOME", href: "/dashboard", angle: -90 }, // ⭐ 頂点
+    { icon: LayoutDashboard, label: "HOME", href: "/dashboard", angle: -90 },
     { icon: Trophy, label: "EVENT", href: "/tournaments", angle: -30 },
     { icon: MoreHorizontal, label: "MENU", href: "/menu", angle: 30 },
   ];
 
   return (
     <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]">
-
-      {/* 背景オーバーレイ（脱・グラスモーフィズム：漆黒ソリッド） */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -50,71 +44,69 @@ export function FloatingNav() {
       </AnimatePresence>
 
       <div className="relative flex items-center justify-center">
-
-        {/* 🌟 センター・リング（結界エフェクト）：開閉に合わせてスケールを追従 */}
+        {/* 🌟 センター・リング（結界）：展開時のみ控えめに表示 */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1.3, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
-              className="absolute w-20 h-20 rounded-full border-[2px] border-primary/40 bg-primary/10 backdrop-blur-sm pointer-events-none z-40"
+              className="absolute w-20 h-20 rounded-full border border-primary/30 bg-primary/5 backdrop-blur-sm pointer-events-none z-40"
             />
           )}
         </AnimatePresence>
 
-        {/* 🌟 サブボタン・ダイヤモンド展開 */}
+        {/* サブボタン展開 */}
         <AnimatePresence>
-          {isOpen &&
-            menuItems.map((item, index) => {
-              const isActive = pathname === item.href;
-              const RADIUS = 100;
-              const radian = (item.angle * Math.PI) / 180;
-              const x = Math.cos(radian) * RADIUS;
-              const y = Math.sin(radian) * RADIUS;
+          {isOpen && menuItems.map((item, index) => {
+            const isActive = pathname === item.href;
+            const RADIUS = 100;
+            const radian = (item.angle * Math.PI) / 180;
+            const x = Math.cos(radian) * RADIUS;
+            const y = Math.sin(radian) * RADIUS;
 
-              return (
-                <motion.div
-                  key={item.href}
-                  initial={{ scale: 0, x: 0, y: 0 }}
-                  animate={{ scale: 1, x, y }}
-                  exit={{ scale: 0, x: 0, y: 0 }}
-                  transition={{ type: "spring", stiffness: 700, damping: 32, delay: index * 0.01 }}
-                  className="absolute"
-                >
-                  <Link href={item.href} className="relative flex items-center justify-center active:scale-95 transition-transform">
-                    {isActive && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <motion.div
-                          className="absolute w-full h-full rounded-full bg-primary/40"
-                          animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
-                          transition={{ repeat: Infinity, duration: 1.5 }}
-                        />
-                      </div>
-                    )}
-                    <div className={cn(
-                      "w-18 h-18 rounded-full flex flex-col items-center justify-center gap-1 shadow-2xl border-[3px] transition-colors relative z-10",
-                      isActive ? "bg-primary border-primary text-primary-foreground" : "bg-white border-zinc-200 text-zinc-900"
-                    )}>
-                      <item.icon className="w-7 h-7 stroke-[2.5]" />
-                      <span className="text-[8px] font-black uppercase tracking-tighter leading-none">{item.label}</span>
+            return (
+              <motion.div
+                key={item.href}
+                initial={{ scale: 0, x: 0, y: 0 }}
+                animate={{ scale: 1, x, y }}
+                exit={{ scale: 0, x: 0, y: 0 }}
+                transition={{ type: "spring", stiffness: 700, damping: 32, delay: index * 0.01 }}
+                className="absolute"
+              >
+                <Link href={item.href} className="relative flex items-center justify-center active:scale-95 transition-transform">
+                  {isActive && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <motion.div
+                        className="absolute w-full h-full rounded-full bg-primary/40"
+                        animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.5 }}
+                      />
                     </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
+                  )}
+                  <div className={cn(
+                    "w-18 h-18 rounded-full flex flex-col items-center justify-center gap-1 shadow-2xl border-[3px] transition-colors relative z-10",
+                    isActive ? "bg-primary border-primary text-primary-foreground" : "bg-white border-zinc-200 text-zinc-900"
+                  )}>
+                    <item.icon className="w-7 h-7 stroke-[2.5]" />
+                    <span className="text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
 
-        {/* ⚾️ センターボタン：可変サイズ・マウンドシステム */}
+        {/* ⚾️ センターボタン：うるさい縁取りを廃止した「スッキリ」版 */}
         <motion.button
-          layout // 💡 サイズ変更をスムーズに
+          layout
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "relative rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden shadow-2xl",
-            // 🌟 閉じている時は w-24 (大), 開いている時は w-18 (小)
+            "relative rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 z-50 overflow-hidden",
+            // 💡 修正：うるさい縁取り（ring/blur）を削ぎ落とし、ソリッドな影と薄いボーダーのみに。
             isOpen
-              ? "w-18 h-18 bg-white ring-[6px] ring-primary/60 shadow-none"
-              : "w-24 h-24 bg-primary ring-0"
+              ? "w-18 h-18 bg-white ring-4 ring-primary/40 shadow-none border-none"
+              : "w-24 h-24 bg-primary border-2 border-white/20 shadow-xl"
           )}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
         >
@@ -125,10 +117,8 @@ export function FloatingNav() {
                 initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
                 animate={{ opacity: 1, scale: 1, rotate: 0 }}
                 exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
-                transition={{ duration: 0.15 }}
                 className="flex items-center justify-center"
               >
-                {/* 💡 ボタン縮小に合わせ、×アイコンも w-9 で美しく */}
                 <X className="w-9 h-9 text-primary stroke-[5]" />
               </motion.div>
             ) : (
@@ -139,7 +129,7 @@ export function FloatingNav() {
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="relative w-full h-full"
               >
-                <Image src="/logo.webp" alt="iScore" fill className="object-contain p-0.5" priority />
+                <Image src="/logo.webp" alt="iScoreCloud" fill className="object-contain p-1" priority />
               </motion.div>
             )}
           </AnimatePresence>
