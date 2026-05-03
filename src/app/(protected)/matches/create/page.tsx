@@ -94,7 +94,7 @@ export default function CreateMatchPage() {
         <form onSubmit={handleSubmit} className="space-y-8">
 
           {/* 1. 基本情報（共通） */}
-          <div className="bg-card/50 border-2 border-dashed border-border/40 rounded-3xl p-6 space-y-6 shadow-xs">
+          <div className="bg-card border-2 border-border/40 rounded-3xl p-6 space-y-6 shadow-xs">
             <div className="space-y-4">
               <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Opponent</label>
               <Input
@@ -124,7 +124,7 @@ export default function CreateMatchPage() {
           {mode === "quick" && (
             <div className="animate-in slide-in-from-top-4 duration-500 space-y-6">
               <SectionHeader title="スコア入力" subtitle="Match Result" />
-              <div className="bg-card border-2 border-dashed border-border/40 rounded-3xl p-6 space-y-8 shadow-xs">
+              <div className="bg-card border-2 border-border/40 rounded-3xl p-6 space-y-8 shadow-xs">
 
                 {/* 合計スコア */}
                 <div className="flex items-center justify-around gap-4 py-4">
