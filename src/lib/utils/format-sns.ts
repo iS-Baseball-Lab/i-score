@@ -1,22 +1,36 @@
 // filepath: src/lib/utils/format-sns.ts
 
 /**
- * 💡 iScoreCloud 現場仕様: SNS投稿用テキスト生成
- * 試合経過やプレイログを、LINE等で見やすい形式にフォーマットします。
+ * 💡 iScoreCloud 現場仕様スコアフォーマット
+ * サヨナラ勝ちの「x」や、試合前の「-」を適切に処理します。
  */
-export function formatLineLog(
-  teamName: string,
-  opponentName: string,
-  score: { us: number; them: number },
+export function formatScoreDisplay(score: number | null | undefined, isWalkOff: boolean = false): string {
+  if (score === null || score === undefined) return "-";
+  return isWalkOff ? `${score}x` : `${score}`;
+}
+
+/**
+ * 💡 LINE/SNS投稿用テキスト生成
+ * 現場の熱量を伝えるため、iScoreCloudの名称とMatchesの状況をフォーマット。
+ */
+export function formatMatchLineLog(
+  homeTeamName: string,
+  awayTeamName: string,
+  scores: { home: number; away: number },
   inning: string,
-  action: string
+  action: string,
+  isWalkOff: boolean = false
 ): string {
-  const emoji = score.us > score.them ? "🔥" : "⚾️";
-  return encodeURIComponent(
+  const homeScoreStr = formatScoreDisplay(scores.home, isWalkOff);
+  const awayScoreStr = formatScoreDisplay(scores.away);
+  
+  const emoji = scores.home > scores.away ? "🔥" : "⚾️";
+  
+  const text = 
     `【iScoreCloud 速報】\n` +
-    `${emoji} ${teamName} vs ${opponentName}\n` +
-    `スコア: ${score.us} - ${score.them}\n` +
+    `${emoji} ${homeTeamName} ${homeScoreStr} - ${awayScoreStr} ${awayTeamName}\n` +
     `状況: ${inning} ${action}\n\n` +
-    `#iScoreCloud #野球速報 #現場至上主義`
-  );
+    `#iScoreCloud #Matches #野球速報`;
+
+  return encodeURIComponent(text);
 }
