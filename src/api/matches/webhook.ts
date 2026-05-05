@@ -1,8 +1,8 @@
 // filepath: src/api/matches/webhook.ts
 /* 💡 iScoreCloud 規約: 
    1. Cloudflare Workers で実行。
-   2. Messaging API Webhook を受け取り、groupId を安全に抽出。
-   3. パス判定を正規化し、404エラーを完封する。 */
+   2. Messaging API Webhook を確実に受理し、404を完封する。
+   3. ログ出力を強化し、LINE側の「検証」リクエストを最優先で 200 OK 返答する。 */
 
 import { LineWebhookRequest } from "@/types/match";
 
@@ -13,42 +13,38 @@ export interface Env {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    
-    /* 💡 現場対応: パス末尾のスラッシュ有無や、
-       Wranglerの設定によるルーティングのズレを吸収する判定 */
-    const normalizedPath = url.pathname.replace(/\/$/, "");
-    if (normalizedPath !== "/api/matches/webhook") {
-      console.log(`[iScoreCloud] Ignored path: ${url.pathname}`);
-      return new Response("Not Found", { status: 404 });
+    const method = request.method;
+
+    // 💡 監督！ここで実際に Workers が受け取っているパスをログに出します
+    console.log(`[iScoreCloud] Incoming Request: ${method} ${url.pathname}`);
+
+    // 💡 Webhook検証(POST)と、ブラウザ等での確認(GET)の両方に対応させる
+    if (method === "GET") {
+      return new Response("iScoreCloud Webhook Endpoint is Active! ⚾️", { status: 200 });
     }
 
-    // LINE Webhook は POST 以外は受け付けない
-    if (request.method !== "POST") {
-      return new Response("Method Not Allowed", { status: 405 });
+    // パス判定を「含む」レベルまで緩和して 404 を防ぐ
+    if (!url.pathname.includes("/api/matches/webhook")) {
+      return new Response(`Path Not Handled: ${url.pathname}`, { status: 404 });
     }
 
     try {
-      // 💡 規約: 型安全のため明示的にキャスト
       const body = (await request.json()) as LineWebhookRequest;
 
-      // LINE Developersコンソールからの「検証」リクエストへの対応
+      // 🌟 LINE「検証」ボタンへの最速返答
       if (!body.events || body.events.length === 0) {
-        console.log("[iScoreCloud] Verification request received.");
+        console.log("[iScoreCloud] Line verification check passed.");
         return new Response("OK", { status: 200 });
       }
 
       for (const event of body.events) {
-        // 🌟 グループIDの抽出ロジック
+        // グループID抽出ロジック（招待やメッセージから）
         if (event.source.type === 'group' && event.source.groupId) {
-          const capturedGroupId = event.source.groupId;
-          console.log(`[iScoreCloud] Captured Group ID: ${capturedGroupId}`);
+          const gid = event.source.groupId;
+          console.log(`[iScoreCloud] SUCCESS! Captured Group ID: ${gid}`);
 
-          // 🧪 現場確認用: 「ID」メッセージへの自動返信
-          if (
-            event.type === 'message' && 
-            event.message?.type === 'text' && 
-            event.message.text === 'ID'
-          ) {
+          // 「ID」と打たれた時の返信ロジック
+          if (event.type === 'message' && event.message?.type === 'text' && event.message.text === 'ID') {
             await fetch("https://api.line.me/v2/bot/message/reply", {
               method: "POST",
               headers: {
@@ -57,27 +53,19 @@ export default {
               },
               body: JSON.stringify({
                 replyToken: event.replyToken,
-                messages: [
-                  {
-                    type: "text",
-                    text: `【iScoreCloud】\nこのグループのIDを特定しました:\n${capturedGroupId}`
-                  }
-                ],
+                messages: [{ type: "text", text: `【iScoreCloud】\nGroup ID: ${gid}` }],
               }),
             });
           }
         }
       }
 
-      // LINEサーバーを安心させるため、処理成功時は常に 200 OK
       return new Response("OK", { status: 200 });
-
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Webhook processing failed";
-      console.error("[iScoreCloud Webhook Error]:", errorMsg);
-      // 💡 規約: エラー時も 200 を返して LINE 側の再試行ループを止めるのも一案ですが、
-      // デバッグのため一旦 500 を返します。
-      return new Response(`Error: ${errorMsg}`, { status: 500 });
+      const errorMsg = err instanceof Error ? err.message : "Payload Error";
+      console.error("[iScoreCloud] Webhook Processing Error:", errorMsg);
+      // エラーでも 200 を返して LINE 側のリトライを止める（デバッグ時は 200 が安全）
+      return new Response("OK", { status: 200 });
     }
   },
 };
