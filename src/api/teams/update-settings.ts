@@ -1,7 +1,7 @@
 // filepath: src/api/teams/update-settings.ts
 /* 💡 iScoreCloud 規約: 
-   1. パスパラメータ :teamId を使用して対象チームを特定する。
-   2. Hono の c.req.param() を活用。 */
+   1. 他の API と同様に、リソース ID (teamId) は POST ボディで受け取る。
+   2. エンドポイントのパスを固定して 404 を回避する。 */
 
 import { Hono } from 'hono';
 import { drizzle } from 'drizzle-orm/d1';
@@ -11,26 +11,29 @@ import type { WorkerEnv } from '@/types/api';
 
 const teamsUpdateSettings = new Hono<{ Bindings: WorkerEnv }>();
 
-// 🌟 修正：エンドポイントをパスパラメータ方式に変更
-teamsUpdateSettings.post('/:teamId/line', async (c) => {
+// 🌟 パスを固定（/:teamId/line ではなく /update-line にする）
+teamsUpdateSettings.post('/update-line', async (c) => {
   const db = drizzle(c.env.DB);
-  const teamId = c.req.param('teamId'); // 💡 URLからIDを抽出
-
+  
   try {
     const body = await c.req.json();
-    
+    const { teamId, lineGroupId, isAutoReportEnabled } = body;
+
+    if (!teamId) {
+      return c.json({ success: false, error: "teamId is required" }, 400);
+    }
+
     await db.update(teams)
       .set({ 
-        lineGroupId: body.lineGroupId?.trim() || null, 
-        isAutoReportEnabled: body.isAutoReportEnabled ?? false 
+        lineGroupId: lineGroupId?.trim() || null, 
+        isAutoReportEnabled: isAutoReportEnabled ?? false 
       })
-      .where(eq(teams.id, teamId)); // 💡 パラメータのIDを使用
+      .where(eq(teams.id, teamId)); // 💡 ボディの ID を使用
 
     return c.json({ success: true, data: { updatedId: teamId } });
 
   } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : "DB Error";
-    return c.json({ success: false, error: errorMsg }, 500);
+    return c.json({ success: false, error: "Database Error" }, 500);
   }
 });
 
