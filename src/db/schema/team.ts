@@ -32,6 +32,11 @@ export const teams = sqliteTable('teams', {
     homeGround: text('home_ground'), // 普段よく使う練習場所やグラウンド
     tier: text('tier'), // 'A', 'B', '1軍', '2軍' などの階層
     teamType: text('team_type').default('regular'), // 'regular'(公式用), 'practice'(練習用)
+    // 🌟 LINE 連携用の追加カラム
+    /** 💡 Webhook で取得したグループ固有の ID */
+    lineGroupId: text('line_group_id'),
+    /** 💡 自動速報の有効化フラグ (0:無効, 1:有効) */
+    isAutoReportEnabled: integer('is_auto_report_enabled', { mode: 'boolean' }).default(false),
     createdBy: text('created_by').notNull().references(() => user.id),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now'))`),
 });
