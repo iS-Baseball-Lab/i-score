@@ -1,82 +1,109 @@
 // filepath: src/components/features/teams/line-settings-card.tsx
+/* 💡 iScoreCloud 規約: 
+   1. 脱・グラスモーフィズム。ソリッドな背景（bg-secondary/10）でコントラストを最大化。
+   2. 現場での操作性を考え、スイッチやボタンを大型化する。 */
+
 "use client";
 
 import React, { useState } from "react";
-import { MessageCircle, Save, ShieldCheck, Info } from "lucide-react";
+import { MessageCircle, Save, Info, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Team } from "@/types/match";
-import { cn } from "@/lib/utils";
+import { TeamSettingsUpdateResponse } from "@/api/teams/settings";
 
 interface LineSettingsCardProps {
-  team: Team;
-  onSave: (settings: Partial<Team>) => Promise<void>;
+    teamId: string;
+    initialGroupId?: string;
+    initialIsEnabled: boolean;
 }
 
-export function LineSettingsCard({ team, onSave }: LineSettingsCardProps) {
-  const [groupId, setGroupId] = useState(team.lineGroupId || "");
-  const [isEnabled, setIsEnabled] = useState(team.isAutoReportEnabled);
-  const [isSaving, setIsSaving] = useState(false);
+export function LineSettingsCard({ teamId, initialGroupId, initialIsEnabled }: LineSettingsCardProps) {
+    const [groupId, setGroupId] = useState(initialGroupId || "");
+    const [isEnabled, setIsEnabled] = useState(initialIsEnabled);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    await onSave({ lineGroupId: groupId, isAutoReportEnabled: isEnabled });
-    setIsSaving(false);
-  };
+    const handleSave = async () => {
+        setIsSaving(true);
+        setIsSuccess(false);
 
-  return (
-    <div className="bg-secondary/20 border-2 border-border/50 rounded-[30px] p-6 space-y-6 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="bg-[#06C755] p-2 rounded-xl">
-          <MessageCircle className="w-6 h-6 text-white fill-white" />
+        try {
+            const res = await fetch(`/api/teams/${teamId}/line`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ lineGroupId: groupId, isAutoReportEnabled: isEnabled }),
+            });
+
+            const data = (await res.json()) as TeamSettingsUpdateResponse;
+            if (data.success) {
+                setIsSuccess(true);
+                setTimeout(() => setIsSuccess(false), 3000);
+            }
+        } catch (error) {
+            console.error("Save failed", error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="w-full bg-secondary/10 border-2 border-border/80 rounded-[40px] p-6 space-y-6">
+            <div className="flex items-center gap-4">
+                <div className="bg-[#06C755] p-3 rounded-2xl">
+                    <MessageCircle className="w-8 h-8 text-white fill-white" />
+                </div>
+                <div>
+                    <h2 className="text-xl font-black italic tracking-tighter uppercase">LINE速報・連携設定</h2>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Messaging API Protocol</p>
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <label className="text-xs font-black ml-2 uppercase text-primary">連携先グループ ID</label>
+                    <Input
+                        value={groupId}
+                        onChange={(e) => setGroupId(e.target.value)}
+                        placeholder="Cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                        className="h-14 rounded-2xl border-2 bg-background font-mono text-sm focus-visible:ring-primary"
+                    />
+                    <div className="flex items-start gap-2 ml-2">
+                        <Info className="w-3 h-3 mt-0.5 text-muted-foreground" />
+                        <p className="text-[10px] font-medium text-muted-foreground leading-tight">
+                            公式アカウントを招待し、「ID」と送信して取得したIDを入力してください。
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between p-5 bg-background rounded-2xl border-2 border-border/50">
+                    <div className="space-y-0.5">
+                        <p className="text-sm font-black italic">自動速報を有効にする</p>
+                        <p className="text-[10px] font-bold text-muted-foreground">試合中の得点経過などを自動で送信します</p>
+                    </div>
+                    <Switch
+                        checked={isEnabled}
+                        onCheckedChange={setIsEnabled}
+                        className="data-[state=checked]:bg-[#06C755]"
+                    />
+                </div>
+            </div>
+
+            <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className={`w-full h-16 rounded-[25px] text-xl font-black italic gap-2 transition-all active:scale-95 shadow-lg ${
+                    isSuccess ? "bg-green-600 hover:bg-green-600" : "bg-primary"
+                }`}
+            >
+                {isSaving ? (
+                    "保存中..."
+                ) : isSuccess ? (
+                    <><CheckCircle2 className="w-6 h-6" />保存完了</>
+                ) : (
+                    <><Save className="w-6 h-6" />設定を保存する</>
+                )}
+            </Button>
         </div>
-        <div>
-          <h3 className="text-lg font-black tracking-tighter uppercase italic">LINE速報連携</h3>
-          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Messaging API Protocol</p>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-xs font-black ml-2 text-primary uppercase">Group ID</label>
-          <Input
-            value={groupId}
-            onChange={(e) => setGroupId(e.target.value)}
-            placeholder="Cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-            className="h-14 rounded-2xl bg-background border-2 focus-visible:ring-primary font-mono text-sm"
-          />
-          <p className="text-[10px] text-muted-foreground ml-2 flex items-center gap-1 font-bold">
-            <Info className="w-3 h-3" />
-            Webhookで取得した ID を入力してください
-          </p>
-        </div>
-
-        {/* 💡 脱・グラスモーフィズム：ソリッドな背景で視認性を確保 */}
-        <div className="bg-background rounded-2xl p-4 flex items-center justify-between border border-border/50">
-          <div className="space-y-1">
-            <span className="text-sm font-black italic">自動速報を有効にする</span>
-            <p className="text-[10px] text-muted-foreground font-bold">試合経過が自動でグループに送信されます</p>
-          </div>
-          <Switch 
-            checked={isEnabled} 
-            onCheckedChange={setIsEnabled}
-            className="data-[state=checked]:bg-[#06C755]"
-          />
-        </div>
-      </div>
-
-      <Button
-        onClick={handleSave}
-        disabled={isSaving}
-        className={cn(
-          "w-full h-16 rounded-[25px] text-xl font-black italic gap-2 shadow-lg transition-all active:scale-95",
-          isSaving ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90"
-        )}
-      >
-        <Save className="w-6 h-6" />
-        {isSaving ? "保存中..." : "設定を保存する"}
-      </Button>
-    </div>
-  );
+    );
 }
