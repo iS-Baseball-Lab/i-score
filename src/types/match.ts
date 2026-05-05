@@ -1,14 +1,21 @@
 // filepath: src/types/match.ts
-/* 💡 iScoreCloud 規約: Match型を Matches ディレクトリ構造とリブランディング名に同期 */
+/* 💡 iScoreCloud 規約: 
+   1. Match型を Matches 構造に同期。
+   2. チームごとのLINEグループ紐付け（groupId）に対応。 */
 
-/** 試合種別：公式戦、練習試合、またはその他 */
+/** 試合種別、攻守、ステータスの定義は維持 */
 export type MatchType = 'official' | 'practice' | 'other';
-
-/** 攻守：先攻・後攻 */
 export type BattingOrder = 'first' | 'second';
-
-/** 試合ステータス：予定、試合中、終了 */
 export type MatchStatus = 'scheduled' | 'live' | 'finished';
+
+/** 💡 チーム・LINE連携用の拡張定義 */
+export interface Team {
+  id: string;
+  name: string;
+  /** 連携先のLINEグループID（Messaging APIで使用） */
+  lineGroupId?: string; 
+  isAutoReportEnabled: boolean;
+}
 
 export interface Match {
   id: string;
@@ -16,16 +23,14 @@ export interface Match {
   date: string;
   myScore: number;
   opponentScore: number;
-  status: MatchStatus; // 💡 string からリテラル型に変更
+  status: MatchStatus;
   matchType: MatchType;
   battingOrder: BattingOrder;
   surfaceDetails?: string;
   tournamentName?: string;
   innings?: number;
-  /** イニングごとのスコア：サヨナラ等の特殊表示は formatScoreDisplay 関数で処理 */
   myInningScores?: (number | null)[];
   opponentInningScores?: (number | null)[];
-  /** サヨナラ勝ちフラグ：LINE速報での「x」表示に使用 */
   isWalkOff?: boolean;
 }
 
