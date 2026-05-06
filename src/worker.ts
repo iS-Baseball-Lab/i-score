@@ -9,6 +9,7 @@ import orgsRoute from './api/orgs'
 import teamsRoute from './api/teams'
 import teamsUpdateSettings from './api/teams/update-settings' // 🌟 追加：更新用ユニット
 import matchesRoute from './api/matches'
+import matchesApi from './api/matches/update-score';
 import webhookRoute from './api/matches/webhook'
 import adminRoute from './api/admin'
 import imagesRouter from './api/images'
@@ -25,6 +26,7 @@ app.route('/api/organizations', orgsRoute)
 app.route('/api/teams', teamsRoute)               // 参照系（GET /api/teams/settings など）
 app.route('/api/teams', teamsUpdateSettings)     // 🌟 更新系（POST /api/teams/update-line）
 app.route('/api/matches', matchesRoute)
+app.route('/api/matches', matchesApi)
 app.route('/api/matches/webhook', webhookRoute)
 app.route('/api/admin', adminRoute)
 app.route('/api/images', imagesRouter)
