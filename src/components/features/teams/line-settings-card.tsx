@@ -1,7 +1,8 @@
 // filepath: src/components/features/teams/line-settings-card.tsx
 /* 💡 iScoreCloud 規約: 
-   1. 脱・グラスモーフィズム。ソリッドな背景（bg-secondary/10）でコントラストを最大化。
-   2. 現場での操作性を考え、スイッチやボタンを大型化する。 */
+   1. コンポーネント内で直接 fetch せず、Props の onSave を実行して責務を分離する。
+   2. 脱・グラスモーフィズム。ソリッドな背景（bg-secondary/10）でコントラストを最大化。
+   3. 現場での操作性を考え、スイッチやボタンを大型化する。 */
 
 "use client";
 
@@ -10,38 +11,38 @@ import { MessageCircle, Save, Info, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { TeamSettingsUpdateResponse } from "@/api/teams/settings";
 
 interface LineSettingsCardProps {
     teamId: string;
     initialGroupId?: string;
     initialIsEnabled: boolean;
+    // 🌟 修正：親コンポーネント（page.tsx）から保存関数を受け取る
+    onSave: (settings: { lineGroupId: string; isAutoReportEnabled: boolean }) => Promise<void>;
 }
 
-export function LineSettingsCard({ teamId, initialGroupId, initialIsEnabled }: LineSettingsCardProps) {
+export function LineSettingsCard({ teamId, initialGroupId, initialIsEnabled, onSave }: LineSettingsCardProps) {
     const [groupId, setGroupId] = useState(initialGroupId || "");
     const [isEnabled, setIsEnabled] = useState(initialIsEnabled);
     const [isSaving, setIsSaving] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
-    const handleSave = async () => {
+    // 🌟 修正：内部で fetch せず、親の関数を呼ぶ
+    const handleSaveClick = async () => {
         setIsSaving(true);
         setIsSuccess(false);
 
         try {
-            const res = await fetch(`/api/teams/${teamId}/line`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ lineGroupId: groupId, isAutoReportEnabled: isEnabled }),
+            // 親（page.tsx）の handleSave を実行
+            await onSave({ 
+                lineGroupId: groupId, 
+                isAutoReportEnabled: isEnabled 
             });
-
-            const data = (await res.json()) as TeamSettingsUpdateResponse;
-            if (data.success) {
-                setIsSuccess(true);
-                setTimeout(() => setIsSuccess(false), 3000);
-            }
+            
+            // 成功時の演出
+            setIsSuccess(true);
+            setTimeout(() => setIsSuccess(false), 3000);
         } catch (error) {
-            console.error("Save failed", error);
+            console.error("Card save interaction failed", error);
         } finally {
             setIsSaving(false);
         }
@@ -54,7 +55,7 @@ export function LineSettingsCard({ teamId, initialGroupId, initialIsEnabled }: L
                     <MessageCircle className="w-8 h-8 text-white fill-white" />
                 </div>
                 <div>
-                    <h2 className="text-xl font-black italic tracking-tighter uppercase">LINE速報・連携設定</h2>
+                    <h2 className="text-xl font-black italic tracking-tighter uppercase text-primary">LINE速報・連携設定</h2>
                     <p className="text-[10px] font-bold text-muted-foreground uppercase">Messaging API Protocol</p>
                 </div>
             </div>
@@ -90,10 +91,10 @@ export function LineSettingsCard({ teamId, initialGroupId, initialIsEnabled }: L
             </div>
 
             <Button
-                onClick={handleSave}
+                onClick={handleSaveClick} // 🌟 修正したハンドラをセット
                 disabled={isSaving}
                 className={`w-full h-16 rounded-[25px] text-xl font-black italic gap-2 transition-all active:scale-95 shadow-lg ${
-                    isSuccess ? "bg-green-600 hover:bg-green-600" : "bg-primary"
+                    isSuccess ? "bg-green-600 hover:bg-green-600 text-white" : "bg-primary text-primary-foreground"
                 }`}
             >
                 {isSaving ? (
