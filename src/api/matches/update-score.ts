@@ -1,7 +1,8 @@
 // filepath: src/api/matches/update-score.ts
 /* 💡 iScoreCloud 規約: 
-   1. 試合データ更新(D1)とLINE速報(Messaging API)をアトミックに実行する。
-   2. チーム設定で `isAutoReportEnabled` が ON の場合のみ送信する。 */
+   1. 試合の進行状況（イニング・表裏）をアトミックに更新。
+   2. myScore / opponentScore カラムへの正確なマッピング。
+   3. waitUntil を使用した低遅延な LINE 速報射出。 */
 
 import { Hono } from 'hono';
 import { drizzle } from 'drizzle-orm/d1';
@@ -19,36 +20,48 @@ matchesApi.post('/update-score', async (c) => {
   const { matchId, homeScore, awayScore, inning, isBottom, action } = await c.req.json();
 
   try {
-    // 1. 試合情報を更新
+    // 🌟 1. D1の試合データを最新の状況に更新
     await db.update(matches)
-      .set({ homeScore, awayScore, currentInning: inning, isBottom })
+      .set({ 
+        myScore: homeScore,        // 自チーム得点
+        opponentScore: awayScore,  // 相手チーム得点
+        currentInning: inning,     // 🌟 追加：現在の回
+        isBottom: isBottom,        // 🌟 追加：裏フラグ
+        status: 'live' 
+      })
       .where(eq(matches.id, matchId));
 
-    // 2. チームの設定（LINEグループID等）を取得するために紐付け
-    // 💡 試合データからホームチームの情報を取得
+    // 🌟 2. チーム設定を取得して LINE 送信可否を判定
     const matchData = await db.select().from(matches).where(eq(matches.id, matchId)).get();
-    const teamData = await db.select().from(teams).where(eq(teams.id, matchData.homeTeamId)).get();
+    if (!matchData) return c.json({ success: false, error: "Match Not Found" }, 404);
 
-    // 3. LINE速報の条件判定（設定がONで、グループIDがある場合）
+    const teamData = await db.select().from(teams).where(eq(teams.id, matchData.teamId)).get();
+
+    // 🌟 3. LINE速報の射出（waitUntil でレスポンスを待たせない）
     if (teamData?.lineGroupId && teamData.isAutoReportEnabled) {
       const message = formatMatchLineReport(
         teamData.name,
-        "対戦相手", // 本来は matchData から相手チーム名を取得
+        matchData.opponent,
         { home: homeScore, away: awayScore },
         { number: inning, isBottom },
         action,
         'live'
       );
 
-      // 非同期でLINE送信（試合更新のレスポンスを待たせない）
       c.executionCtx.waitUntil(
-        sendLinePushMessage(teamData.lineGroupId, message, c.env.LINE_CHANNEL_ACCESS_TOKEN)
+        sendLinePushMessage(
+          teamData.lineGroupId, 
+          message, 
+          c.env.LINE_CHANNEL_ACCESS_TOKEN
+        )
       );
     }
 
-    return c.json({ success: true });
-  } catch (err) {
-    return c.json({ success: false, error: "更新失敗" }, 500);
+    return c.json({ success: true, data: { matchId, updatedInning: `${inning}${isBottom ? '裏' : '表'}` } });
+
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Internal Server Error";
+    return c.json({ success: false, error: msg }, 500);
   }
 });
 
