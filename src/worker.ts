@@ -29,6 +29,7 @@ app.route('/api/admin', adminRoute)
 app.route('/api/images', imagesRouter)
 app.route('/api/seed', seed)
 app.route('/api/tournaments', tournaments)
+app.route('/api/teams', testPush) 
 
 export default {
   async fetch(request: Request, env: WorkerEnv, ctx: ExecutionContext) {
