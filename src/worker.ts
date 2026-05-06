@@ -14,7 +14,7 @@ import adminRoute from './api/admin'
 import imagesRouter from './api/images'
 import seed from './api/seed'
 import tournaments from './api/tournaments'
-import import testPush from './api/teams/test-push'
+import testPush from './api/teams/test-push'
 import type { WorkerEnv } from './types/api'
 
 const app = new Hono<{ Bindings: WorkerEnv }>()
