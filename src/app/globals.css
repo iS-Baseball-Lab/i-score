@@ -321,7 +321,7 @@
 }
 
 /* 💡 iScoreCloud 規約: スコア入力画面では誤操作防止のためFABを完全隠蔽する */
-body.hide-global-fab [data-id="global-fab"], 
+body.hide-global-fab [data-id="FloatingNav"], 
 body.hide-global-fab .fixed.bottom-4.right-4 { 
   display: none !important; 
 }
