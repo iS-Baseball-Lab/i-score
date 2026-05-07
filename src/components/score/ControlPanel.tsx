@@ -2,86 +2,82 @@
 import { useScore } from "@/contexts/ScoreContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Zap, ChevronUp, ChevronRight, UserPlus, ShieldAlert } from "lucide-react";
 
 export function ControlPanel() {
-  const { state, recordInPlay, changeInning, isSyncing } = useScore();
-
-  // 🌟 独自性：一撃で状況を完結させる「マクロ実行」
-  const handleAction = (type: "single" | "extra" | "out" | "score") => {
-    switch (type) {
-      case "single":
-        // 1ボタンで：1塁出塁 + 既存ランナー1進塁 + 速報
-        recordInPlay("ヒット！", 0, [{ runnerId: "current", fromBase: 0, toBase: 1 }]);
-        break;
-      case "extra":
-        // 長打：2塁出塁 + 全ランナー2進塁
-        recordInPlay("快音！二塁打", 0, []); 
-        break;
-      case "out":
-        // 1ボタンで：アウトカウント+1 + （3アウトなら）チェンジ
-        recordInPlay("アウト", 0, []);
-        break;
-    }
-  };
+  const { state, recordPitch, recordInPlay, changeInning } = useScore();
 
   return (
-    <div className="h-full flex flex-col gap-2 p-1">
-      {/* 🚀 上段：メイン・アクション（巨大ボタンで押し間違いゼロ） */}
-      <div className="grid grid-cols-2 gap-2 h-1/2">
-        {/* 【安打】上スワイプで長打、右スワイプでタイムリーを想定（まずはタップ） */}
+    <div className="h-full flex flex-col gap-2 p-1 bg-background">
+      
+      {/* 🚀 1段目：BSO入力（ここがメイン！） */}
+      <div className="grid grid-cols-3 gap-2 h-1/3">
+        {/* Ball ボタン */}
         <Button 
-          onClick={() => handleAction("single")}
-          className="h-full bg-blue-600 hover:bg-blue-500 text-white rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg active:scale-95 transition-transform"
+          onClick={() => recordPitch("ball")}
+          className="h-full flex flex-col items-center justify-between py-2 bg-amber-600/10 border-2 border-amber-600/30 text-amber-600 rounded-2xl active:bg-amber-600 active:text-white"
         >
-          <Zap className="w-6 h-6 fill-current text-blue-200" />
-          <span className="text-2xl font-black italic">HIT</span>
-          <span className="text-[9px] font-bold opacity-70">安打 / 進塁オート</span>
+          <span className="text-[10px] font-black tracking-[0.2em]">BALL</span>
+          <div className="flex gap-1.5">
+            {[1, 2, 3].map(i => (
+              <div key={i} className={cn("w-3.5 h-3.5 rounded-full border border-amber-600/30", i <= state.balls ? "bg-amber-500 shadow-[0_0_8px_#f59e0b]" : "bg-transparent")} />
+            ))}
+          </div>
+          <span className="text-xl font-black italic">B</span>
         </Button>
 
-        {/* 【アウト】 */}
+        {/* Strike ボタン */}
         <Button 
-          onClick={() => handleAction("out")}
-          className="h-full bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg active:scale-95"
+          onClick={() => recordPitch("strike")}
+          className="h-full flex flex-col items-center justify-between py-2 bg-blue-600/10 border-2 border-blue-600/30 text-blue-600 rounded-2xl active:bg-blue-600 active:text-white"
         >
-          <ShieldAlert className="w-6 h-6 text-zinc-400" />
-          <span className="text-2xl font-black italic">OUT</span>
-          <span className="text-[9px] font-bold opacity-70">凡退 / 状況更新</span>
+          <span className="text-[10px] font-black tracking-[0.2em]">STRIKE</span>
+          <div className="flex gap-1.5">
+            {[1, 2].map(i => (
+              <div key={i} className={cn("w-3.5 h-3.5 rounded-full border border-blue-600/30", i <= state.strikes ? "bg-blue-500 shadow-[0_0_8px_#3b82f6]" : "bg-transparent")} />
+            ))}
+          </div>
+          <span className="text-xl font-black italic">S</span>
+        </Button>
+
+        {/* Out ボタン */}
+        <Button 
+          onClick={() => recordPitch("in_play")} // ここでは「打球結果入力へ」のトリガー等
+          className="h-full flex flex-col items-center justify-between py-2 bg-rose-600/10 border-2 border-rose-600/30 text-rose-600 rounded-2xl active:bg-rose-600 active:text-white"
+        >
+          <span className="text-[10px] font-black tracking-[0.2em]">OUT</span>
+          <div className="flex gap-1.5">
+            {[1, 2].map(i => (
+              <div key={i} className={cn("w-3.5 h-3.5 rounded-full border border-rose-600/30", i <= state.outs ? "bg-rose-500 shadow-[0_0_8px_#f43f5e]" : "bg-transparent")} />
+            ))}
+          </div>
+          <span className="text-xl font-black italic">O</span>
         </Button>
       </div>
 
-      {/* 🚀 下段：状況変化・得点（より「直感的」な操作） */}
+      {/* 🚀 2段目：打球結果（BSOのすぐ下に配置） */}
       <div className="grid grid-cols-4 gap-2 flex-1">
-        {/* 四球：自動で1塁へ */}
-        <Button onClick={() => recordInPlay("四球", 0, [])} variant="outline" className="h-full rounded-xl border-2 flex flex-col border-blue-500/20">
-          <UserPlus className="w-4 h-4 text-blue-500 mb-1" />
-          <span className="text-[10px] font-black">四球</span>
+        <Button 
+          onClick={() => recordInPlay("単打", 0, [])}
+          className="col-span-2 h-full bg-zinc-900 text-white rounded-xl flex flex-col items-center justify-center border border-zinc-700"
+        >
+          <span className="text-lg font-black italic">HIT</span>
+          <span className="text-[8px] font-bold opacity-50 uppercase">Single / Advance</span>
         </Button>
 
-        {/* 得点ボタン：ここを最大級に目立たせる */}
         <Button 
           onClick={() => recordInPlay("得点", 1, [])}
-          className="h-full col-span-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-md flex flex-col items-center justify-center"
+          className="col-span-2 h-full bg-emerald-600 text-white rounded-xl flex flex-col items-center justify-center shadow-lg"
         >
-          <span className="text-sm font-black tracking-tighter leading-none">SCORE</span>
-          <span className="text-2xl font-black italic">+1</span>
-        </Button>
-
-        {/* イニングチェンジ */}
-        <Button onClick={changeInning} variant="secondary" className="h-full rounded-xl bg-zinc-200 dark:bg-zinc-800 flex flex-col">
-          <span className="text-[10px] font-black leading-none mb-1">CHANGE</span>
-          <ChevronRight className="w-4 h-4" />
+          <span className="text-lg font-black italic">SCORE +1</span>
+          <span className="text-[8px] font-bold opacity-70 uppercase">Home In / RBI</span>
         </Button>
       </div>
 
-      {/* 🚀 独自性：フリック用ヒント（UIの隠し味） */}
-      <div className="flex justify-between px-2">
-        <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-          <ChevronUp className="w-2 h-2" /> Long Hit (Flick)
-        </span>
-        <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">
-          Quick Fix (Long Press)
-        </span>
+      {/* 🚀 3段目：特殊・チェンジ */}
+      <div className="grid grid-cols-3 gap-2 h-[18%]">
+        <Button variant="outline" className="text-[10px] font-black rounded-lg border-2">Foul</Button>
+        <Button variant="outline" className="text-[10px] font-black rounded-lg border-2">Bunt</Button>
+        <Button onClick={changeInning} className="bg-zinc-200 dark:bg-zinc-800 text-[10px] font-black rounded-lg uppercase tracking-widest">Change</Button>
       </div>
     </div>
   );
