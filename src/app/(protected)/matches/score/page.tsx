@@ -8,9 +8,14 @@ import { Scoreboard } from "@/components/score/Scoreboard";
 import { ControlPanel } from "@/components/score/ControlPanel";
 import { PlayArea } from "@/components/score/PlayArea";
 import { PlayLog } from "@/components/score/PlayLog";
+import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 /**
- * 🏟️ メインコンテンツ：Pixel 10 Pro 没入型レイアウト
+ * 🏟️ スコア入力メインコンテンツ
+ * Pixel 10 Pro の縦長画面を活かし、
+ * [掲示板 20%] -> [フィールド 35%] -> [常設ログ 15%] -> [操作パネル 30%]
+ * の黄金比率で構成します。
  */
 function ScorePageContent() {
   const searchParams = useSearchParams();
@@ -19,75 +24,87 @@ function ScorePageContent() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (matchId) initMatch(matchId);
-    
-    // スクロールを禁止し、1枚の「ボード」として固定
-    document.body.style.overflow = 'hidden';
+    if (matchId) {
+      initMatch(matchId);
+    }
+    // ページ全体のスクロールを禁止し、専用端末化する
+    document.body.style.overflow = "hidden";
     const timer = setTimeout(() => setIsReady(true), 100);
     
-    return () => { 
-      document.body.style.overflow = 'unset';
+    return () => {
+      document.body.style.overflow = "unset";
       clearTimeout(timer);
     };
   }, [matchId, initMatch]);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background h-[100dvh] w-full flex flex-col overflow-hidden select-none">
+    <div className="fixed inset-0 z-[50] bg-background h-[100dvh] w-full flex flex-col overflow-hidden select-none">
       
-      {/* 1. 【上部：掲示板】スタジアムの迫力を再現 */}
-      <header className={`
-        h-[22%] shrink-0 z-30 transition-transform duration-1000 cubic-bezier(0.22, 1, 0.36, 1)
-        ${isReady ? "translate-y-0" : "-translate-y-full"}
-      `}>
+      {/* 1. 【上部：掲示板】(約18-20%) 
+          ライト/ダーク対応・スリム化した最新版 */}
+      <header className={cn(
+        "shrink-0 z-30 transition-transform duration-700 ease-out",
+        isReady ? "translate-y-0" : "-translate-y-full"
+      )}>
         <Scoreboard />
       </header>
 
-      {/* 2. 【中央：フィールド】直感的なランナー操作 & 1行速報 */}
-      <main className={`
-        flex-1 relative flex flex-col items-center justify-center z-10 transition-all duration-1000 delay-300
-        ${isReady ? "opacity-100 scale-100" : "opacity-0 scale-95"}
-      `}>
-        {/* フィールドの奥行きを出すグラデーション */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05)_0%,transparent_70%)] pointer-events-none" />
+      {/* 2. 【中央：フィールド & 常設ログ】(約50-55%) */}
+      <main className={cn(
+        "flex-1 relative flex flex-col items-center justify-between py-2 z-10 transition-all duration-1000 delay-150",
+        isReady ? "opacity-100 scale-100" : "opacity-0 scale-98"
+      )}>
+        {/* 背景の微かなグラデーション（没入感用） */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--primary-rgb),0.03)_0%,transparent_70%)] pointer-events-none" />
         
-        {/* ダイヤモンドエリア */}
-        <div className="w-full max-w-[300px] aspect-square">
+        {/* ⚾️ ダイヤモンド・プレイエリア (自動進塁対応想定) 
+            高さを抑えてログのスペースを確保 */}
+        <div className="w-full max-w-[260px] aspect-square flex-shrink-0 flex items-center justify-center">
           <PlayArea />
         </div>
 
-        {/* 1行速報ログ：フィールドのすぐ下にカプセル型で表示 */}
-        <div className="absolute bottom-6 w-full px-8 opacity-90 transition-all duration-500">
-          <PlayLog limit={1} />
-        </div>
-
-        {/* 通信中のグローエフェクト */}
-        {isSyncing && (
-          <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 bg-primary/20 rounded-full animate-pulse border border-primary/30">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <span className="text-[8px] font-black text-primary tracking-widest uppercase">Syncing</span>
+        {/* 📝 🌟 常設プレイログエリア 
+            「見えない」を解消するため、操作パネルのすぐ上に固定配置 */}
+        <div className="w-full px-4 flex-1 flex flex-col justify-end pb-3">
+          <div className="bg-muted/30 backdrop-blur-sm rounded-[24px] border border-border/40 p-3 shadow-inner">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">
+                  Live Stream
+                </span>
+              </div>
+              {isSyncing && (
+                <div className="flex items-center gap-1">
+                  <Loader2 className="w-2.5 h-2.5 animate-spin text-primary" />
+                  <span className="text-[8px] font-bold text-primary uppercase">Sync</span>
+                </div>
+              )}
+            </div>
+            {/* 直近3件を表示し、入力ミスを即座に確認可能にする */}
+            <PlayLog limit={3} />
           </div>
-        )}
+        </div>
       </main>
 
-      {/* 3. 【下部：操作パネル】重戦車級の入力インターフェース */}
-      <footer className={`
-        h-[26%] shrink-0 z-30 bg-card/90 backdrop-blur-3xl border-t border-border/40 px-4 pt-4 pb-8 shadow-[0_-20px_60px_rgba(0,0,0,0.2)]
-        transition-transform duration-1000 cubic-bezier(0.22, 1, 0.36, 1)
-        ${isReady ? "translate-y-0" : "translate-y-full"}
-      `}>
-        <div className="max-w-md mx-auto h-full">
+      {/* 3. 【下部：操作パネル】(約30%)
+          BSOボタン主役・FABレスの究極パネル */}
+      <footer className={cn(
+        "shrink-0 z-30 bg-card border-t border-border px-3 pt-3 pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]",
+        isReady ? "translate-y-0" : "translate-y-full transition-none",
+        "transition-transform duration-700 ease-out delay-100"
+      )}>
+        <div className="max-w-md mx-auto h-[220px]">
           <ControlPanel />
         </div>
       </footer>
 
-      {/* 全画面サヨナラ勝ち演出（ボーナスエフェクト用のオーバーレイ） */}
+      {/* 勝利・終了時のオーバーレイ演出（任意） */}
       {state.status === 'finished' && (
-        <div className="absolute inset-0 z-[200] bg-primary/20 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-1000">
-          <div className="flex flex-col items-center gap-4">
-             <div className="text-6xl font-black italic text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)] animate-bounce">
-               WALK-OFF!
-             </div>
-             <p className="text-white/80 font-bold tracking-[0.5em] uppercase">Game Finished</p>
+        <div className="absolute inset-0 z-[100] bg-background/80 backdrop-blur-md flex items-center justify-center animate-in fade-in duration-500">
+          <div className="text-center">
+            <h2 className="text-4xl font-black italic tracking-tighter mb-2">GAME OVER</h2>
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-sm">Official Record Saved</p>
           </div>
         </div>
       )}
@@ -96,14 +113,16 @@ function ScorePageContent() {
 }
 
 /**
- * 💡 デフォルトエクスポート：Suspense & Provider で保護
+ * 🏟️ ページエントリーポイント
  */
 export default function ScorePage() {
   return (
     <Suspense fallback={
-      <div className="h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Preparing Field...</p>
+      <div className="h-screen w-full bg-background flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-10 h-10 text-primary animate-spin stroke-[3px]" />
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">
+          Opening Stadium...
+        </p>
       </div>
     }>
       <ScoreProvider>
