@@ -31,7 +31,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (isAuthPage) {
     return <>{children}</>;
   }
+// ⚾️ 独自性：スコア入力ページかどうかを判定
+  // このページは「戦場」なので、ナビゲーションは一切不要！
+  const isScorePage = pathname?.startsWith("/matches/score");
 
+  if (isScorePage) {
+    return <>{children}</>;
+  }
+  
   return (
     // 🔥 修正ポイント: bg-background を bg-transparent に変更！
     // これにより、globals.css の背景がバッチリ透けて見えます！
