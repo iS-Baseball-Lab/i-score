@@ -1,26 +1,19 @@
+// filepath: src/contexts/ScoreContext.tsx
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⚾️ 型定義（スキーマ完全準拠）
+// ⚾️ 型定義
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-/** 塁進塁情報（打球結果に伴うランナーの移動） */
 export interface BaseAdvance {
   runnerId: string;
   fromBase: 0 | 1 | 2 | 3;
-  toBase: 1 | 2 | 3 | 4; // 4 = ホームイン
+  toBase: 1 | 2 | 3 | 4;
 }
 
-interface Player {
-    id: string;
-    name: string;
-    uniformNumber: string;
-}
-
-// 💡 APIレスポンス用の型を定義
 interface MatchResponse {
     success: boolean;
     match?: {
@@ -28,41 +21,35 @@ interface MatchResponse {
         status: string;
         myScore: number;
         opponentScore: number;
-        myInningScores: string; // JSON文字列で返ってくる想定
+        myInningScores: string;
         opponentInningScores: string;
         battingOrder: string;
+        currentInning: number;
+        isBottom: boolean;
     };
-    error?: string;
 }
 
 interface ScoreState {
     matchId: string;
     inning: number;
-    isTop: boolean; // true: 表 (自チーム攻撃), false: 裏 (相手チーム攻撃)
+    isTop: boolean; 
     balls: number;
     strikes: number;
     outs: number;
-    // ランナー: 選手IDを保持 (nullなら不在)
-    runners: {
-        base1: string | null;
-        base2: string | null;
-        base3: string | null;
-    };
+    runners: { base1: string | null; base2: string | null; base3: string | null };
     myScore: number;
     opponentScore: number;
-    // イニングごとのスコア (JSON文字列のパース結果)
     myInningScores: number[];
     opponentInningScores: number[];
-
-    // 現在の対戦
     batterId: string | null;
     pitcherId: string | null;
-    pitchCount: number; // この打席での投球数
+    pitchCount: number;
 }
 
 interface ScoreContextType {
     state: ScoreState;
     isLoading: boolean;
+    isSyncing: boolean; // 🌟 通信中フラグ
     initMatch: (matchId: string) => Promise<void>;
     recordPitch: (result: "ball" | "strike" | "foul" | "swinging_strike" | "in_play") => Promise<void>;
     recordInPlay: (result: string, rbi: number, advances: BaseAdvance[]) => Promise<void>;
@@ -76,193 +63,159 @@ const ScoreContext = createContext<ScoreContextType | undefined>(undefined);
 
 export function ScoreProvider({ children }: { children: React.ReactNode }) {
     const [state, setState] = useState<ScoreState>({
-        matchId: "",
-        inning: 1,
-        isTop: true,
-        balls: 0,
-        strikes: 0,
-        outs: 0,
+        matchId: "", inning: 1, isTop: true, balls: 0, strikes: 0, outs: 0,
         runners: { base1: null, base2: null, base3: null },
-        myScore: 0,
-        opponentScore: 0,
-        myInningScores: [],
-        opponentInningScores: [],
-        batterId: null,
-        pitcherId: null,
-        pitchCount: 0,
+        myScore: 0, opponentScore: 0, myInningScores: [], opponentInningScores: [],
+        batterId: null, pitcherId: null, pitchCount: 0,
     });
     const [isLoading, setIsLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false); // 🌟
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🚀 試合情報の初期化
+    // 🚀 1. バックエンド同期 ＆ LINE速報（共通処理）
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const syncWithBackend = useCallback(async (updatedState: ScoreState, actionNote: string) => {
+        setIsSyncing(true);
+        try {
+            const res = await fetch("/api/matches/update-score", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    matchId: updatedState.matchId,
+                    myScore: updatedState.myScore,
+                    opponentScore: updatedState.opponentScore,
+                    inning: updatedState.inning,
+                    isBottom: !updatedState.isTop,
+                    action: actionNote,
+                }),
+            });
+            const result = await res.json();
+            
+            if (result.success && result.data.isWalkOff) {
+                toast.success("劇的サヨナラ！試合終了です！", { icon: "⚾️" });
+            }
+        } catch (e) {
+            console.error("Sync Error:", e);
+            toast.error("通信エラーが発生しましたが、記録は保持されています。");
+        } finally {
+            setIsSyncing(false);
+        }
+    }, []);
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🚀 2. 試合初期化
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     const initMatch = useCallback(async (matchId: string) => {
         setIsLoading(true);
         try {
             const res = await fetch(`/api/matches/${matchId}`);
-            if (res.ok) {
-                // 💡 ここでキャストを行うことで 'unknown' エラーを回避します
-                const data = (await res.json()) as MatchResponse;
-
-                if (data.success && data.match) {
-                    const m = data.match;
-                    setState(prev => ({
-                        ...prev,
-                        matchId: m.id,
-                        inning: m.status === "scheduled" ? 1 : prev.inning,
-                        myScore: m.myScore || 0,
-                        opponentScore: m.opponentScore || 0,
-                        myInningScores: JSON.parse(m.myInningScores || "[]"),
-                        opponentInningScores: JSON.parse(m.opponentInningScores || "[]"),
-                        isTop: m.battingOrder === "first",
-                    }));
-                }
+            const data = (await res.json()) as MatchResponse;
+            if (data.success && data.match) {
+                const m = data.match;
+                setState(prev => ({
+                    ...prev,
+                    matchId: m.id,
+                    inning: m.currentInning || 1,
+                    myScore: m.myScore || 0,
+                    opponentScore: m.opponentScore || 0,
+                    myInningScores: JSON.parse(m.myInningScores || "[]"),
+                    opponentInningScores: JSON.parse(m.opponentInningScores || "[]"),
+                    isTop: !m.isBottom,
+                }));
             }
         } catch (error) {
-            toast.error("試合情報の読み込みに失敗しました");
+            toast.error("情報の読み込みに失敗しました");
         } finally {
             setIsLoading(false);
         }
     }, []);
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🚀 1球ごとの記録 (Ball, Strike, Foul)
+    // 🚀 3. 投球記録 (Ball, Strike)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     const recordPitch = async (result: "ball" | "strike" | "foul" | "swinging_strike" | "in_play") => {
+        if (result === "in_play") return;
+
         const isStrike = result === "strike" || result === "swinging_strike" || (result === "foul" && state.strikes < 2);
         const isBall = result === "ball";
 
-        let newStrikes = state.strikes;
-        let newBalls = state.balls;
-        let atBatResult: string | null = null;
+        setState(prev => {
+            const newStrikes = isStrike ? prev.strikes + 1 : prev.strikes;
+            const newBalls = isBall ? prev.balls + 1 : prev.balls;
+            
+            let atBatResult = "";
+            let newOuts = prev.outs;
+            
+            if (newStrikes >= 3) {
+                atBatResult = "K";
+                newOuts++;
+                toast.info("三振！");
+            } else if (newBalls >= 4) {
+                atBatResult = "BB";
+                toast.info("フォアボール！");
+            }
 
-        if (isStrike) newStrikes++;
-        if (isBall) newBalls++;
-
-        if (newStrikes >= 3) {
-            atBatResult = "K";
-            toast.info("三振！");
-        } else if (newBalls >= 4) {
-            atBatResult = "BB";
-            toast.info("フォアボール！");
-        }
-
-        try {
-            const res = await fetch(`/api/matches/${state.matchId}/pitches`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    inning: state.inning,
-                    isTop: state.isTop,
-                    batterId: state.batterId,
-                    pitcherId: state.pitcherId,
-                    pitchNumber: state.pitchCount + 1,
-                    result: result,
-                    ballsBefore: state.balls,
-                    strikesBefore: state.strikes,
-                    atBatResult: atBatResult,
-                }),
-            });
-
-            if (!res.ok) throw new Error();
-
-            setState(prev => ({
+            const next = {
                 ...prev,
                 balls: atBatResult ? 0 : newBalls,
                 strikes: atBatResult ? 0 : newStrikes,
-                outs: atBatResult === "K" ? prev.outs + 1 : prev.outs,
+                outs: newOuts,
                 pitchCount: atBatResult ? 0 : prev.pitchCount + 1,
-            }));
+            };
 
-        } catch (e) {
-            toast.error("投球の記録に失敗しました");
-        }
+            // 三振や四球のときだけ LINE 速報を飛ばす
+            if (atBatResult) {
+                syncWithBackend(next, atBatResult === "K" ? "空振り三振！" : "フォアボールで出塁。");
+            }
+            
+            return next;
+        });
     };
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 🚀 打球・インプレイの結果記録
+    // 🚀 4. 打球・インプレイ記録 (楽観的更新 ＆ LINE連動)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     const recordInPlay = async (result: string, rbi: number, advances: BaseAdvance[]) => {
-        try {
-            await fetch(`/api/matches/${state.matchId}/pitches`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    inning: state.inning,
-                    isTop: state.isTop,
-                    batterId: state.batterId,
-                    pitcherId: state.pitcherId,
-                    pitchNumber: state.pitchCount + 1,
-                    result: "in_play",
-                    ballsBefore: state.balls,
-                    strikesBefore: state.strikes,
-                    atBatResult: result,
-                }),
-            });
+        // 現在の得点配列をコピーして更新
+        const currentScores = state.isTop ? [...state.myInningScores] : [...state.opponentInningScores];
+        const idx = state.inning - 1;
+        while (currentScores.length <= idx) currentScores.push(0);
+        currentScores[idx] += rbi;
 
-            const newScore = state.isTop ? state.myScore + rbi : state.opponentScore + rbi;
-            const currentInningScores = state.isTop ? [...state.myInningScores] : [...state.opponentInningScores];
+        const next = {
+            ...state,
+            balls: 0, strikes: 0, pitchCount: 0,
+            myScore: state.isTop ? state.myScore + rbi : state.myScore,
+            opponentScore: state.isTop ? state.opponentScore : state.opponentScore + rbi,
+            myInningScores: state.isTop ? currentScores : state.myInningScores,
+            opponentInningScores: state.isTop ? state.opponentInningScores : currentScores,
+            outs: (result.includes("-") || result === "K") ? state.outs + 1 : state.outs,
+        };
 
-            const inningIdx = state.inning - 1;
-            while (currentInningScores.length <= inningIdx) currentInningScores.push(0);
-            currentInningScores[inningIdx] += rbi;
+        // UIを即座に更新（楽観的）
+        setState(next);
 
-            const scorePayload = {
-                myScore: state.isTop ? newScore : state.myScore,
-                opponentScore: state.isTop ? state.opponentScore : newScore,
-                myInningScores: state.isTop ? currentInningScores : state.myInningScores,
-                opponentInningScores: state.isTop ? state.opponentInningScores : currentInningScores,
-            };
-
-            await fetch(`/api/matches/${state.matchId}/score`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(scorePayload),
-            });
-
-            await fetch(`/api/matches/${state.matchId}/logs`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: crypto.randomUUID(),
-                    inningText: `${state.inning}回${state.isTop ? "表" : "裏"}`,
-                    resultType: rbi > 0 ? "score" : "out",
-                    description: `打席結果: ${result}${rbi > 0 ? ` (${rbi}点)` : ""}`,
-                }),
-            });
-
-            setState(prev => ({
-                ...prev,
-                balls: 0,
-                strikes: 0,
-                pitchCount: 0,
-                myScore: scorePayload.myScore,
-                opponentScore: scorePayload.opponentScore,
-                myInningScores: scorePayload.myInningScores,
-                opponentInningScores: scorePayload.opponentInningScores,
-                outs: result.includes("-") || result === "K" ? prev.outs + 1 : prev.outs,
-            }));
-
-        } catch (e) {
-            toast.error("プレイの記録に失敗しました");
-        }
+        // LINE速報 ＆ DB永続化
+        const actionNote = `${result}${rbi > 0 ? ` (${rbi}点)` : ""}`;
+        syncWithBackend(next, actionNote);
+        toast.info(actionNote);
     };
 
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 🚀 5. その他コントロール
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     const changeInning = () => {
         setState(prev => {
-            const nextIsTop = !prev.isTop;
-            const nextInning = prev.isTop ? prev.inning : prev.inning + 1;
-            return {
+            const next = {
                 ...prev,
-                isTop: nextIsTop,
-                inning: nextInning,
-                balls: 0,
-                strikes: 0,
-                outs: 0,
+                isTop: !prev.isTop,
+                inning: prev.isTop ? prev.inning : prev.inning + 1,
+                balls: 0, strikes: 0, outs: 0,
                 runners: { base1: null, base2: null, base3: null },
             };
+            syncWithBackend(next, `${next.inning}回${next.isTop ? "表" : "裏"}開始`);
+            return next;
         });
-        toast.success(`${state.inning}回${state.isTop ? "裏" : "表"}へ交代します`);
     };
 
     const updateRunners = (newRunners: { base1: string | null; base2: string | null; base3: string | null }) => {
@@ -274,6 +227,7 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
     };
 
     const finishMatch = async () => {
+        setIsSyncing(true);
         try {
             const res = await fetch(`/api/matches/${state.matchId}/finish`, {
                 method: "PATCH",
@@ -281,21 +235,17 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
                 body: JSON.stringify({
                     myScore: state.myScore,
                     opponentScore: state.opponentScore,
-                    selfInningScores: state.myInningScores,
-                    guestInningScores: state.opponentInningScores,
                 }),
             });
-            if (res.ok) {
-                toast.success("試合終了！お疲れ様でした！");
-            }
-        } catch (e) {
-            toast.error("終了処理に失敗しました");
+            if (res.ok) toast.success("試合終了！お疲れ様でした！");
+        } finally {
+            setIsSyncing(false);
         }
     };
 
     return (
         <ScoreContext.Provider value={{
-            state, isLoading, initMatch, recordPitch, recordInPlay,
+            state, isLoading, isSyncing, initMatch, recordPitch, recordInPlay,
             changeInning, updateRunners, resetBatter, finishMatch
         }}>
             {children}
@@ -305,8 +255,6 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
 
 export function useScore() {
     const context = useContext(ScoreContext);
-    if (context === undefined) {
-        throw new Error("useScore must be used within a ScoreProvider");
-    }
+    if (context === undefined) throw new Error("useScore must be used within a ScoreProvider");
     return context;
 }
