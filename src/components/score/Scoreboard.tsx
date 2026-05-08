@@ -6,70 +6,80 @@ import { cn } from "@/lib/utils";
 
 export function Scoreboard() {
   const { state } = useScore();
-  const innings = Array.from({ length: 9 }, (_, i) => i + 1);
+  
+  // 🌟 イニング表示の動的生成
+  // 設定イニング数(maxInnings)か、現在のイニング(state.inning)の大きい方を採用
+  const displayInningsCount = Math.max(state.maxInnings || 9, state.inning);
+  const innings = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
 
   return (
     <div className="w-full bg-background border-b border-border transition-colors">
       <div className="w-full px-1 py-1">
-        {/* 🚀 メイン・イニング表：主役復活 */}
-        <div className="overflow-hidden border border-border rounded-md shadow-sm">
-          <table className="w-full border-collapse bg-card text-card-foreground">
+        {/* 🚀 メイン・イニング表 (RHE対応) */}
+        <div className="overflow-hidden border border-border rounded-md shadow-sm overflow-x-auto">
+          <table className="w-full border-collapse bg-card text-card-foreground min-w-[320px]">
             <thead>
               <tr className="bg-muted/50 border-b border-border">
-                <th className="w-12 py-0.5 text-[8px] font-black text-muted-foreground pl-2 text-left">TEAM</th>
+                <th className="w-10 py-0.5 text-[8px] font-black text-muted-foreground pl-2 text-left">TEAM</th>
                 {innings.map(i => (
                   <th key={i} className={cn(
-                    "py-0.5 text-[10px] font-black transition-all",
+                    "py-0.5 text-[10px] font-black transition-all px-1",
                     state.inning === i ? "bg-primary text-primary-foreground" : "text-muted-foreground/60"
                   )}>
                     {i}
                   </th>
                 ))}
-                <th className="w-10 bg-muted text-[8px] font-black">R</th>
+                {/* 🌟 右端の指標列 */}
+                <th className="w-8 bg-muted text-[8px] font-black border-l border-border/50 text-center">R</th>
+                <th className="w-8 bg-muted/50 text-[8px] font-black text-muted-foreground text-center">H</th>
+                <th className="w-8 bg-muted/50 text-[8px] font-black text-muted-foreground text-center">E</th>
               </tr>
             </thead>
             <tbody>
-              {/* GUEST (先攻) */}
-              <tr className={cn(
-                "border-b border-border/50",
-                !state.isTop ? "bg-primary/5" : ""
-              )}>
+              {/* ⚾️ GUEST (先攻) */}
+              <tr className={cn("border-b border-border/50", state.isTop ? "bg-primary/5" : "")}>
                 <td className="pl-2 py-1">
-                  <span className={cn("text-[10px] font-black leading-none", !state.isTop ? "text-primary" : "text-foreground/70")}>GUEST</span>
+                  <span className={cn("text-[9px] font-black leading-none", state.isTop ? "text-primary" : "text-foreground/70")}>GUEST</span>
                 </td>
                 {innings.map(i => (
                   <td key={i} className={cn(
-                    "text-center text-lg font-black tabular-nums tracking-tighter",
-                    state.inning === i && !state.isTop ? "text-primary underline decoration-2 underline-offset-2" : "text-foreground/80",
+                    "text-center text-base font-black tabular-nums tracking-tighter px-0.5",
+                    state.inning === i && state.isTop ? "text-primary underline decoration-2 underline-offset-1" : "text-foreground/80",
                     (state.opponentInningScores[i - 1] === undefined && i > state.inning) && "opacity-10"
                   )}>
                     {state.opponentInningScores[i - 1] ?? (i <= state.inning ? "0" : "-")}
                   </td>
                 ))}
-                <td className="text-center text-xl font-black bg-muted/30 border-l border-border">{state.opponentScore}</td>
+                {/* 🌟 RHEデータ (GUEST) */}
+                <td className="text-center text-lg font-black bg-muted/30 border-l border-border">{state.opponentScore}</td>
+                <td className="text-center text-base font-bold text-muted-foreground/80">{state.opponentHits || 0}</td>
+                <td className="text-center text-base font-bold text-muted-foreground/80">{state.opponentErrors || 0}</td>
               </tr>
 
-              {/* HOME (後攻) */}
-              <tr className={cn(state.isTop ? "bg-primary/5" : "")}>
+              {/* ⚾️ HOME (後攻) */}
+              <tr className={cn(!state.isTop ? "bg-primary/5" : "")}>
                 <td className="pl-2 py-1">
-                  <span className={cn("text-[10px] font-black leading-none", state.isTop ? "text-primary" : "text-foreground/70")}>HOME</span>
+                  <span className={cn("text-[9px] font-black leading-none", !state.isTop ? "text-primary" : "text-foreground/70")}>HOME</span>
                 </td>
                 {innings.map(i => (
                   <td key={i} className={cn(
-                    "text-center text-lg font-black tabular-nums tracking-tighter",
-                    state.inning === i && state.isTop ? "text-primary underline decoration-2 underline-offset-2" : "text-foreground/80",
-                    (state.myInningScores[i - 1] === undefined && i >= state.inning && !(!state.isTop && i === state.inning)) && "opacity-10"
+                    "text-center text-base font-black tabular-nums tracking-tighter px-0.5",
+                    state.inning === i && !state.isTop ? "text-primary underline decoration-2 underline-offset-1" : "text-foreground/80",
+                    (state.myInningScores[i - 1] === undefined && i >= state.inning && !(state.isTop && i === state.inning)) && "opacity-10"
                   )}>
-                    {state.myInningScores[i - 1] ?? (i <= state.inning && !(state.isTop === false && i === state.inning) ? "0" : "-")}
+                    {state.myInningScores[i - 1] ?? (i <= state.inning && !(state.isTop === true && i === state.inning) ? "0" : "-")}
                   </td>
                 ))}
-                <td className="text-center text-xl font-black bg-primary/10 text-primary border-l border-border">{state.myScore}</td>
+                {/* 🌟 RHEデータ (HOME) */}
+                <td className="text-center text-lg font-black bg-primary/10 text-primary border-l border-border">{state.myScore}</td>
+                <td className="text-center text-base font-bold text-muted-foreground/80">{state.myHits || 0}</td>
+                <td className="text-center text-base font-bold text-muted-foreground/80">{state.myErrors || 0}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        {/* 🚀 下段：BSO（日本式カラー・アップデート版） */}
+        {/* 🚀 下段：BSO (日本式カラー継続) */}
         <div className="flex items-center justify-between px-1 mt-1">
           <div className="flex gap-3">
             {[
@@ -78,13 +88,11 @@ export function Scoreboard() {
               { label: 'O', color: 'bg-rose-500 shadow-[0_0_8px_#f43f5e]', count: state.outs, max: 2, textColor: 'text-rose-600' }
             ].map(type => (
               <div key={type.label} className="flex items-center gap-1">
-                <span className={cn("text-[9px] font-black", type.textColor)}>
-                  {type.label}
-                </span>
+                <span className={cn("text-[9px] font-black", type.textColor)}>{type.label}</span>
                 <div className="flex gap-0.5">
                   {Array.from({ length: type.max }).map((_, i) => (
                     <div key={i} className={cn(
-                      "w-2.5 h-2.5 rounded-full border border-border/20 transition-all duration-300",
+                      "w-2.5 h-2.5 rounded-full border border-border/20",
                       i < type.count ? type.color : "bg-muted shadow-inner"
                     )} />
                   ))}
