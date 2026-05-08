@@ -1,5 +1,5 @@
 // filepath: src/contexts/ScoreContext.tsx
-/* 💡 試合の状態管理とAPI同期を担当。Sonner通知を廃止し、ログ(state.logs)への反映を強化。 */
+/* 💡 試合の状態管理とAPI同期を担当。Sonner通知を廃止し、state.logs を通じて PlayLog へ即時反映する。 */
 
 "use client";
 
@@ -83,15 +83,22 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // 💡 内部用：新しいログエントリを作成
-  const createLogEntry = (description: string, s: ScoreState): PlayLogEntry => ({
-    id: crypto.randomUUID(),
-    description,
-    inning: s.inning,
-    isTop: s.isTop,
-    timestamp: Date.now(),
-  });
+  // 💡 内部用：新しいログエントリを作成するヘルパー
+  const appendLog = (description: string, s: ScoreState): PlayLogEntry[] => {
+    const newEntry: PlayLogEntry = {
+      id: crypto.randomUUID(),
+      description,
+      inning: s.inning,
+      isTop: s.isTop,
+      timestamp: Date.now(),
+    };
+    // 最新を先頭に、最大50件保持
+    return [newEntry, ...s.logs].slice(0, 50);
+  };
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🚀 1. バックエンド同期
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const syncWithBackend = useCallback(async (updatedState: ScoreState, actionNote: string) => {
     setIsSyncing(true);
     try {
@@ -107,15 +114,18 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
           action: actionNote,
         }),
       });
-      // ✅ 成功時の toast 呼び出しを削除
+      // ✅ 成功時の通知(toast)を廃止。更新はログで確認。
     } catch (e) {
       console.error("Sync Error:", e);
-      toast.error("通信エラーが発生しました"); // 💡 異常時のみ通知
+      toast.error("通信エラーが発生しました。"); 
     } finally {
       setIsSyncing(false);
     }
   }, []);
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🚀 2. 試合初期化
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const initMatch = useCallback(async (matchId: string) => {
     setIsLoading(true);
     try {
@@ -141,6 +151,9 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🚀 3. 投球記録 (Ball, Strike, Out)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const recordPitch = async (result: "ball" | "strike" | "foul" | "swinging_strike" | "out") => {
     setState(prev => {
       let newStrikes = prev.strikes;
@@ -180,14 +193,20 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
         strikes: isAtBatEnd ? 0 : newStrikes,
         outs: newOuts,
         pitchCount: isAtBatEnd ? 0 : prev.pitchCount + 1,
-        logs: [createLogEntry(description, prev), ...prev.logs].slice(0, 50),
+        logs: appendLog(description, prev), // 🌟 即座にログへ反映
       };
 
-      if (isAtBatEnd) syncWithBackend(next, description);
+      if (isAtBatEnd || result === "out") {
+        syncWithBackend(next, description);
+      }
+      
       return next;
     });
   };
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🚀 4. 打球・インプレイ記録
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const recordInPlay = async (result: string, rbi: number, advances: BaseAdvance[], attackTeam?: number) => {
     setState(prev => {
       const isTopAttack = attackTeam !== undefined ? attackTeam === 1 : prev.isTop;
@@ -205,14 +224,17 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
         myInningScores: isTopAttack ? currentScores : prev.myInningScores,
         opponentInningScores: isTopAttack ? prev.opponentInningScores : currentScores,
         outs: result.includes("アウト") ? prev.outs + 1 : prev.outs,
-        logs: [createLogEntry(actionNote, prev), ...prev.logs].slice(0, 50),
+        logs: appendLog(actionNote, prev), // 🌟 即座にログへ反映
       };
-      
+
       syncWithBackend(next, actionNote);
       return next;
     });
   };
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🚀 5. その他コントロール
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const changeInning = () => {
     setState(prev => {
       const next = {
@@ -221,7 +243,7 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
         inning: prev.isTop ? prev.inning : prev.inning + 1,
         balls: 0, strikes: 0, outs: 0,
         runners: { base1: null, base2: null, base3: null },
-        logs: [createLogEntry("チェンジ", prev), ...prev.logs].slice(0, 50),
+        logs: appendLog("イニング交代", prev),
       };
       syncWithBackend(next, "イニング交代");
       return next;
@@ -244,7 +266,6 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ myScore: state.myScore, opponentScore: state.opponentScore }),
       });
-      // 💡 演出は Page 側の state.status === 'finished' に任せる
     } finally {
       setIsSyncing(false);
     }
