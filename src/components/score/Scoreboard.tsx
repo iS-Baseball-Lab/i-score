@@ -3,41 +3,57 @@
 
 import { useScore } from "@/contexts/ScoreContext";
 import { cn } from "@/lib/utils";
+import { ArrowLeftRight } from "lucide-react";
 
 export function Scoreboard() {
-  const { state } = useScore();
+  const { state, updateMatchSettings } = useScore();
   
-  // 🌟 設定イニング数か、現在のイニングの大きい方を採用（延長戦対応）
+  // 延長戦対応：設定イニング数か現在イニングの大きい方を表示
   const displayInningsCount = Math.max(state.maxInnings || 9, state.inning);
   const innings = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
+
+  // 🌟 攻守の役割を入れ替える（試合開始前の最終調整用）
+  const toggleStartingOrder = () => {
+    if (confirm("先攻（GUEST）と後攻（HOME）の設定を入れ替えますか？")) {
+      // 試合設定の「先攻チーム」フラグを反転させる
+      updateMatchSettings({ isGuestFirst: !state.isGuestFirst });
+    }
+  };
 
   return (
     <div className="w-full bg-background border-b border-border transition-colors">
       <div className="w-full px-1 py-1">
-        {/* 🚀 メイン・イニング表 (RHE対応 & スクロール可能) */}
         <div className="overflow-hidden border border-border rounded-md shadow-sm overflow-x-auto">
           <table className="w-full border-collapse bg-card text-card-foreground min-w-[340px]">
             <thead>
               <tr className="bg-muted/50 border-b border-border text-[8px] font-black uppercase tracking-tighter">
-                <th className="w-10 py-0.5 text-muted-foreground pl-2 text-left">TEAM</th>
+                <th className="w-12 py-0.5 pl-2 text-left">
+                  <button 
+                    onClick={toggleStartingOrder}
+                    className="flex items-center gap-1 active:scale-95 transition-all text-muted-foreground hover:text-primary"
+                  >
+                    TEAM <ArrowLeftRight className="w-2 h-2" />
+                  </button>
+                </th>
                 {innings.map(i => (
                   <th key={i} className={cn(
                     "py-0.5 text-[10px] transition-all px-1",
                     state.inning === i ? "bg-primary text-primary-foreground" : "text-muted-foreground/60"
-                  )}>
-                    {i}
-                  </th>
+                  )}>{i}</th>
                 ))}
                 <th className="w-8 bg-muted border-l border-border/50 text-center">R</th>
-                <th className="w-8 bg-muted/50 text-muted-foreground text-center">H</th>
-                <th className="w-8 bg-muted/50 text-muted-foreground text-center">E</th>
+                <th className="w-8 bg-muted/50 text-center">H</th>
+                <th className="w-8 bg-muted/50 text-center">E</th>
               </tr>
             </thead>
             <tbody>
               {/* ⚾️ GUEST (先攻 / 表) */}
               <tr className={cn("border-b border-border/50", state.isTop ? "bg-primary/5" : "")}>
                 <td className="pl-2 py-1">
-                  <span className={cn("text-[9px] font-black leading-none", state.isTop ? "text-primary" : "text-foreground/70")}>GUEST</span>
+                  <div className="flex flex-col leading-none">
+                    <span className={cn("text-[9px] font-black", state.isTop ? "text-primary" : "text-foreground/70")}>GUEST</span>
+                    <span className="text-[6px] font-bold opacity-30 uppercase">{state.isTop ? "At Bat" : "Field"}</span>
+                  </div>
                 </td>
                 {innings.map(i => (
                   <td key={i} className={cn(
@@ -56,7 +72,10 @@ export function Scoreboard() {
               {/* ⚾️ HOME (後攻 / 裏) */}
               <tr className={cn(!state.isTop ? "bg-primary/5" : "")}>
                 <td className="pl-2 py-1">
-                  <span className={cn("text-[9px] font-black leading-none", !state.isTop ? "text-primary" : "text-foreground/70")}>HOME</span>
+                  <div className="flex flex-col leading-none">
+                    <span className={cn("text-[9px] font-black", !state.isTop ? "text-primary" : "text-foreground/70")}>HOME</span>
+                    <span className="text-[6px] font-bold opacity-30 uppercase">{!state.isTop ? "At Bat" : "Field"}</span>
+                  </div>
                 </td>
                 {innings.map(i => (
                   <td key={i} className={cn(
@@ -75,7 +94,7 @@ export function Scoreboard() {
           </table>
         </div>
 
-        {/* 🚀 下段：BSO (日本式カラー: B緑/S黄/O赤) */}
+        {/* 🚀 下段：BSO (日本式：B緑/S黄/O赤) */}
         <div className="flex items-center justify-between px-1 mt-1">
           <div className="flex gap-3">
             {[
@@ -96,7 +115,6 @@ export function Scoreboard() {
               </div>
             ))}
           </div>
-
           <div className="px-2 py-0.5 rounded-full bg-muted border border-border">
             <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">
               {state.inning}{state.isTop ? "TOP" : "BOT"}
