@@ -1,10 +1,10 @@
 // filepath: `src/components/score/Scoreboard.tsx`
-/* 💡 伝統的なテーブル形式。物理配置（上段＝オモテ、下段＝ウラ）を厳守。
+/* 💡 伝統的なRHEテーブル形式。物理配置（上段＝オモテ、下段＝ウラ）とハイライトを完全同期。
    試合開始前限定の右スライドで先攻・後攻ラベル(GUEST/HOME)を入れ替える。 */
 
 "use client";
 
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useScore } from "@/contexts/ScoreContext";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
@@ -17,16 +17,23 @@ export function Scoreboard() {
   const displayInningsCount = Math.max(state.maxInnings || 9, state.inning);
   const innings = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
 
-  // 💡 試合開始前かどうかの判定（設定変更を許可する状態）
+  /**
+   * 💡 現場至上主義：試合開始前かどうかの判定[span_0](start_span)[span_0](end_span)
+   * 1回表・無死・無走者・両チーム無得点の時のみ設定変更（スライド）を許可。
+   */
   const isPreGame = state.inning === 1 && state.isTop && 
                     state.myScore === 0 && state.opponentScore === 0 &&
                     state.outs === 0 && state.balls === 0 && state.strikes === 0;
 
-  // 🚀 自チームが先攻(isGuestFirst)なら：上段＝HOME(自チーム)、下段＝GUEST(相手)
-  // 🚀 自チームが後攻(!isGuestFirst)なら：上段＝GUEST(相手)、下段＝HOME(自チーム)
+  /**
+   * 🚀 先攻・後攻ラベルの動的決定
+   * state.isGuestFirst (自チームが先攻) なら：上段=HOME(自), 下段=GUEST(敵)
+   * それ以外なら：上段=GUEST(敵), 下段=HOME(自)
+   */
   const topLabel = state.isGuestFirst ? "HOME" : "GUEST";
   const bottomLabel = state.isGuestFirst ? "GUEST" : "HOME";
 
+  // 🚀 スマート・スワイプ制御：右方向のスライドのみを検知[span_1](start_span)[span_1](end_span)
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isPreGame) return;
     startX.current = e.touches[0].clientX;
@@ -35,12 +42,11 @@ export function Scoreboard() {
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isPreGame) return;
     const move = e.touches[0].clientX - startX.current;
-    if (move > 0) setOffsetX(Math.min(move, 80)); // 右スライドのみ
+    if (move > 0) setOffsetX(Math.min(move, 80)); 
   };
 
   const handleTouchEnd = () => {
     if (offsetX >= 60) {
-      // 先攻・後攻設定を反転
       updateMatchSettings?.({ isGuestFirst: !state.isGuestFirst });
     }
     setOffsetX(0);
@@ -52,18 +58,19 @@ export function Scoreboard() {
     <div className="w-full bg-background border-b border-border transition-colors select-none">
       <div className="w-full px-1 py-1">
         
-        {/* 🚀 掲示板テーブルエリア */}
+        {/* 掲示板コンテナ */}
         <div className="relative overflow-hidden border border-border rounded-md shadow-sm bg-card">
           
-          {/* 背面のガイド：スライド時のみ見える */}
+          {/* 背面ガイド：スライド時のみ視認[span_2](start_span)[span_2](end_span) */}
           <div 
-            className="absolute inset-y-0 left-0 flex items-center px-4 bg-primary/10 z-0 pointer-events-none transition-opacity"
+            className="absolute inset-0 flex items-center px-4 bg-primary/10 z-0 pointer-events-none transition-opacity"
             style={{ opacity: offsetX > 20 ? 1 : 0 }}
           >
             <ArrowRight className="w-4 h-4 text-primary animate-pulse mr-2" />
-            <span className="text-[10px] font-black uppercase text-primary tracking-widest">Switch Order</span>
+            <span className="text-[10px] font-black uppercase text-primary tracking-widest">Switch Side</span>
           </div>
 
+          {/* 前面テーブル本体 */}
           <div 
             className="relative z-10 bg-card transition-transform duration-200 ease-out"
             style={{ transform: `translateX(${offsetX}px)` }}
@@ -90,7 +97,7 @@ export function Scoreboard() {
                 </tr>
               </thead>
               <tbody>
-                {/* 🔴 上段：常にオモテ（先攻）のスコアを表示 */}
+                {/* 🔴 上段：オモテ(isTop)の攻撃時にハイライト[span_3](start_span)[span_3](end_span) */}
                 <tr className={cn("border-b border-border/50 transition-colors", state.isTop ? "bg-primary/10" : "bg-transparent")}>
                   <td className="pl-2 py-1">
                     <span className={cn("text-[10px] font-black uppercase", state.isTop ? "text-primary" : "text-foreground/70")}>
@@ -102,18 +109,24 @@ export function Scoreboard() {
                       "text-center text-lg px-0.5",
                       numberStyle,
                       state.inning === i && state.isTop ? "text-primary font-black underline decoration-2 underline-offset-2" : "text-foreground/80",
-                      // 上段のデータは opponentInningScores (慣例的な先攻枠) を使用
                       (state.opponentInningScores[i - 1] === undefined && i > state.inning) && "opacity-10"
                     )}>
                       {state.opponentInningScores[i - 1] ?? (i <= state.inning && (state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  <td className={cn("text-center text-xl bg-muted/30 border-l border-border", numberStyle)}>{state.opponentScore}</td>
+                  {/* 得点合計Rエリア：攻撃中(isTop)であれば青く強調 */}
+                  <td className={cn(
+                    "text-center text-xl border-l border-border transition-colors", 
+                    numberStyle,
+                    state.isTop ? "bg-primary/15 text-primary" : "bg-muted/30"
+                  )}>
+                    {state.opponentScore}
+                  </td>
                   <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.opponentHits || 0}</td>
                   <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.opponentErrors || 0}</td>
                 </tr>
 
-                {/* 🔵 下段：常にウラ（後攻）のスコアを表示 */}
+                {/* 🔵 下段：ウラ(!isTop)の攻撃時にハイライト[span_4](start_span)[span_4](end_span) */}
                 <tr className={cn("transition-colors", !state.isTop ? "bg-primary/10" : "bg-transparent")}>
                   <td className="pl-2 py-1">
                     <span className={cn("text-[10px] font-black uppercase", !state.isTop ? "text-primary" : "text-foreground/70")}>
@@ -125,13 +138,19 @@ export function Scoreboard() {
                       "text-center text-lg px-0.5",
                       numberStyle,
                       state.inning === i && !state.isTop ? "text-primary font-black underline decoration-2 underline-offset-2" : "text-foreground/80",
-                      // 下段のデータは myInningScores (慣例的な後攻枠) を使用
                       (state.myInningScores[i - 1] === undefined && i >= state.inning && !(state.isTop && i === state.inning)) && "opacity-10"
                     )}>
                       {state.myInningScores[i - 1] ?? (i <= state.inning && (!state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  <td className={cn("text-center text-xl bg-primary/10 text-primary border-l border-border", numberStyle)}>{state.myScore}</td>
+                  {/* 得点合計Rエリア：攻撃中(!isTop)であれば青く強調 */}
+                  <td className={cn(
+                    "text-center text-xl border-l border-border transition-colors", 
+                    numberStyle,
+                    !state.isTop ? "bg-primary/15 text-primary" : "bg-muted/30"
+                  )}>
+                    {state.myScore}
+                  </td>
                   <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.myHits || 0}</td>
                   <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.myErrors || 0}</td>
                 </tr>
@@ -140,7 +159,7 @@ export function Scoreboard() {
           </div>
         </div>
 
-        {/* 🚀 下段：BSO & イニング表示 */}
+        {/* 🚀 下段：BSO & カウント表示 */}
         <div className="flex items-center justify-between px-2 mt-2 h-8">
           <div className="flex gap-5">
             {[
@@ -162,6 +181,7 @@ export function Scoreboard() {
             ))}
           </div>
 
+          {/* 🌟 視認性向上：フォントサイズ調整[span_5](start_span)[span_5](end_span) */}
           <div className="flex items-center text-primary pr-1">
             <span className={cn("text-2xl", numberStyle)}>{state.inning}</span>
             <span className="text-[14px] font-black ml-1.5 mr-1 leading-none">回</span>
