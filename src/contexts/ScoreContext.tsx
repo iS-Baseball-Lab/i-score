@@ -207,31 +207,44 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🚀 4. 打球・インプレイ記録
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  const recordInPlay = async (result: string, rbi: number, advances: BaseAdvance[], attackTeam?: number) => {
+  const recordInPlay = async (result: string, rbi: number, advances: BaseAdvance[]) => {
     setState(prev => {
-      const isTopAttack = attackTeam !== undefined ? attackTeam === 1 : prev.isTop;
-      const currentScores = isTopAttack ? [...prev.myInningScores] : [...prev.opponentInningScores];
-      const idx = prev.inning - 1;
-      while (currentScores.length <= idx) currentScores.push(0);
-      currentScores[idx] += rbi;
+        // 🌟 鉄則：表(isTop)なら上段、裏(!isTop)なら下段
+        const isTopRowAttack = prev.isTop; 
 
-      const actionNote = `${result}${rbi > 0 ? ` (${rbi}点)` : ""}`;
-      const next = {
-        ...prev,
-        balls: 0, strikes: 0, pitchCount: 0,
-        myScore: isTopAttack ? prev.myScore + rbi : prev.myScore,
-        opponentScore: isTopAttack ? prev.opponentScore : prev.opponentScore + rbi,
-        myInningScores: isTopAttack ? currentScores : prev.myInningScores,
-        opponentInningScores: isTopAttack ? prev.opponentInningScores : currentScores,
-        outs: result.includes("アウト") ? prev.outs + 1 : prev.outs,
-        logs: appendLog(actionNote, prev), // 🌟 即座にログへ反映
-      };
+        const currentInningIdx = prev.inning - 1;
+        const updatedOpponentInningScores = [...prev.opponentInningScores]; // 上段用
+        const updatedMyInningScores = [...prev.myInningScores];             // 下段用
 
-      syncWithBackend(next, actionNote);
-      return next;
+        if (isTopRowAttack) {
+            // 表：上段(Opponent/Guest枠)に加算
+            while (updatedOpponentInningScores.length <= currentInningIdx) updatedOpponentInningScores.push(0);
+            updatedOpponentInningScores[currentInningIdx] += rbi;
+        } else {
+            // 裏：下段(My/Home枠)に加算
+            while (updatedMyInningScores.length <= currentInningIdx) updatedMyInningScores.push(0);
+            updatedMyInningScores[currentInningIdx] += rbi;
+        }
+
+        const actionNote = `${result}${rbi > 0 ? ` (${rbi}点)` : ""}`;
+
+        const next = {
+            ...prev,
+            balls: 0, strikes: 0, pitchCount: 0,
+            // 🌟 合計点も「表なら上段(Opponent)」「裏なら下段(My)」
+            opponentScore: isTopRowAttack ? prev.opponentScore + rbi : prev.opponentScore,
+            myScore: !isTopRowAttack ? prev.myScore + rbi : prev.myScore,
+            opponentInningScores: updatedOpponentInningScores,
+            myInningScores: updatedMyInningScores,
+            outs: result.includes("アウト") ? prev.outs + 1 : prev.outs,
+            logs: appendLog(actionNote, prev),
+        };
+
+        syncWithBackend(next, actionNote);
+        return next;
     });
   };
-
+  
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🚀 5. その他コントロール
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
