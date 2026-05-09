@@ -1,6 +1,6 @@
 // filepath: `src/components/score/Scoreboard.tsx`
-/* 💡 伝統的RHE形式の最終進化版。フォントサイズ・ベースラインをミリ単位で調整。
-   スライド切替の中央配置、漢字表記(表・裏)への変更、BSOの視認性向上を適用。 */
+/* 💡 究極の視認性。漢字表記(表・裏)のベースライン調整、BSOの消灯コントラスト、
+   そしてスライド時の「攻守切替」にシャドウを追加し中央配置を徹底。 */
 
 "use client";
 
@@ -20,6 +20,7 @@ export function Scoreboard() {
                     state.myScore === 0 && state.opponentScore === 0 &&
                     state.outs === 0 && state.balls === 0 && state.strikes === 0;
 
+  // 自チームの攻撃・守備判定
   const isMyAttack = (state.isTop && state.isGuestFirst) || (!state.isTop && !state.isGuestFirst);
   const attackStatusText = isMyAttack ? "攻撃" : "守備";
 
@@ -34,7 +35,7 @@ export function Scoreboard() {
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isPreGame) return;
     const move = e.touches[0].clientX - startX.current;
-    if (move > 0) setOffsetX(Math.min(move, 80)); 
+    if (move > 0) setOffsetX(Math.min(move, 100)); // スライド幅を少し広めに
   };
 
   const handleTouchEnd = () => {
@@ -44,9 +45,8 @@ export function Scoreboard() {
     setOffsetX(0);
   };
 
-  // 📐 タイポグラフィの鉄則
   const numberStyle = "font-black tabular-nums tracking-tighter";
-  const labelBaseStyle = "text-[13px] font-black leading-none tracking-tight"; // 🌟 攻守ラベルの基準
+  const labelBaseStyle = "text-[13px] font-black leading-none tracking-tight";
 
   return (
     <div className="w-full bg-background border-b border-border transition-colors select-none font-sans">
@@ -68,12 +68,14 @@ export function Scoreboard() {
         {/* 🚀 メイン掲示板 */}
         <div className="relative overflow-hidden border border-border bg-card">
           
-          {/* 🌟 改善：スライド背景を中央配置に */}
+          {/* 🌟 改善：スライド背景にシャドウ付き文字を中央配置 */}
           <div 
-            className="absolute inset-0 flex items-center justify-center bg-primary z-0 pointer-events-none transition-opacity"
-            style={{ opacity: offsetX > 15 ? 1 : 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-primary z-0 pointer-events-none transition-opacity duration-150"
+            style={{ opacity: offsetX > 5 ? 1 : 0 }}
           >
-            <span className="text-[14px] font-black text-primary-foreground tracking-[0.5em] ml-[0.5em]">攻守切替</span>
+            <span className="text-[15px] font-black text-white tracking-[0.5em] ml-[0.5em] drop-shadow-md">
+              攻守切替
+            </span>
           </div>
 
           <div 
@@ -96,14 +98,13 @@ export function Scoreboard() {
                       state.inning === i ? "bg-primary text-primary-foreground" : ""
                     )}>{i}</th>
                   ))}
-                  {/* 🌟 Rの左線を不要とし、border-lを削除 */}
                   <th className={cn("w-8 bg-muted text-center text-base", numberStyle)}>R</th>
                   <th className={cn("w-8 bg-muted/30 text-center text-base", numberStyle)}>H</th>
                   <th className={cn("w-8 bg-muted/30 text-center text-base", numberStyle)}>E</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className={cn("border-b border-border/50 h-10", state.isTop ? "bg-primary/10" : "")}>
+                <tr className={cn("border-b border-border/50 h-10 transition-colors", state.isTop ? "bg-primary/10" : "")}>
                   <td className="pl-2 py-1">
                     <span className={cn(labelBaseStyle, state.isTop ? "text-primary" : "text-foreground/70")}>先攻</span>
                   </td>
@@ -124,7 +125,7 @@ export function Scoreboard() {
                   <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.opponentErrors || 0}</td>
                 </tr>
 
-                <tr className={cn("h-10", !state.isTop ? "bg-primary/10" : "")}>
+                <tr className={cn("h-10 transition-colors", !state.isTop ? "bg-primary/10" : "")}>
                   <td className="pl-2 py-1">
                     <span className={cn(labelBaseStyle, !state.isTop ? "text-primary" : "text-foreground/70")}>後攻</span>
                   </td>
@@ -152,7 +153,6 @@ export function Scoreboard() {
         {/* 🚀 下段 */}
         <div className="flex items-center justify-between px-3 h-14 border-x border-b border-border rounded-b-md bg-muted/10">
           
-          {/* 🌟 改善：イニング表示の漢字化とサイズ調整 */}
           <div className="flex items-end text-primary pb-1">
             <span className={cn("text-[32px] leading-none", numberStyle)}>{state.inning}</span>
             <div className="flex items-center gap-1 ml-1.5 mb-[3px]">
@@ -160,15 +160,18 @@ export function Scoreboard() {
               <span className="text-[16px] font-black leading-none">{state.isTop ? "表" : "裏"}</span>
             </div>
             <div className="mx-3 mb-[6px] h-3 w-[1px] bg-muted-foreground/30" />
+            
+            {/* 🌟 改善：攻撃・守備ともにデザインを統一 */}
             <span className={cn(
-              "text-[13px] font-black px-2 py-1 rounded-sm mb-[2px]",
-              isMyAttack ? "bg-primary text-primary-foreground" : "bg-zinc-200 text-zinc-500"
+              "text-[13px] font-black px-2 py-1 rounded-sm mb-[2px] shadow-sm transition-colors min-w-[42px] text-center",
+              isMyAttack 
+                ? "bg-primary text-primary-foreground" 
+                : "bg-zinc-800 text-zinc-100" // 守備も白抜きデザインに
             )}>
               {attackStatusText}
             </span>
           </div>
 
-          {/* 🌟 改善：BSOの消灯視認性向上 */}
           <div className="flex gap-5">
             {[
               { label: 'B', color: 'bg-emerald-500 shadow-[0_0_10px_#10b981]', count: state.balls, max: 3, textColor: 'text-emerald-600' },
@@ -181,7 +184,7 @@ export function Scoreboard() {
                   {Array.from({ length: type.max }).map((_, i) => (
                     <div key={i} className={cn(
                       "w-4 h-4 rounded-full border transition-all duration-300",
-                      i < type.count ? type.color + " border-transparent" : "bg-zinc-800 border-zinc-700 shadow-inner"
+                      i < type.count ? type.color + " border-transparent" : "bg-zinc-900 border-zinc-700 shadow-inner"
                     )} />
                   ))}
                 </div>
