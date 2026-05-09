@@ -1,6 +1,6 @@
 // filepath: `src/components/score/Scoreboard.tsx`
-/* 💡 伝統的RHE形式。フォントサイズを13pxで統一し、上下余白を黄金比で調整。
-   ヘッダーのコントラストを上げ、視認性を極大化。 */
+/* 💡 伝統的RHE形式の最終進化版。フォントサイズ・ベースラインをミリ単位で調整。
+   スライド切替の中央配置、漢字表記(表・裏)への変更、BSOの視認性向上を適用。 */
 
 "use client";
 
@@ -16,16 +16,16 @@ export function Scoreboard() {
   const displayInningsCount = Math.max(state.maxInnings || 9, state.inning);
   const innings = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
 
-  // 試合開始前判定
   const isPreGame = state.inning === 1 && state.isTop && 
                     state.myScore === 0 && state.opponentScore === 0 &&
                     state.outs === 0 && state.balls === 0 && state.strikes === 0;
 
-  // 自チームが攻撃中かどうかの判定
   const isMyAttack = (state.isTop && state.isGuestFirst) || (!state.isTop && !state.isGuestFirst);
   const attackStatusText = isMyAttack ? "攻撃" : "守備";
 
-  // スライド制御
+  const topLabel = state.isGuestFirst ? "HOME" : "GUEST";
+  const bottomLabel = state.isGuestFirst ? "GUEST" : "HOME";
+
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isPreGame) return;
     startX.current = e.touches[0].clientX;
@@ -44,20 +44,20 @@ export function Scoreboard() {
     setOffsetX(0);
   };
 
-  // 鉄の統一スタイル
+  // 📐 タイポグラフィの鉄則
   const numberStyle = "font-black tabular-nums tracking-tighter";
-  const labelStyle = "text-[13px] font-black leading-none"; // 🌟 ここを統一
+  const labelBaseStyle = "text-[13px] font-black leading-none tracking-tight"; // 🌟 攻守ラベルの基準
 
   return (
     <div className="w-full bg-background border-b border-border transition-colors select-none font-sans">
       <div className="w-full px-1 py-1">
         
-        {/* 🚀 最上段：ヘッダー（コントラストを強化） */}
+        {/* 🚀 ヘッダー */}
         <div className="flex items-center justify-between px-3 py-1.5 border-x border-t border-border rounded-t-md bg-muted/30">
           <div className="flex-1 truncate text-left text-[10px] font-black text-zinc-500 uppercase tracking-widest">
             {state.tournamentName || "OFFICIAL GAME"}
           </div>
-          <div className="flex-none px-4 text-sm font-black text-foreground tracking-widest">
+          <div className="flex-none px-4 text-sm font-black text-foreground tracking-widest italic">
             vs {state.opponentTeamName || "相手チーム"}
           </div>
           <div className="flex-1 truncate text-right text-[10px] font-black text-zinc-500 uppercase tracking-widest">
@@ -65,15 +65,15 @@ export function Scoreboard() {
           </div>
         </div>
 
-        {/* 🚀 中段：掲示板本体 */}
+        {/* 🚀 メイン掲示板 */}
         <div className="relative overflow-hidden border border-border bg-card">
           
-          {/* スライド背景 */}
+          {/* 🌟 改善：スライド背景を中央配置に */}
           <div 
-            className="absolute inset-0 flex items-center px-6 bg-primary z-0 pointer-events-none transition-opacity"
+            className="absolute inset-0 flex items-center justify-center bg-primary z-0 pointer-events-none transition-opacity"
             style={{ opacity: offsetX > 15 ? 1 : 0 }}
           >
-            <span className="text-[12px] font-black text-primary-foreground tracking-[0.2em]">攻守切替</span>
+            <span className="text-[14px] font-black text-primary-foreground tracking-[0.5em] ml-[0.5em]">攻守切替</span>
           </div>
 
           <div 
@@ -86,26 +86,26 @@ export function Scoreboard() {
             <table className="w-full border-collapse text-card-foreground min-w-[340px]">
               <thead>
                 <tr className="bg-muted/50 border-b border-border text-muted-foreground/60">
-                  <th className="w-14 py-1.5 pl-2 text-left">
-                    <span className="text-[9px] font-black tracking-tighter opacity-80">攻守</span>
+                  <th className="w-14 py-2 pl-2 text-left">
+                    <span className="text-[13px] font-black tracking-tighter opacity-80">攻守</span>
                   </th>
                   {innings.map(i => (
                     <th key={i} className={cn(
-                      "py-1.5 text-base px-1",
+                      "py-2 text-base px-1",
                       numberStyle,
                       state.inning === i ? "bg-primary text-primary-foreground" : ""
                     )}>{i}</th>
                   ))}
-                  <th className={cn("w-8 bg-muted border-l border-border/50 text-center text-base", numberStyle)}>R</th>
+                  {/* 🌟 Rの左線を不要とし、border-lを削除 */}
+                  <th className={cn("w-8 bg-muted text-center text-base", numberStyle)}>R</th>
                   <th className={cn("w-8 bg-muted/30 text-center text-base", numberStyle)}>H</th>
                   <th className={cn("w-8 bg-muted/30 text-center text-base", numberStyle)}>E</th>
                 </tr>
               </thead>
               <tbody>
-                {/* 上段：先攻 */}
-                <tr className={cn("border-b border-border/50 h-9", state.isTop ? "bg-primary/10" : "")}>
+                <tr className={cn("border-b border-border/50 h-10", state.isTop ? "bg-primary/10" : "")}>
                   <td className="pl-2 py-1">
-                    <span className={cn(labelStyle, state.isTop ? "text-primary" : "text-foreground/70")}>先攻</span>
+                    <span className={cn(labelBaseStyle, state.isTop ? "text-primary" : "text-foreground/70")}>先攻</span>
                   </td>
                   {innings.map(i => (
                     <td key={i} className={cn(
@@ -117,17 +117,16 @@ export function Scoreboard() {
                       {state.opponentInningScores[i - 1] ?? (i <= state.inning && (state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  <td className={cn("text-center text-xl border-l border-border", numberStyle, state.isTop ? "bg-primary/15 text-primary" : "bg-muted/30")}>
+                  <td className={cn("text-center text-xl", numberStyle, state.isTop ? "bg-primary/15 text-primary" : "bg-muted/30")}>
                     {state.opponentScore}
                   </td>
                   <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.opponentHits || 0}</td>
                   <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.opponentErrors || 0}</td>
                 </tr>
 
-                {/* 下段：後攻 */}
-                <tr className={cn("h-9", !state.isTop ? "bg-primary/10" : "")}>
+                <tr className={cn("h-10", !state.isTop ? "bg-primary/10" : "")}>
                   <td className="pl-2 py-1">
-                    <span className={cn(labelStyle, !state.isTop ? "text-primary" : "text-foreground/70")}>後攻</span>
+                    <span className={cn(labelBaseStyle, !state.isTop ? "text-primary" : "text-foreground/70")}>後攻</span>
                   </td>
                   {innings.map(i => (
                     <td key={i} className={cn(
@@ -139,7 +138,7 @@ export function Scoreboard() {
                       {state.myInningScores[i - 1] ?? (i <= state.inning && (!state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  <td className={cn("text-center text-xl border-l border-border", numberStyle, !state.isTop ? "bg-primary/15 text-primary" : "bg-muted/30")}>
+                  <td className={cn("text-center text-xl", numberStyle, !state.isTop ? "bg-primary/15 text-primary" : "bg-muted/30")}>
                     {state.myScore}
                   </td>
                   <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.myHits || 0}</td>
@@ -150,38 +149,39 @@ export function Scoreboard() {
           </div>
         </div>
 
-        {/* 🚀 下段：左右反転・余白調整版 (h-12 で垂直中央配置を安定化) */}
-        <div className="flex items-center justify-between px-3 h-12 border-x border-b border-border rounded-b-md bg-muted/10">
+        {/* 🚀 下段 */}
+        <div className="flex items-center justify-between px-3 h-14 border-x border-b border-border rounded-b-md bg-muted/10">
           
-          {/* 左側：イニング・攻守詳細 (フォントサイズを統一) */}
-          <div className="flex items-center text-primary">
-            <span className={cn("text-2xl leading-none", numberStyle)}>{state.inning}</span>
-            <span className={cn(labelStyle, "mx-1")}>回</span>
-            <span className={cn(labelStyle)}>{state.isTop ? "オモテ" : "ウラ"}</span>
-            <span className="mx-2 text-muted-foreground/30 font-light">/</span>
+          {/* 🌟 改善：イニング表示の漢字化とサイズ調整 */}
+          <div className="flex items-end text-primary pb-1">
+            <span className={cn("text-[32px] leading-none", numberStyle)}>{state.inning}</span>
+            <div className="flex items-center gap-1 ml-1.5 mb-[3px]">
+              <span className="text-[16px] font-black leading-none">回</span>
+              <span className="text-[16px] font-black leading-none">{state.isTop ? "表" : "裏"}</span>
+            </div>
+            <div className="mx-3 mb-[6px] h-3 w-[1px] bg-muted-foreground/30" />
             <span className={cn(
-              labelStyle,
-              "px-2 py-1 rounded-sm",
+              "text-[13px] font-black px-2 py-1 rounded-sm mb-[2px]",
               isMyAttack ? "bg-primary text-primary-foreground" : "bg-zinc-200 text-zinc-500"
             )}>
               {attackStatusText}
             </span>
           </div>
 
-          {/* 右側：BSOカウント */}
-          <div className="flex gap-4">
+          {/* 🌟 改善：BSOの消灯視認性向上 */}
+          <div className="flex gap-5">
             {[
-              { label: 'B', color: 'bg-emerald-500 shadow-[0_0_8px_#10b981]', count: state.balls, max: 3, textColor: 'text-emerald-600' },
-              { label: 'S', color: 'bg-amber-400 shadow-[0_0_8px_#fbbf24]', count: state.strikes, max: 2, textColor: 'text-amber-600' },
-              { label: 'O', color: 'bg-rose-500 shadow-[0_0_8px_#f43f5e]', count: state.outs, max: 2, textColor: 'text-rose-600' }
+              { label: 'B', color: 'bg-emerald-500 shadow-[0_0_10px_#10b981]', count: state.balls, max: 3, textColor: 'text-emerald-600' },
+              { label: 'S', color: 'bg-amber-400 shadow-[0_0_10px_#fbbf24]', count: state.strikes, max: 2, textColor: 'text-amber-600' },
+              { label: 'O', color: 'bg-rose-500 shadow-[0_0_10px_#f43f5e]', count: state.outs, max: 2, textColor: 'text-rose-600' }
             ].map(type => (
-              <div key={type.label} className="flex items-center gap-1.5">
-                <span className={cn("text-base font-black leading-none", type.textColor)}>{type.label}</span>
-                <div className="flex gap-1">
+              <div key={type.label} className="flex items-center gap-2">
+                <span className={cn("text-xl font-black leading-none", type.textColor)}>{type.label}</span>
+                <div className="flex gap-1.5">
                   {Array.from({ length: type.max }).map((_, i) => (
                     <div key={i} className={cn(
-                      "w-3.5 h-3.5 rounded-full border border-border/40 transition-all duration-300",
-                      i < type.count ? type.color : "bg-muted/50 shadow-inner"
+                      "w-4 h-4 rounded-full border transition-all duration-300",
+                      i < type.count ? type.color + " border-transparent" : "bg-zinc-800 border-zinc-700 shadow-inner"
                     )} />
                   ))}
                 </div>
