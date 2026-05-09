@@ -1,12 +1,10 @@
 // filepath: `src/components/score/Scoreboard.tsx`
-/* 💡 伝統的なテーブル形式のデザインを完全維持し、スライドによる攻守設定切替を実装。 */
-
 "use client";
 
 import { useState, useRef } from "react";
 import { useScore } from "@/contexts/ScoreContext";
 import { cn } from "@/lib/utils";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export function Scoreboard() {
   const { state, updateMatchSettings } = useScore();
@@ -16,70 +14,75 @@ export function Scoreboard() {
   const displayInningsCount = Math.max(state.maxInnings || 9, state.inning);
   const innings = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
 
-  // 🚀 スライド操作：先攻・後攻（isGuestFirst）の切り替え
+  // 💡 試合開始前かどうかの判定（1回表・0対0・無死・カウントなし）
+  const isPreGame = state.inning === 1 && state.isTop && 
+                    state.myScore === 0 && state.opponentScore === 0 &&
+                    state.outs === 0 && state.balls === 0 && state.strikes === 0;
+
+  // 🚀 スライド操作
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isPreGame) return; // 試合開始後は無効
     startX.current = e.touches[0].clientX;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isPreGame) return;
     const move = e.touches[0].clientX - startX.current;
-    // 左右スライドの視覚フィードバック（最大60px）
-    setOffsetX(Math.max(Math.min(move, 60), -60));
+    // 右方向(move > 0)へのスライドのみ許容（最大80px）
+    if (move > 0) {
+      setOffsetX(Math.min(move, 80));
+    }
   };
 
   const handleTouchEnd = () => {
-    // 50px以上スライドしたら確認ダイアログを表示
-    if (Math.abs(offsetX) >= 50) {
-      toggleStartingOrder();
+    if (!isPreGame) return;
+    // 60px以上右にスライドしたら切り替え実行
+    if (offsetX >= 60) {
+      const nextSettings = { isGuestFirst: !state.isGuestFirst };
+      updateMatchSettings?.(nextSettings);
     }
     setOffsetX(0);
   };
 
-  const toggleStartingOrder = () => {
-    if (confirm("先攻（GUEST）と後攻（HOME）の設定を入れ替えますか？")) {
-      updateMatchSettings?.({ isGuestFirst: !state.isGuestFirst });
-    }
-  };
-
-  // すべての数字に適用する鉄の統一スタイル
   const numberStyle = "font-black tabular-nums tracking-tighter";
 
   return (
     <div className="w-full bg-background border-b border-border transition-colors select-none">
       <div className="w-full px-1 py-1">
-        {/* 🚀 スライド操作を適用するコンテナ */}
+        
+        {/* 🚀 スライドコンテナ（右スライドのみ） */}
         <div 
-          className="relative overflow-hidden border border-border rounded-md shadow-sm transition-transform duration-200 ease-out"
+          className={cn(
+            "relative overflow-hidden border border-border rounded-md shadow-sm transition-transform duration-200 ease-out bg-card",
+            isPreGame && "cursor-grab active:cursor-grabbing"
+          )}
           style={{ transform: `translateX(${offsetX}px)` }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          {/* 背景に隠れたスイッチアイコン（スライド時のみ見える） */}
-          <div className="absolute inset-0 bg-primary/10 flex items-center justify-between px-4 -z-10">
-            <ArrowLeftRight className="w-5 h-5 text-primary animate-pulse" />
-            <ArrowLeftRight className="w-5 h-5 text-primary animate-pulse" />
+          {/* スライド時に見える背景メッセージ */}
+          <div className="absolute inset-y-0 left-0 w-full flex items-center px-4 bg-primary/10 -z-10">
+            <ArrowRight className="w-4 h-4 text-primary animate-pulse mr-2" />
+            <span className="text-[10px] font-black uppercase text-primary tracking-widest">Switch Side</span>
           </div>
 
-          <table className="w-full border-collapse bg-card text-card-foreground min-w-[340px]">
+          <table className="w-full border-collapse text-card-foreground min-w-[340px]">
             <thead>
-              <tr className="bg-muted/50 border-b border-border">
+              <tr className="bg-muted/50 border-b border-border text-muted-foreground/60">
                 <th className="w-12 py-1 pl-2 text-left">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <span className="text-[8px] font-black uppercase tracking-widest">TEAM</span>
-                    <ArrowLeftRight className="w-2 h-2 opacity-50" />
-                  </div>
+                  <span className="text-[8px] font-black uppercase tracking-widest">TEAM</span>
                 </th>
                 {innings.map(i => (
                   <th key={i} className={cn(
                     "py-1 text-base px-1",
                     numberStyle,
-                    state.inning === i ? "bg-primary text-primary-foreground" : "text-muted-foreground/60"
+                    state.inning === i ? "bg-primary text-primary-foreground" : ""
                   )}>{i}</th>
                 ))}
                 <th className={cn("w-8 bg-muted border-l border-border/50 text-center text-base", numberStyle)}>R</th>
-                <th className={cn("w-8 bg-muted/30 text-center text-base text-muted-foreground/60", numberStyle)}>H</th>
-                <th className={cn("w-8 bg-muted/30 text-center text-base text-muted-foreground/60", numberStyle)}>E</th>
+                <th className={cn("w-8 bg-muted/30 text-center text-base", numberStyle)}>H</th>
+                <th className={cn("w-8 bg-muted/30 text-center text-base", numberStyle)}>E</th>
               </tr>
             </thead>
             <tbody>
@@ -126,7 +129,7 @@ export function Scoreboard() {
           </table>
         </div>
 
-        {/* 🚀 下段：BSO & イニング表示（斜体廃止版） */}
+        {/* 🚀 下段：BSO & イニング表示 */}
         <div className="flex items-center justify-between px-2 mt-2 h-8">
           <div className="flex gap-5">
             {[
@@ -135,7 +138,7 @@ export function Scoreboard() {
               { label: 'O', color: 'bg-rose-500 shadow-[0_0_10px_#f43f5e]', count: state.outs, max: 2, textColor: 'text-rose-600' }
             ].map(type => (
               <div key={type.label} className="flex items-center gap-2">
-                {/* 🌟 italic を削除してフォントを統一 */}
+                {/* 🌟 italicを廃止しfont-blackで統一 */}
                 <span className={cn("text-lg font-black", type.textColor)}>{type.label}</span>
                 <div className="flex gap-1.5">
                   {Array.from({ length: type.max }).map((_, i) => (
@@ -149,10 +152,11 @@ export function Scoreboard() {
             ))}
           </div>
 
+          {/* 🌟 フォントサイズを13pxに大きくし、数値とのバランスを調整 */}
           <div className="flex items-center text-primary pr-1">
-            <span className={cn("text-lg", numberStyle)}>{state.inning}</span>
-            <span className="text-[11px] font-black mx-1">回</span>
-            <span className="text-[11px] font-black">{state.isTop ? "オモテ" : "ウラ"}</span>
+            <span className={cn("text-xl", numberStyle)}>{state.inning}</span>
+            <span className="text-[13px] font-black mx-1.5 leading-none">回</span>
+            <span className="text-[13px] font-black leading-none">{state.isTop ? "オモテ" : "ウラ"}</span>
           </div>
         </div>
       </div>
