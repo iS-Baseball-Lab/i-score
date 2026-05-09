@@ -1,13 +1,12 @@
 // filepath: `src/components/score/Scoreboard.tsx`
-/* 💡 伝統的なRHEテーブル形式。物理配置（上段＝オモテ、下段＝ウラ）とハイライトを完全同期。
-   試合開始前限定の右スライドで先攻・後攻ラベル(GUEST/HOME)を入れ替える。 */
+/* 💡 伝統的イニングスコア形式。物理配置（上段＝オモテ、下段＝ウラ）を厳守。
+   試合開始前限定の右スライドで「先攻・後攻ラベル」を確実に入れ替える。 */
 
 "use client";
 
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useScore } from "@/contexts/ScoreContext";
 import { cn } from "@/lib/utils";
-import { ArrowRight } from "lucide-react";
 
 export function Scoreboard() {
   const { state, updateMatchSettings } = useScore();
@@ -18,22 +17,21 @@ export function Scoreboard() {
   const innings = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
 
   /**
-   * 💡 現場至上主義：試合開始前かどうかの判定[span_0](start_span)[span_0](end_span)
-   * 1回表・無死・無走者・両チーム無得点の時のみ設定変更（スライド）を許可。
+   * 💡 現場至上主義：試合開始前かどうかの判定[span_1](start_span)[span_1](end_span)
+   * 1回表・無死・無走者・両チーム無得点の時のみ「先攻・後攻」の入れ替えを許可。
    */
   const isPreGame = state.inning === 1 && state.isTop && 
                     state.myScore === 0 && state.opponentScore === 0 &&
                     state.outs === 0 && state.balls === 0 && state.strikes === 0;
 
   /**
-   * 🚀 先攻・後攻ラベルの動的決定
-   * state.isGuestFirst (自チームが先攻) なら：上段=HOME(自), 下段=GUEST(敵)
-   * それ以外なら：上段=GUEST(敵), 下段=HOME(自)
+   * 🚀 攻守ラベルの動的決定
+   * ユーザー様の定義：自チームが先攻(isGuestFirst)なら、上段＝HOME(自)、下段＝GUEST(敵)
    */
   const topLabel = state.isGuestFirst ? "HOME" : "GUEST";
   const bottomLabel = state.isGuestFirst ? "GUEST" : "HOME";
 
-  // 🚀 スマート・スワイプ制御：右方向のスライドのみを検知[span_1](start_span)[span_1](end_span)
+  // 🚀 スマート・スワイプ制御：右方向のみ。縦スクロール時は無効化[span_2](start_span)[span_2](end_span)
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isPreGame) return;
     startX.current = e.touches[0].clientX;
@@ -47,6 +45,7 @@ export function Scoreboard() {
 
   const handleTouchEnd = () => {
     if (offsetX >= 60) {
+      // 🌟 実際に先攻・後攻の設定を入れ替える
       updateMatchSettings?.({ isGuestFirst: !state.isGuestFirst });
     }
     setOffsetX(0);
@@ -61,13 +60,12 @@ export function Scoreboard() {
         {/* 掲示板コンテナ */}
         <div className="relative overflow-hidden border border-border rounded-md shadow-sm bg-card">
           
-          {/* 背面ガイド：スライド時のみ視認[span_2](start_span)[span_2](end_span) */}
+          {/* 🌟 改善：スライド背景をプライマリカラーに変更し、文字を「攻守切替」に[span_3](start_span)[span_3](end_span) */}
           <div 
-            className="absolute inset-0 flex items-center px-4 bg-primary/10 z-0 pointer-events-none transition-opacity"
-            style={{ opacity: offsetX > 20 ? 1 : 0 }}
+            className="absolute inset-0 flex items-center px-6 bg-primary z-0 pointer-events-none transition-opacity"
+            style={{ opacity: offsetX > 15 ? 1 : 0 }}
           >
-            <ArrowRight className="w-4 h-4 text-primary animate-pulse mr-2" />
-            <span className="text-[10px] font-black uppercase text-primary tracking-widest">Switch Side</span>
+            <span className="text-[12px] font-black text-primary-foreground tracking-[0.2em]">攻守切替</span>
           </div>
 
           {/* 前面テーブル本体 */}
@@ -97,7 +95,7 @@ export function Scoreboard() {
                 </tr>
               </thead>
               <tbody>
-                {/* 🔴 上段：オモテ(isTop)の攻撃時にハイライト[span_3](start_span)[span_3](end_span) */}
+                {/* 🔴 上段：オモテ(isTop)の攻撃時にハイライト。常に先攻を表示。[span_4](start_span)[span_4](end_span) */}
                 <tr className={cn("border-b border-border/50 transition-colors", state.isTop ? "bg-primary/10" : "bg-transparent")}>
                   <td className="pl-2 py-1">
                     <span className={cn("text-[10px] font-black uppercase", state.isTop ? "text-primary" : "text-foreground/70")}>
@@ -114,7 +112,7 @@ export function Scoreboard() {
                       {state.opponentInningScores[i - 1] ?? (i <= state.inning && (state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  {/* 得点合計Rエリア：攻撃中(isTop)であれば青く強調 */}
+                  {/* Rエリア：攻撃中なら青く強調。表なら上段。[span_5](start_span)[span_5](end_span) */}
                   <td className={cn(
                     "text-center text-xl border-l border-border transition-colors", 
                     numberStyle,
@@ -126,7 +124,7 @@ export function Scoreboard() {
                   <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.opponentErrors || 0}</td>
                 </tr>
 
-                {/* 🔵 下段：ウラ(!isTop)の攻撃時にハイライト[span_4](start_span)[span_4](end_span) */}
+                {/* 🔵 下段：ウラ(!isTop)の攻撃時にハイライト。常に後攻を表示。[span_6](start_span)[span_6](end_span) */}
                 <tr className={cn("transition-colors", !state.isTop ? "bg-primary/10" : "bg-transparent")}>
                   <td className="pl-2 py-1">
                     <span className={cn("text-[10px] font-black uppercase", !state.isTop ? "text-primary" : "text-foreground/70")}>
@@ -143,7 +141,7 @@ export function Scoreboard() {
                       {state.myInningScores[i - 1] ?? (i <= state.inning && (!state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  {/* 得点合計Rエリア：攻撃中(!isTop)であれば青く強調 */}
+                  {/* Rエリア：攻撃中なら青く強調。裏なら下段。[span_7](start_span)[span_7](end_span) */}
                   <td className={cn(
                     "text-center text-xl border-l border-border transition-colors", 
                     numberStyle,
@@ -159,7 +157,7 @@ export function Scoreboard() {
           </div>
         </div>
 
-        {/* 🚀 下段：BSO & カウント表示 */}
+        {/* 下段：BSO & カウント表示 */}
         <div className="flex items-center justify-between px-2 mt-2 h-8">
           <div className="flex gap-5">
             {[
@@ -181,7 +179,6 @@ export function Scoreboard() {
             ))}
           </div>
 
-          {/* 🌟 視認性向上：フォントサイズ調整[span_5](start_span)[span_5](end_span) */}
           <div className="flex items-center text-primary pr-1">
             <span className={cn("text-2xl", numberStyle)}>{state.inning}</span>
             <span className="text-[14px] font-black ml-1.5 mr-1 leading-none">回</span>
