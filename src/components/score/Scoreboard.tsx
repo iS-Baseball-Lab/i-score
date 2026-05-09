@@ -1,6 +1,6 @@
 // filepath: `src/components/score/Scoreboard.tsx`
-/* 💡 究極の視認性。漢字表記(表・裏)のベースライン調整、BSOの消灯コントラスト、
-   そしてスライド時の「攻守切替」にシャドウを追加し中央配置を徹底。 */
+/* 💡 伝統的RHE形式の完成形。スコアボード本体に薄い影(shadow-md)を適用。
+   スライド切替のシャドウ付き中央配置、漢字表記、BSOコントラストをすべて統合。 */
 
 "use client";
 
@@ -20,7 +20,6 @@ export function Scoreboard() {
                     state.myScore === 0 && state.opponentScore === 0 &&
                     state.outs === 0 && state.balls === 0 && state.strikes === 0;
 
-  // 自チームの攻撃・守備判定
   const isMyAttack = (state.isTop && state.isGuestFirst) || (!state.isTop && !state.isGuestFirst);
   const attackStatusText = isMyAttack ? "攻撃" : "守備";
 
@@ -35,7 +34,7 @@ export function Scoreboard() {
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isPreGame) return;
     const move = e.touches[0].clientX - startX.current;
-    if (move > 0) setOffsetX(Math.min(move, 100)); // スライド幅を少し広めに
+    if (move > 0) setOffsetX(Math.min(move, 100)); 
   };
 
   const handleTouchEnd = () => {
@@ -65,15 +64,15 @@ export function Scoreboard() {
           </div>
         </div>
 
-        {/* 🚀 メイン掲示板 */}
-        <div className="relative overflow-hidden border border-border bg-card">
+        {/* 🚀 メイン掲示板コンテナ：🌟 shadow-md を追加して浮き上がりを演出 */}
+        <div className="relative overflow-hidden border border-border bg-card shadow-md">
           
-          {/* 🌟 改善：スライド背景にシャドウ付き文字を中央配置 */}
+          {/* スライド背景：攻守切替テキスト */}
           <div 
             className="absolute inset-0 flex items-center justify-center bg-primary z-0 pointer-events-none transition-opacity duration-150"
             style={{ opacity: offsetX > 5 ? 1 : 0 }}
           >
-            <span className="text-[15px] font-black text-white tracking-[0.5em] ml-[0.5em] drop-shadow-md">
+            <span className="text-[15px] font-black text-white tracking-[0.5em] ml-[0.5em] drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)]">
               攻守切替
             </span>
           </div>
@@ -150,8 +149,8 @@ export function Scoreboard() {
           </div>
         </div>
 
-        {/* 🚀 下段 */}
-        <div className="flex items-center justify-between px-3 h-14 border-x border-b border-border rounded-b-md bg-muted/10">
+        {/* 🚀 下段：🌟 ここも shadow-sm を加えて一体感を出す */}
+        <div className="flex items-center justify-between px-3 h-14 border-x border-b border-border rounded-b-md bg-muted/10 shadow-sm">
           
           <div className="flex items-end text-primary pb-1">
             <span className={cn("text-[32px] leading-none", numberStyle)}>{state.inning}</span>
@@ -161,17 +160,17 @@ export function Scoreboard() {
             </div>
             <div className="mx-3 mb-[6px] h-3 w-[1px] bg-muted-foreground/30" />
             
-            {/* 🌟 改善：攻撃・守備ともにデザインを統一 */}
             <span className={cn(
               "text-[13px] font-black px-2 py-1 rounded-sm mb-[2px] shadow-sm transition-colors min-w-[42px] text-center",
               isMyAttack 
                 ? "bg-primary text-primary-foreground" 
-                : "bg-zinc-800 text-zinc-100" // 守備も白抜きデザインに
+                : "bg-zinc-800 text-zinc-100" 
             )}>
               {attackStatusText}
             </span>
           </div>
 
+          {/* BSO */}
           <div className="flex gap-5">
             {[
               { label: 'B', color: 'bg-emerald-500 shadow-[0_0_10px_#10b981]', count: state.balls, max: 3, textColor: 'text-emerald-600' },
