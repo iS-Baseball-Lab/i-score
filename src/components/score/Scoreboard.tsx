@@ -1,10 +1,11 @@
 // filepath: `src/components/score/Scoreboard.tsx`
-/* 💡 メイン掲示板をXSサイズに凝縮。
-   全体を強固なボーダーで囲み、スライド時の「攻守切替」に強力なコントラストを適用。 */
+/* 💡 100点満点の最終進化版。
+   スライドして戻る心地よいUI、計算された「動的な中央」配置、
+   そして不要な要素を削ぎ落としたプロ仕様のタイポグラフィ。 */
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useScore } from "@/contexts/ScoreContext";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,14 @@ export function Scoreboard() {
                     state.myScore === 0 && state.opponentScore === 0 &&
                     state.outs === 0 && state.balls === 0 && state.strikes === 0;
 
-  const isMyAttack = (state.isTop && state.isGuestFirst) || (!state.isTop && !state.isGuestFirst);
+  // スライド中の見かけ上の攻守（リアルタイムフィードバック用）
+  const [previewIsGuestFirst, setPreviewIsGuestFirst] = useState(state.isGuestFirst);
+  
+  useEffect(() => {
+    setPreviewIsGuestFirst(state.isGuestFirst);
+  }, [state.isGuestFirst]);
+
+  const isMyAttack = (state.isTop && previewIsGuestFirst) || (!state.isTop && !previewIsGuestFirst);
   const attackStatusText = isMyAttack ? "攻撃" : "守備";
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -31,30 +39,38 @@ export function Scoreboard() {
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isPreGame) return;
     const move = e.touches[0].clientX - startX.current;
-    if (move > 0) setOffsetX(Math.min(move, 120)); 
+    if (move > 0) {
+      const clampedMove = Math.min(move, 120);
+      setOffsetX(clampedMove);
+      // 閾値を超えたらバッジを先行して切り替える
+      if (clampedMove > 60) {
+        setPreviewIsGuestFirst(!state.isGuestFirst);
+      } else {
+        setPreviewIsGuestFirst(state.isGuestFirst);
+      }
+    }
   };
 
   const handleTouchEnd = () => {
-    if (offsetX >= 70) {
+    if (offsetX >= 60) {
       updateMatchSettings?.({ isGuestFirst: !state.isGuestFirst });
     }
-    setOffsetX(0);
+    setOffsetX(0); // 指を離すとスルスル戻る
   };
 
   const numberStyle = "font-black tabular-nums tracking-tighter";
-  const labelBaseStyle = "text-[12px] font-black leading-none tracking-tight"; // 少し小さく
 
   return (
     <div className="w-full bg-background select-none font-sans p-1">
-      {/* 🚀 全体を囲む強固なコンテナ (Shadow + Border) */}
-      <div className="flex flex-col rounded-lg overflow-hidden border-2 border-border shadow-lg">
+      {/* 🚀 全体を囲むコンテナ (shadow-xs で控えめな影) */}
+      <div className="flex flex-col rounded-lg overflow-hidden border border-border shadow-xs">
         
-        {/* 🚀 ヘッダー (境界を明確化) */}
-        <div className="flex items-center justify-between px-3 py-1.5 border-b-2 border-border bg-muted/40">
+        {/* 🚀 ヘッダー (相手チーム名を標準体に) */}
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/40">
           <div className="flex-1 truncate text-left text-[9px] font-black text-zinc-500 uppercase tracking-widest">
             {state.tournamentName || "OFFICIAL GAME"}
           </div>
-          <div className="flex-none px-4 text-xs font-black text-foreground tracking-widest italic">
+          <div className="flex-none px-4 text-xs font-black text-foreground tracking-widest">
             vs {state.opponentTeamName || "相手チーム"}
           </div>
           <div className="flex-1 truncate text-right text-[9px] font-black text-zinc-500 uppercase tracking-widest">
@@ -62,21 +78,26 @@ export function Scoreboard() {
           </div>
         </div>
 
-        {/* 🚀 メイン掲示板 (XSサイズに凝縮) */}
-        <div className="relative overflow-hidden bg-card border-b-2 border-border">
+        {/* 🚀 メイン掲示板 (XS掲示板を標準サイズへ、左上攻守を削除) */}
+        <div className="relative overflow-hidden bg-card border-b border-border">
           
-          {/* 🌟 攻守切替オーバーレイ：絶対に隠れないように z-index と背景色を調整 */}
+          {/* 🌟 攻守切替オーバーレイ：スライド幅(offsetX)の中で常に中央に配置 */}
           <div 
-            className="absolute inset-0 flex items-center justify-center bg-primary z-20 pointer-events-none transition-opacity duration-150"
-            style={{ opacity: offsetX > 10 ? 1 : 0 }}
+            className="absolute left-0 top-0 bottom-0 bg-primary z-20 pointer-events-none transition-opacity duration-150 flex items-center"
+            style={{ 
+              width: `${offsetX}px`,
+              opacity: offsetX > 5 ? 1 : 0 
+            }}
           >
-            <span className="text-[16px] font-black text-white tracking-[0.8em] ml-[0.8em] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-              攻守切替
-            </span>
+            <div className="w-full flex justify-center">
+               <span className="text-[14px] font-black text-white tracking-[0.4em] ml-[0.4em] whitespace-nowrap">
+                攻守切替
+              </span>
+            </div>
           </div>
 
           <div 
-            className="relative z-10 bg-card transition-transform duration-200 ease-out"
+            className="relative z-10 bg-card transition-transform duration-300 cubic-bezier(0.2, 0.8, 0.2, 1)"
             style={{ transform: `translateX(${offsetX}px)` }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -85,86 +106,81 @@ export function Scoreboard() {
             <table className="w-full border-collapse text-card-foreground min-w-[340px]">
               <thead>
                 <tr className="bg-muted/30 border-b border-border text-muted-foreground/60">
-                  <th className="w-12 py-1 pl-2 text-left">
-                    <span className="text-[10px] font-black tracking-tighter opacity-70">攻守</span>
-                  </th>
+                  {/* 🌟 左上の攻守を削除し、余白のみを確保 */}
+                  <th className="w-10 py-2"></th> 
                   {innings.map(i => (
                     <th key={i} className={cn(
-                      "py-1 text-xs px-0.5",
+                      "py-2 text-base px-1",
                       numberStyle,
-                      state.inning === i ? "bg-primary/20 text-primary" : ""
+                      state.inning === i ? "bg-primary text-primary-foreground" : ""
                     )}>{i}</th>
                   ))}
-                  <th className={cn("w-7 bg-muted/50 text-center text-xs", numberStyle)}>R</th>
-                  <th className={cn("w-7 bg-muted/20 text-center text-xs", numberStyle)}>H</th>
-                  <th className={cn("w-7 bg-muted/20 text-center text-xs", numberStyle)}>E</th>
+                  <th className={cn("w-8 bg-muted/50 text-center text-base", numberStyle)}>R</th>
+                  <th className={cn("w-8 bg-muted/20 text-center text-base", numberStyle)}>H</th>
+                  <th className={cn("w-8 bg-muted/20 text-center text-base", numberStyle)}>E</th>
                 </tr>
               </thead>
               <tbody>
-                {/* 上段：先攻 (高さ h-7 で XS 化) */}
-                <tr className={cn("border-b border-border/50 h-7", state.isTop ? "bg-primary/5" : "")}>
-                  <td className="pl-2">
-                    <span className={cn("text-[11px] font-black", state.isTop ? "text-primary" : "text-foreground/60")}>先攻</span>
+                <tr className={cn("border-b border-border/50 h-10 transition-colors duration-300", isMyAttack ? "" : "bg-primary/5")}>
+                  <td className="text-center">
+                    <span className={cn("text-[13px] font-black", !isMyAttack ? "text-primary" : "text-foreground/50")}>先</span>
                   </td>
                   {innings.map(i => (
                     <td key={i} className={cn(
-                      "text-center text-xs px-0.5",
+                      "text-center text-lg px-0.5",
                       numberStyle,
-                      state.inning === i && state.isTop ? "text-primary font-bold" : "text-foreground/70",
-                      (state.opponentInningScores[i - 1] === undefined && i > state.inning) && "opacity-10"
+                      state.inning === i && state.isTop ? "text-primary font-bold underline" : "text-foreground/80"
                     )}>
                       {state.opponentInningScores[i - 1] ?? (i <= state.inning && (state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  <td className={cn("text-center text-sm bg-muted/30", numberStyle)}>
+                  <td className={cn("text-center text-xl bg-muted/30", numberStyle)}>
                     {state.opponentScore}
                   </td>
-                  <td className={cn("text-center text-xs text-muted-foreground/60", numberStyle)}>{state.opponentHits || 0}</td>
-                  <td className={cn("text-center text-xs text-muted-foreground/60", numberStyle)}>{state.opponentErrors || 0}</td>
+                  <td className={cn("text-center text-lg text-muted-foreground/50", numberStyle)}>{state.opponentHits || 0}</td>
+                  <td className={cn("text-center text-lg text-muted-foreground/50", numberStyle)}>{state.opponentErrors || 0}</td>
                 </tr>
 
-                {/* 下段：後攻 (高さ h-7) */}
-                <tr className={cn("h-7", !state.isTop ? "bg-primary/5" : "")}>
-                  <td className="pl-2">
-                    <span className={cn("text-[11px] font-black", !state.isTop ? "text-primary" : "text-foreground/60")}>後攻</span>
+                <tr className={cn("h-10 transition-colors duration-300", isMyAttack ? "bg-primary/5" : "")}>
+                  <td className="text-center">
+                    <span className={cn("text-[13px] font-black", isMyAttack ? "text-primary" : "text-foreground/50")}>後</span>
                   </td>
                   {innings.map(i => (
                     <td key={i} className={cn(
-                      "text-center text-xs px-0.5",
+                      "text-center text-lg px-0.5",
                       numberStyle,
-                      state.inning === i && !state.isTop ? "text-primary font-bold" : "text-foreground/70",
-                      (state.myInningScores[i - 1] === undefined && i >= state.inning && !(state.isTop && i === state.inning)) && "opacity-10"
+                      state.inning === i && !state.isTop ? "text-primary font-bold underline" : "text-foreground/80"
                     )}>
                       {state.myInningScores[i - 1] ?? (i <= state.inning && (!state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  <td className={cn("text-center text-sm bg-muted/30", numberStyle)}>
+                  <td className={cn("text-center text-xl bg-muted/30", numberStyle)}>
                     {state.myScore}
                   </td>
-                  <td className={cn("text-center text-xs text-muted-foreground/60", numberStyle)}>{state.myHits || 0}</td>
-                  <td className={cn("text-center text-xs text-muted-foreground/60", numberStyle)}>{state.myErrors || 0}</td>
+                  <td className={cn("text-center text-lg text-muted-foreground/50", numberStyle)}>{state.myHits || 0}</td>
+                  <td className={cn("text-center text-lg text-muted-foreground/50", numberStyle)}>{state.myErrors || 0}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* 🚀 下段 (ここを主役にするため h-16 へ) */}
-        <div className="flex items-center justify-between px-4 h-16 bg-muted/5 shadow-inner">
-          
+        {/* 🚀 下段 (主役：イニング・BSO) */}
+        <div className="flex items-center justify-between px-4 h-16 bg-muted/5">
           <div className="flex items-end text-primary pb-1">
             <span className={cn("text-4xl leading-none", numberStyle)}>{state.inning}</span>
-            <div className="flex items-center gap-1.5 ml-2 mb-[4px]">
+            <div className="flex items-center gap-1 ml-2 mb-[4px]">
               <span className="text-[18px] font-black leading-none">回</span>
               <span className="text-[18px] font-black leading-none">{state.isTop ? "表" : "裏"}</span>
             </div>
             <div className="mx-4 mb-[8px] h-4 w-[2px] bg-muted-foreground/20" />
             
+            {/* 🌟 リアルタイム切替バッジ */}
             <span className={cn(
-              "text-[14px] font-black px-3 py-1.5 rounded-md mb-[2px] shadow-sm tracking-widest",
+              "text-[14px] font-black px-3 py-1.5 rounded-md mb-[2px] shadow-xs transition-all duration-300 min-w-[60px] text-center tracking-widest",
               isMyAttack 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-zinc-800 text-zinc-100" 
+                ? "bg-primary text-primary-foreground scale-100" 
+                : "bg-zinc-800 text-zinc-100 scale-100" 
             )}>
               {attackStatusText}
             </span>
@@ -189,7 +205,6 @@ export function Scoreboard() {
               </div>
             ))}
           </div>
-
         </div>
       </div>
     </div>
