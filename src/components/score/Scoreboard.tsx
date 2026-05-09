@@ -1,8 +1,4 @@
 // filepath: `src/components/score/Scoreboard.tsx`
-/* 💡 100点満点の超進化版。
-   ヘッダーに大会名、元・攻守エリアにLIVE表示を配置。
-   スライド時の重なり順と同期の違和感を物理的に解消した「究極」の操作感。 */
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -21,18 +17,16 @@ export function Scoreboard() {
                     state.myScore === 0 && state.opponentScore === 0 &&
                     state.outs === 0 && state.balls === 0 && state.strikes === 0;
 
-  // 切替の不安定さを解消するための内部状態
-  const [isSwitched, setIsSwitched] = useState(false);
-  
-  const isMyAttack = (state.isTop && (isSwitched ? !state.isGuestFirst : state.isGuestFirst)) || 
-                     (!state.isTop && (isSwitched ? !state.isGuestFirst : state.isGuestFirst));
-  
-  const currentAttackStatusText = isMyAttack ? "攻撃" : "守備";
+  // 🌟 スライド中の仮プレビュー状態
+  const [previewIsGuestFirst, setPreviewIsGuestFirst] = useState(state.isGuestFirst);
+  useEffect(() => { setPreviewIsGuestFirst(state.isGuestFirst); }, [state.isGuestFirst]);
+
+  const isMyAttack = (state.isTop && previewIsGuestFirst) || (!state.isTop && !previewIsGuestFirst);
+  const attackStatusText = isMyAttack ? "攻撃" : "守備";
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isPreGame) return;
     startX.current = e.touches[0].clientX;
-    setIsSwitched(false);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -41,52 +35,52 @@ export function Scoreboard() {
     if (move > 0) {
       const clampedMove = Math.min(move, 120);
       setOffsetX(clampedMove);
-      // 60pxを超えたら安定してフラグを立てる
-      if (clampedMove > 60) setIsSwitched(true);
-      else setIsSwitched(false);
+      // 🌟 60pxを超えている間だけ、プレビューを反転させる
+      setPreviewIsGuestFirst(clampedMove > 60 ? !state.isGuestFirst : state.isGuestFirst);
     }
   };
 
   const handleTouchEnd = () => {
+    // 🌟 最終的に60px以上で離した時だけ設定を永続更新
     if (offsetX >= 60) {
       updateMatchSettings?.({ isGuestFirst: !state.isGuestFirst });
+    } else {
+      // 60px未満で戻した時はプレビューも元に戻す
+      setPreviewIsGuestFirst(state.isGuestFirst);
     }
     setOffsetX(0);
-    // 指を離した後は state の更新に任せる
-    setTimeout(() => setIsSwitched(false), 300);
   };
 
   const numberStyle = "font-black tabular-nums tracking-tighter";
 
   return (
     <div className="w-full bg-background select-none font-sans p-1">
-      {/* 🚀 コンテナ (境界線をより濃く border-zinc-400) */}
-      <div className="flex flex-col rounded-lg overflow-hidden border-2 border-zinc-400 dark:border-zinc-600 shadow-md">
+      {/* 🚀 コンテナ (ボーダーを 1px の zinc-300 で洗練) */}
+      <div className="flex flex-col rounded-lg overflow-hidden border border-zinc-300 dark:border-zinc-700 shadow-sm">
         
-        {/* 🚀 ヘッダー (左上に大会名/試合種別) */}
-        <div className="flex items-center justify-between px-3 py-1.5 border-b-2 border-zinc-400 dark:border-zinc-600 bg-muted/50">
-          <div className="flex-1 truncate text-left text-[10px] font-black text-foreground uppercase tracking-widest">
+        {/* 🚀 ヘッダー */}
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-300 dark:border-zinc-700 bg-muted/40">
+          <div className="flex-1 truncate text-left text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-tight">
             {state.tournamentName || "OFFICIAL GAME"}
           </div>
           <div className="flex-none px-4 text-xs font-black text-foreground tracking-widest">
             vs {state.opponentTeamName || "相手チーム"}
           </div>
-          <div className="flex-1 truncate text-right text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+          <div className="flex-1 truncate text-right text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-tight">
             {state.venueName || "BASEBALL FIELD"}
           </div>
         </div>
 
-        {/* 🚀 メイン掲示板 (Z-index管理を徹底) */}
-        <div className="relative overflow-hidden bg-card border-b-2 border-zinc-400 dark:border-zinc-600">
+        {/* 🚀 メイン掲示板 */}
+        <div className="relative overflow-hidden bg-card border-b border-zinc-300 dark:border-zinc-700">
           
-          {/* 🌟 攻守切替オーバーレイ (背面 z-10) */}
+          {/* 🌟 攻守切替幕 (背面 z-10) */}
           <div 
-            className="absolute left-0 top-0 bottom-0 bg-primary z-10 flex items-center"
+            className="absolute left-0 top-0 bottom-0 bg-primary z-10 flex items-center transition-opacity"
             style={{ 
               width: `${offsetX}px`,
-              // 戻る時もボードが重なるまで不透明度を維持
-              opacity: offsetX > 2 ? 1 : 0,
-              transition: offsetX === 0 ? 'opacity 0.3s' : 'none'
+              // 🌟 スライドが完全に 0 になるまで表示を維持
+              opacity: offsetX > 0 ? 1 : 0,
             }}
           >
             <div className="w-full flex justify-center">
@@ -98,7 +92,7 @@ export function Scoreboard() {
 
           {/* 🌟 スコアボード本体 (前面 z-20) */}
           <div 
-            className="relative z-20 bg-card shadow-[-4px_0_12px_rgba(0,0,0,0.15)] transition-transform duration-300 cubic-bezier(0.2, 0.8, 0.2, 1)"
+            className="relative z-20 bg-card shadow-[-4px_0_12px_rgba(0,0,0,0.1)] transition-transform duration-300 cubic-bezier(0.2, 0.8, 0.2, 1)"
             style={{ transform: `translateX(${offsetX}px)` }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -107,14 +101,14 @@ export function Scoreboard() {
             <table className="w-full border-collapse text-card-foreground min-w-[340px]">
               <thead>
                 <tr className="bg-muted/30 border-b border-border text-muted-foreground/60">
-                  {/* 🌟 旧・攻守エリアに LIVE インジケーター */}
-                  <th className="w-12 py-2 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <span className="relative flex h-2 w-2">
+                  {/* 🌟 LIVE 改行表示 */}
+                  <th className="w-12 py-1 text-center">
+                    <div className="flex flex-col items-center leading-none py-1">
+                      <span className="relative flex h-2 w-2 mb-0.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600"></span>
                       </span>
-                      <span className="text-[9px] font-black text-rose-600 tracking-tighter">LIVE</span>
+                      <span className="text-[8px] font-black text-rose-600 tracking-tighter">LIVE</span>
                     </div>
                   </th> 
                   {innings.map(i => (
@@ -130,9 +124,9 @@ export function Scoreboard() {
                 </tr>
               </thead>
               <tbody>
-                <tr className={cn("border-b border-border/50 h-10 transition-colors", (isSwitched ? !state.isTop : state.isTop) ? "" : "bg-primary/5")}>
-                  <td className="text-center">
-                    <span className={cn("text-[13px] font-black", (isSwitched ? state.isTop : !state.isTop) ? "text-primary" : "text-foreground/40")}>先</span>
+                <tr className={cn("border-b border-border/50 h-10 transition-colors duration-300", isMyAttack ? "" : "bg-primary/5")}>
+                  <td className="text-center font-black text-[13px]">
+                    <span className={isMyAttack ? "text-foreground/40" : "text-primary"}>先</span>
                   </td>
                   {innings.map(i => (
                     <td key={i} className={cn(
@@ -143,16 +137,14 @@ export function Scoreboard() {
                       {state.opponentInningScores[i - 1] ?? (i <= state.inning && (state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  <td className={cn("text-center text-xl bg-muted/40", numberStyle)}>
-                    {state.opponentScore}
-                  </td>
-                  <td className={cn("text-center text-sm text-muted-foreground/40", numberStyle)}>{state.opponentHits || 0}</td>
-                  <td className={cn("text-center text-sm text-muted-foreground/40", numberStyle)}>{state.opponentErrors || 0}</td>
+                  <td className={cn("text-center text-xl bg-muted/40", numberStyle)}>{state.opponentScore}</td>
+                  <td className="text-center text-sm text-muted-foreground/40 font-bold tracking-tighter">{state.opponentHits || 0}</td>
+                  <td className="text-center text-sm text-muted-foreground/40 font-bold tracking-tighter">{state.opponentErrors || 0}</td>
                 </tr>
 
-                <tr className={cn("h-10 transition-colors", (isSwitched ? !state.isTop : state.isTop) ? "bg-primary/5" : "")}>
-                  <td className="text-center">
-                    <span className={cn("text-[13px] font-black", (isSwitched ? !state.isTop : state.isTop) ? "text-primary" : "text-foreground/40")}>後</span>
+                <tr className={cn("h-10 transition-colors duration-300", isMyAttack ? "bg-primary/5" : "")}>
+                  <td className="text-center font-black text-[13px]">
+                    <span className={isMyAttack ? "text-primary" : "text-foreground/40"}>後</span>
                   </td>
                   {innings.map(i => (
                     <td key={i} className={cn(
@@ -163,19 +155,17 @@ export function Scoreboard() {
                       {state.myInningScores[i - 1] ?? (i <= state.inning && (!state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  <td className={cn("text-center text-xl bg-muted/40", numberStyle)}>
-                    {state.myScore}
-                  </td>
-                  <td className={cn("text-center text-sm text-muted-foreground/40", numberStyle)}>{state.myHits || 0}</td>
-                  <td className={cn("text-center text-sm text-muted-foreground/40", numberStyle)}>{state.myErrors || 0}</td>
+                  <td className={cn("text-center text-xl bg-muted/40", numberStyle)}>{state.myScore}</td>
+                  <td className="text-center text-sm text-muted-foreground/40 font-bold tracking-tighter">{state.myHits || 0}</td>
+                  <td className="text-center text-sm text-muted-foreground/40 font-bold tracking-tighter">{state.myErrors || 0}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* 🚀 下段 (バッジ切替の安定化) */}
-        <div className="flex items-center justify-between px-4 h-16 bg-muted/10">
+        {/* 🚀 下段 */}
+        <div className="flex items-center justify-between px-4 h-16 bg-muted/5">
           <div className="flex items-end text-primary pb-1">
             <span className={cn("text-4xl leading-none", numberStyle)}>{state.inning}</span>
             <div className="flex items-center gap-1 ml-2 mb-[4px]">
@@ -185,15 +175,14 @@ export function Scoreboard() {
             <div className="mx-4 mb-[8px] h-4 w-[2px] bg-muted-foreground/20" />
             
             <span className={cn(
-              "text-[14px] font-black px-3 py-1.5 rounded-md mb-[2px] shadow-sm transition-all duration-200 min-w-[65px] text-center tracking-widest",
-              isMyAttack 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-zinc-800 text-zinc-100" 
+              "text-[14px] font-black px-3 py-1.5 rounded-md mb-[2px] transition-all duration-300 min-w-[65px] text-center tracking-widest",
+              isMyAttack ? "bg-primary text-primary-foreground" : "bg-zinc-800 text-zinc-100"
             )}>
-              {currentAttackStatusText}
+              {attackStatusText}
             </span>
           </div>
 
+          {/* BSO */}
           <div className="flex gap-6">
             {[
               { label: 'B', color: 'bg-emerald-500 shadow-[0_0_12px_#10b981]', count: state.balls, max: 3, textColor: 'text-emerald-600' },
