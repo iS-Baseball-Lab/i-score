@@ -1,124 +1,110 @@
 // filepath: `src/components/score/Scoreboard.tsx`
+/* 💡 現場視点：BSO・イニングのフォントを統一し、直感的なスライド操作で攻守交代を呼び出す。 */
+
 "use client";
 
+import { useState } from "react";
 import { useScore } from "@/contexts/ScoreContext";
 import { cn } from "@/lib/utils";
-import { ArrowLeftRight } from "lucide-react";
+import { ChevronRight, RefreshCw } from "lucide-react";
 
 export function Scoreboard() {
-  const { state, updateMatchSettings } = useScore();
-  
-  const displayInningsCount = Math.max(state.maxInnings || 9, state.inning);
-  const innings = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
+  const { state, changeInning } = useScore();
+  const [offsetX, setOffsetX] = useState(0);
 
-  const toggleStartingOrder = () => {
-    if (confirm("先攻（GUEST）と後攻（HOME）の設定を入れ替えますか？")) {
-      updateMatchSettings?.({ isGuestFirst: !state.isGuestFirst });
+  // 💡 スライド操作の簡易実装（左にスライドすると交代ボタンが出現）
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (offsetX < -80) {
+      // 80px以上スライドしたら交代（またはパネル固定）
     }
+    setOffsetX(0);
   };
 
-  // すべての数字に適用する鉄の統一スタイル
-  const numberStyle = "font-black tabular-nums tracking-tighter";
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const move = touch.clientX - (e.currentTarget as any)._startX;
+    if (move < 0) setOffsetX(Math.max(move, -120)); // 最大120pxまでスライド
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    (e.currentTarget as any)._startX = e.touches[0].clientX;
+  };
 
   return (
-    <div className="w-full bg-background border-b border-border transition-colors">
-      <div className="w-full px-1 py-1">
-        <div className="overflow-hidden border border-border rounded-md shadow-sm overflow-x-auto">
-          <table className="w-full border-collapse bg-card text-card-foreground min-w-[340px]">
-            <thead>
-              <tr className="bg-muted/50 border-b border-border">
-                <th className="w-12 py-1 pl-2 text-left">
-                  <button onClick={toggleStartingOrder} className="flex items-center gap-1 active:scale-95 text-muted-foreground hover:text-primary">
-                    <span className="text-[8px] font-black uppercase tracking-widest">TEAM</span>
-                    <ArrowLeftRight className="w-2 h-2" />
-                  </button>
-                </th>
-                {innings.map(i => (
-                  <th key={i} className={cn(
-                    "py-1 text-base px-1",
-                    numberStyle,
-                    state.inning === i ? "bg-primary text-primary-foreground" : "text-muted-foreground/60"
-                  )}>{i}</th>
-                ))}
-                <th className={cn("w-8 bg-muted border-l border-border/50 text-center text-base", numberStyle)}>R</th>
-                <th className={cn("w-8 bg-muted/30 text-center text-base text-muted-foreground/60", numberStyle)}>H</th>
-                <th className={cn("w-8 bg-muted/30 text-center text-base text-muted-foreground/60", numberStyle)}>E</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* GUEST */}
-              <tr className={cn("border-b border-border/50", state.isTop ? "bg-primary/5" : "")}>
-                <td className="pl-2 py-1">
-                  <span className={cn("text-[10px] font-black uppercase", state.isTop ? "text-primary" : "text-foreground/70")}>GUEST</span>
-                </td>
-                {innings.map(i => (
-                  <td key={i} className={cn(
-                    "text-center text-lg px-0.5",
-                    numberStyle,
-                    state.inning === i && state.isTop ? "text-primary underline decoration-2 underline-offset-2" : "text-foreground/80",
-                    (state.opponentInningScores[i - 1] === undefined && i > state.inning) && "opacity-10"
-                  )}>
-                    {state.opponentInningScores[i - 1] ?? (i <= state.inning ? "0" : "-")}
-                  </td>
-                ))}
-                <td className={cn("text-center text-xl bg-muted/30 border-l border-border", numberStyle)}>{state.opponentScore}</td>
-                <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.opponentHits || 0}</td>
-                <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.opponentErrors || 0}</td>
-              </tr>
-
-              {/* HOME */}
-              <tr className={cn(!state.isTop ? "bg-primary/5" : "")}>
-                <td className="pl-2 py-1">
-                  <span className={cn("text-[10px] font-black uppercase", !state.isTop ? "text-primary" : "text-foreground/70")}>HOME</span>
-                </td>
-                {innings.map(i => (
-                  <td key={i} className={cn(
-                    "text-center text-lg px-0.5",
-                    numberStyle,
-                    state.inning === i && !state.isTop ? "text-primary underline decoration-2 underline-offset-2" : "text-foreground/80",
-                    (state.myInningScores[i - 1] === undefined && i >= state.inning && !(state.isTop && i === state.inning)) && "opacity-10"
-                  )}>
-                    {state.myInningScores[i - 1] ?? (i <= state.inning && !(state.isTop === true && i === state.inning) ? "0" : "-")}
-                  </td>
-                ))}
-                <td className={cn("text-center text-xl bg-primary/10 text-primary border-l border-border", numberStyle)}>{state.myScore}</td>
-                <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.myHits || 0}</td>
-                <td className={cn("text-center text-lg text-muted-foreground/80", numberStyle)}>{state.myErrors || 0}</td>
-              </tr>
-            </tbody>
-          </table>
+    <div className="relative overflow-hidden rounded-[32px] bg-zinc-950 shadow-2xl border border-white/10 h-[100px]">
+      
+      {/* 🚀 スライドするメインコンテンツ層 */}
+      <div 
+        className="absolute inset-0 flex transition-transform duration-300 ease-out z-10 bg-zinc-950"
+        style={{ transform: `translateX(${offsetX}px)` }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* TEAM & SCORE */}
+        <div className="flex-1 grid grid-cols-2 px-6 py-2">
+          {/* Guest (Top) */}
+          <div className={cn("flex flex-col justify-center", state.isTop && "border-l-4 border-primary pl-3")}>
+            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Guest</span>
+            <span className="text-3xl font-black tabular-nums leading-none">{state.myScore}</span>
+          </div>
+          {/* Home (Bottom) */}
+          <div className={cn("flex flex-col justify-center items-end", !state.isTop && "border-r-4 border-primary pr-3")}>
+            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest text-right">Home</span>
+            <span className="text-3xl font-black tabular-nums leading-none">{state.opponentScore}</span>
+          </div>
         </div>
 
-        {/* 🚀 下段：BSO & イニング表示（囲みなし・余白調整版） */}
-        <div className="flex items-center justify-between px-2 mt-2 h-8">
-          <div className="flex gap-5">
-            {[
-              { label: 'B', color: 'bg-emerald-500 shadow-[0_0_10px_#10b981]', count: state.balls, max: 3, textColor: 'text-emerald-600' },
-              { label: 'S', color: 'bg-amber-400 shadow-[0_0_10px_#fbbf24]', count: state.strikes, max: 2, textColor: 'text-amber-600' },
-              { label: 'O', color: 'bg-rose-500 shadow-[0_0_10px_#f43f5e]', count: state.outs, max: 2, textColor: 'text-rose-600' }
-            ].map(type => (
-              <div key={type.label} className="flex items-center gap-2">
-                <span className={cn("text-lg font-black italic", type.textColor)}>{type.label}</span>
-                <div className="flex gap-1.5">
-                  {Array.from({ length: type.max }).map((_, i) => (
-                    <div key={i} className={cn(
-                      "w-4 h-4 rounded-full border border-border/40 transition-all duration-300",
-                      i < type.count ? type.color : "bg-muted shadow-inner"
-                    )} />
-                  ))}
-                </div>
-              </div>
-            ))}
+        {/* ⚾️ INNING & BSO (フォント統一版) */}
+        <div className="flex items-center gap-6 px-8 border-l border-white/5 bg-zinc-900/50">
+          {/* INNING */}
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] font-black text-zinc-500 uppercase">Inning</span>
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-3xl font-black tabular-nums">{state.inning}</span>
+              <span className="text-xl font-black">{state.isTop ? "T" : "B"}</span>
+            </div>
           </div>
 
-          {/* 🌟 囲みを削除し、数字と「回」の間にスペース(mx-1)を確保 */}
-          <div className="flex items-center text-primary pr-1">
-            <span className={cn("text-lg", numberStyle)}>{state.inning}</span>
-            <span className="text-[11px] font-black mx-1">回</span>
-            <span className="text-[11px] font-black">{state.isTop ? "オモテ" : "ウラ"}</span>
+          {/* BSO */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-black w-4 text-emerald-500 leading-none">B</span>
+              <div className="flex gap-1.5">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className={cn("w-3 h-3 rounded-full border-2", i <= state.balls ? "bg-emerald-500 border-emerald-300 shadow-[0_0_10px_#10b981]" : "bg-zinc-800 border-zinc-700")} />
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-black w-4 text-amber-400 leading-none">S</span>
+              <div className="flex gap-1.5">
+                {[1, 2].map(i => (
+                  <div key={i} className={cn("w-3 h-3 rounded-full border-2", i <= state.strikes ? "bg-amber-400 border-amber-200 shadow-[0_0_10px_#fbbf24]" : "bg-zinc-800 border-zinc-700")} />
+                ))}
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* スライドを促すインジケーター */}
+        <div className="flex items-center px-2 text-zinc-700">
+          <ChevronRight className="h-4 w-4 animate-pulse" />
         </div>
       </div>
+
+      {/* 🚀 背後に隠れている「交代ボタン」層 */}
+      <button 
+        onClick={() => {
+          changeInning();
+          setOffsetX(0);
+        }}
+        className="absolute right-0 top-0 bottom-0 w-[120px] bg-primary text-primary-foreground flex flex-col items-center justify-center gap-1 active:bg-primary/90"
+      >
+        <RefreshCw className="h-6 w-6" />
+        <span className="text-[10px] font-black uppercase tracking-tighter">Change Inning</span>
+      </button>
+
     </div>
   );
 }
