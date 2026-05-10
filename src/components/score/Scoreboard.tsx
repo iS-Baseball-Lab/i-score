@@ -33,6 +33,7 @@ export function Scoreboard() {
     if (move > 0) {
       // 🌟 最大スライド幅を 80px に制限
       setOffsetX(Math.min(move, 80));
+      isMyAttak = !isMyAttak;
     }
   };
 
@@ -114,8 +115,8 @@ export function Scoreboard() {
                   <td className={cn("text-center text-xl font-black tabular-nums tracking-tighter", state.isTop ? "bg-primary/10 text-primary" : "bg-muted/40 text-foreground")}>
                     {state.opponentScore}
                   </td>
-                  <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.opponentHits || 0}</td>
-                  <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.opponentErrors || 0}</td>
+                  <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.opponentHits ?? 0}</td>
+                  <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.opponentErrors ?? 0}</td>
                 </tr>
                 <tr className={cn("h-10", !state.isTop ? "bg-primary/5" : "")}>
                   <td className="text-center font-black text-[13px]">
@@ -129,8 +130,8 @@ export function Scoreboard() {
                   <td className={cn("text-center text-xl font-black tabular-nums tracking-tighter", !state.isTop ? "bg-primary/10 text-primary" : "bg-muted/40 text-foreground")}>
                     {state.myScore}
                   </td>
-                  <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.myHits || 0}</td>
-                  <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.myErrors || 0}</td>
+                  <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.myHits ?? 0}</td>
+                  <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.myErrors ?? 0}</td>
                 </tr>
               </tbody>
             </table>
@@ -138,11 +139,11 @@ export function Scoreboard() {
         </div>
 
         {/* 🚀 下段 */}
-        <div className="flex items-center justify-between px-4 h-16 bg-muted/5">
+        <div className="flex items-center justify-between px-2 h-16 bg-muted/5">
           <div className="flex items-center text-primary h-full">
             <div className="flex items-end pb-1.5">
               <span className={cn("text-4xl leading-none", numberStyle)}>{state.inning}</span>
-              <div className="flex items-center gap-1 ml-2 mb-[1px]">
+              <div className="flex items-center gap-1 ml-2 mb-[3px]">
                 <span className="text-[18px] font-black leading-none">回</span>
                 <span className="text-[18px] font-black leading-none">{state.isTop ? "表" : "裏"}</span>
               </div>
