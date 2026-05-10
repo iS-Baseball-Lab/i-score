@@ -31,7 +31,7 @@ export function Scoreboard() {
     if (!isPreGame) return;
     const move = e.touches[0].clientX - startX.current;
     if (move > 0) {
-      // 🌟 最大スライド幅を 80px に制限（攻守切替の文字が中央に収まる幅）
+      // 🌟 最大スライド幅を 80px に制限
       setOffsetX(Math.min(move, 80));
     }
   };
@@ -60,7 +60,7 @@ export function Scoreboard() {
         {/* 🚀 メイン掲示板 */}
         <div className="relative overflow-hidden bg-card border-b border-zinc-300 dark:border-zinc-700">
           
-          {/* 🌟 攻守切替幕 (背面固定: 幅を offsetX と同期) */}
+          {/* 🌟 攻守切替幕 (背面固定) */}
           <div 
             className="absolute left-0 top-0 bottom-0 bg-primary z-10 flex items-center justify-center transition-opacity"
             style={{ 
@@ -68,7 +68,6 @@ export function Scoreboard() {
               opacity: offsetX > 0 ? 1 : 0
             }}
           >
-            {/* 🌟 80px幅の中で文字が中央になるよう whitespace-nowrap で固定 */}
             <span className="font-black text-white text-[12px] tracking-widest whitespace-nowrap">
               攻守切替
             </span>
@@ -108,7 +107,7 @@ export function Scoreboard() {
                     <span className={state.isTop ? "text-primary" : "text-foreground/40"}>先</span>
                   </td>
                   {innings.map(i => (
-                    <td key(i) className={cn("text-center text-lg px-0.5", numberStyle, state.inning === i && state.isTop ? "text-primary font-bold underline underline-offset-4" : "text-foreground/80")}>
+                    <td key={i} className={cn("text-center text-lg px-0.5", numberStyle, state.inning === i && state.isTop ? "text-primary font-bold underline underline-offset-4" : "text-foreground/80")}>
                       {state.opponentInningScores[i - 1] ?? (i <= state.inning && (state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
@@ -123,7 +122,7 @@ export function Scoreboard() {
                     <span className={!state.isTop ? "text-primary" : "text-foreground/40"}>後</span>
                   </td>
                   {innings.map(i => (
-                    <td key(i) className={cn("text-center text-lg px-0.5", numberStyle, state.inning === i && !state.isTop ? "text-primary font-bold underline underline-offset-4" : "text-foreground/80")}>
+                    <td key={i} className={cn("text-center text-lg px-0.5", numberStyle, state.inning === i && !state.isTop ? "text-primary font-bold underline underline-offset-4" : "text-foreground/80")}>
                       {state.myInningScores[i - 1] ?? (i <= state.inning && (!state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
