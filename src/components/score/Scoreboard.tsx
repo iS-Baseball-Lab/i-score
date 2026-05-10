@@ -13,11 +13,12 @@ export function Scoreboard() {
   const displayInningsCount = Math.max(state.maxInnings || 9, state.inning);
   const innings = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
 
+  // 試合開始前判定
   const isPreGame = state.inning === 1 && state.isTop && 
                     state.myScore === 0 && state.opponentScore === 0 &&
                     state.outs === 0 && state.balls === 0 && state.strikes === 0;
 
-  // 自チームが攻撃中かどうかの判定
+  // 🌟 自チームが攻撃中かどうかの判定ロジック
   const isMyAttack = (state.isTop && state.isGuestFirst) || (!state.isTop && !state.isGuestFirst);
   const attackStatusText = isMyAttack ? "攻撃" : "守備";
 
@@ -30,13 +31,14 @@ export function Scoreboard() {
     if (!isPreGame) return;
     const move = e.touches[0].clientX - startX.current;
     if (move > 0) {
-      setOffsetX(Math.min(move, 120)); // スライド幅
+      // 🌟 最大スライド幅を 80px に制限（攻守切替の文字が中央に収まる幅）
+      setOffsetX(Math.min(move, 80));
     }
   };
 
   const handleTouchEnd = () => {
-    // 80px以上スライドして戻った時に切替確定
-    if (offsetX >= 80) {
+    // 🌟 60px以上スライドして離したら確定で切替を実行
+    if (offsetX >= 60) {
       updateMatchSettings?.({ isGuestFirst: !state.isGuestFirst });
     }
     setOffsetX(0);
@@ -51,23 +53,30 @@ export function Scoreboard() {
         {/* 🚀 ヘッダー */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-300 dark:border-zinc-700 bg-muted/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
           <div className="flex-1 truncate text-left">{state.tournamentName || "OFFICIAL GAME"}</div>
-          <div className="flex-none px-4 text-xs font-black text-foreground">vs {state.opponentTeamName || "相手チーム"}</div>
+          <div className="flex-none px-4 text-xs font-black text-foreground tracking-widest">vs {state.opponentTeamName || "相手チーム"}</div>
           <div className="flex-1 truncate text-right">{state.venueName || "BASEBALL FIELD"}</div>
         </div>
 
-        {/* 🚀 メイン掲示板 (ボードがスライドし、下が覗く構造) */}
+        {/* 🚀 メイン掲示板 */}
         <div className="relative overflow-hidden bg-card border-b border-zinc-300 dark:border-zinc-700">
           
-          {/* 🌟 攻守切替幕 (背面 z-10: 固定) */}
-          <div className="absolute inset-0 bg-primary z-10 flex items-center px-6">
-             <span className="font-black text-white tracking-widest text-sm">
+          {/* 🌟 攻守切替幕 (背面固定: 幅を offsetX と同期) */}
+          <div 
+            className="absolute left-0 top-0 bottom-0 bg-primary z-10 flex items-center justify-center transition-opacity"
+            style={{ 
+              width: `${offsetX}px`,
+              opacity: offsetX > 0 ? 1 : 0
+            }}
+          >
+            {/* 🌟 80px幅の中で文字が中央になるよう whitespace-nowrap で固定 */}
+            <span className="font-black text-white text-[12px] tracking-widest whitespace-nowrap">
               攻守切替
             </span>
           </div>
 
-          {/* 🌟 スコアボード本体 (前面 z-20: これが動く) */}
+          {/* 🌟 スコアボード本体 (前面) */}
           <div 
-            className="relative z-20 bg-card transition-transform duration-300 cubic-bezier(0.2, 0.8, 0.2, 1) shadow-[-4px_0_10px_rgba(0,0,0,0.1)]"
+            className="relative z-20 bg-card transition-transform duration-300 cubic-bezier(0.2, 0.8, 0.2, 1) shadow-[-2px_0_8px_rgba(0,0,0,0.1)]"
             style={{ transform: `translateX(${offsetX}px)` }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -94,34 +103,30 @@ export function Scoreboard() {
                 </tr>
               </thead>
               <tbody>
-                {/* 相手チーム(先攻) */}
                 <tr className={cn("border-b border-border/50 h-10", state.isTop ? "bg-primary/5" : "")}>
                   <td className="text-center font-black text-[13px]">
                     <span className={state.isTop ? "text-primary" : "text-foreground/40"}>先</span>
                   </td>
                   {innings.map(i => (
-                    <td key={i} className={cn("text-center text-lg px-0.5", numberStyle, state.inning === i && state.isTop ? "text-primary font-bold underline underline-offset-4" : "text-foreground/80")}>
+                    <td key(i) className={cn("text-center text-lg px-0.5", numberStyle, state.inning === i && state.isTop ? "text-primary font-bold underline underline-offset-4" : "text-foreground/80")}>
                       {state.opponentInningScores[i - 1] ?? (i <= state.inning && (state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  {/* 🌟 Rの文字色を攻撃中(表)ならプライマリーに */}
                   <td className={cn("text-center text-xl font-black tabular-nums tracking-tighter", state.isTop ? "bg-primary/10 text-primary" : "bg-muted/40 text-foreground")}>
                     {state.opponentScore}
                   </td>
                   <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.opponentHits || 0}</td>
                   <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.opponentErrors || 0}</td>
                 </tr>
-                {/* 自チーム(後攻) */}
                 <tr className={cn("h-10", !state.isTop ? "bg-primary/5" : "")}>
                   <td className="text-center font-black text-[13px]">
                     <span className={!state.isTop ? "text-primary" : "text-foreground/40"}>後</span>
                   </td>
                   {innings.map(i => (
-                    <td key={i} className={cn("text-center text-lg px-0.5", numberStyle, state.inning === i && !state.isTop ? "text-primary font-bold underline underline-offset-4" : "text-foreground/80")}>
+                    <td key(i) className={cn("text-center text-lg px-0.5", numberStyle, state.inning === i && !state.isTop ? "text-primary font-bold underline underline-offset-4" : "text-foreground/80")}>
                       {state.myInningScores[i - 1] ?? (i <= state.inning && (!state.isTop || i < state.inning) ? "0" : "-")}
                     </td>
                   ))}
-                  {/* 🌟 Rの文字色を攻撃中(裏)ならプライマリーに */}
                   <td className={cn("text-center text-xl font-black tabular-nums tracking-tighter", !state.isTop ? "bg-primary/10 text-primary" : "bg-muted/40 text-foreground")}>
                     {state.myScore}
                   </td>
@@ -133,7 +138,7 @@ export function Scoreboard() {
           </div>
         </div>
 
-        {/* 🚀 下段 (バッジの中央配置と色同期) */}
+        {/* 🚀 下段 */}
         <div className="flex items-center justify-between px-4 h-16 bg-muted/5">
           <div className="flex items-center text-primary h-full">
             <div className="flex items-end pb-1.5">
