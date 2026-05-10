@@ -139,7 +139,7 @@ export function Scoreboard() {
         </div>
 
         {/* 🚀 下段 */}
-        <div className="flex items-center justify-between px-2 h-16 bg-muted/5">
+        <div className="flex items-center justify-between p-4 h-16 bg-muted/5">
           <div className="flex items-center text-primary h-full">
             <div className="flex items-end pb-1.5">
               <span className={cn("text-4xl leading-none", numberStyle)}>{state.inning}</span>
