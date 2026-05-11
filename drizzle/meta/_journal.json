@@ -15,6 +15,13 @@
       "when": 1777982183246,
       "tag": "0001_cuddly_captain_america",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1778076415183,
+      "tag": "0002_orange_lady_bullseye",
+      "breakpoints": true
     }
   ]
 }

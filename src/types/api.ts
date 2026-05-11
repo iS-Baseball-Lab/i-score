@@ -1,5 +1,7 @@
-// src/types/api.ts
-// API・サービス層・コンポーネント間で共有する共通型定義
+// filepath: src/types/api.ts
+/* 💡 iScoreCloud 規約: 
+   1. Cloudflare Workers の環境変数、APIレスポンス、サービス層の型を一元管理。
+   2. Messaging API 連携に伴う LINE アクセストークンの型定義を厳守する。 */
 
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import type * as schema from "@/db/schema";
@@ -10,16 +12,18 @@ import type * as schema from "@/db/schema";
 
 /** wrangler.toml で定義した Worker バインディング */
 export interface WorkerEnv {
-    DB: D1Database;
-    ASSETS: Fetcher;
-    BUCKET?: R2Bucket;
-    BETTER_AUTH_URL?: string;
-    NEXT_PUBLIC_API_URL?: string;
-    GOOGLE_CLIENT_ID?: string;
-    GOOGLE_CLIENT_SECRET?: string;
-    LINE_CLIENT_ID?: string;
-    LINE_CLIENT_SECRET?: string;
-    GEMINI_API_KEY?: string;
+  DB: D1Database;
+  ASSETS: Fetcher;
+  BUCKET?: R2Bucket;
+  BETTER_AUTH_URL?: string;
+  NEXT_PUBLIC_API_URL?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  LINE_CLIENT_ID?: string;
+  LINE_CLIENT_SECRET?: string;
+  /** 🌟 修正: Messaging API 送信用のトークンを定義 */
+  LINE_CHANNEL_ACCESS_TOKEN: string;
+  GEMINI_API_KEY?: string;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -35,15 +39,15 @@ export type DrizzleDB = DrizzleD1Database<typeof schema>;
 
 /** better-auth の user オブジェクトに additionalFields で追加した role を含む型 */
 export interface AuthUser {
-    id: string;
-    name: string;
-    email: string;
-    emailVerified: boolean;
-    image?: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    /** admin プラグインが追加するロールフィールド */
-    role?: string | null;
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  /** admin プラグインが追加するロールフィールド */
+  role?: string | null;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -52,27 +56,27 @@ export interface AuthUser {
 
 /** /api/auth/me が返すメンバーシップ 1 件 */
 export interface Membership {
-    teamId: string;
-    teamName: string;
-    organizationName: string;
-    organizationId?: string;
-    role: string;
-    roleLabel: string;
-    isMainTeam: boolean;
+  teamId: string;
+  teamName: string;
+  organizationName: string;
+  organizationId?: string;
+  role: string;
+  roleLabel: string;
+  isMainTeam: boolean;
 }
 
 /** /api/auth/me レスポンス全体 */
 export interface MeResponse {
-    success: boolean;
-    data: {
-        id: string;
-        name: string;
-        email: string;
-        avatarUrl: string;
-        role: string;
-        systemRole: string;
-        memberships: Membership[];
-    };
+  success: boolean;
+  data: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl: string;
+    role: string;
+    systemRole: string;
+    memberships: Membership[];
+  };
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -80,57 +84,86 @@ export interface MeResponse {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export interface CreateMatchBody {
-    teamId: string;
-    opponent: string;
-    date: string;
-    matchType: "official" | "practice";
-    battingOrder: "first" | "second";
-    location?: string;
-    innings?: number;
-    tournamentName?: string;
+  teamId: string;
+  opponent: string;
+  date: string;
+  matchType: "official" | "practice";
+  battingOrder: "first" | "second";
+  location?: string;
+  innings?: number;
+  tournamentName?: string;
 }
 
 export interface UpdateMatchBody {
-    opponent: string;
-    date: string;
-    matchType: "official" | "practice";
-    battingOrder: "first" | "second";
-    location?: string;
-    innings?: number;
-    tournamentName?: string;
+  opponent: string;
+  date: string;
+  matchType: "official" | "practice";
+  battingOrder: "first" | "second";
+  location?: string;
+  innings?: number;
+  tournamentName?: string;
 }
 
 export interface FinishMatchBody {
-    myScore: number;
-    opponentScore: number;
-    myInningScores?: number[];
-    opponentInningScores?: number[];
+  myScore: number;
+  opponentScore: number;
+  myInningScores?: number[];
+  opponentInningScores?: number[];
 }
 
+/** 🌟 修正: スコア速報に必要な詳細情報を追加 */
+export interface UpdateScoreBody {
+  matchId: string;
+  homeScore: number;
+  awayScore: number;
+  inning: number;
+  isBottom: boolean;
+  action: string;
+}
+
+/** 🌟 修正: LINE 速報のレスポンス型 */
+export interface LineReportResponse {
+  success: boolean;
+  error?: string;
+}
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // getMatchesByTeam の戻り値型
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export interface MatchRow {
-    id: string;
-    opponent: string;
-    date: string;
-    myScore: number;
-    opponentScore: number;
-    status: string;
-    matchType: "official" | "practice";
-    battingOrder: "first" | "second";
-    surfaceDetails: string | null;
-    tournamentName: string | null;
-    innings: number;
-    myInningScores: number[];
-    opponentInningScores: number[];
+  id: string;
+  opponent: string;
+  date: string;
+  myScore: number;
+  opponentScore: number;
+  status: string;
+  matchType: "official" | "practice";
+  battingOrder: "first" | "second";
+  surfaceDetails: string | null;
+  tournamentName: string | null;
+  innings: number;
+  myInningScores: number[];
+  opponentInningScores: number[];
 }
 
 export interface InningRow {
-    teamType: "home" | "away";
-    inningNumber: number;
-    runs: number;
+  teamType: "home" | "away";
+  inningNumber: number;
+  runs: number;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⚾️ スコア表示・速報用ユーティリティ型
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export interface InningDetail {
+  number: number;
+  isBottom: boolean;
+}
+
+export interface ScoreSet {
+  home: number;
+  away: number;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -138,10 +171,10 @@ export interface InningRow {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export interface PlayerStatRow {
-    playerId?: string;
-    atBats?: number;
-    hits?: number;
-    homeRuns?: number;
+  playerId?: string;
+  atBats?: number;
+  hits?: number;
+  homeRuns?: number;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -149,13 +182,13 @@ export interface PlayerStatRow {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export interface LineupPlayer {
-    id: string;
-    name: string;
-    uniformNumber: string;
-    primaryPosition: string | null;
+  id: string;
+  name: string;
+  uniformNumber: string;
+  primaryPosition: string | null;
 }
 
 export interface LineupSlot {
-    playerId: string | null;
-    position: string | null;
+  playerId: string | null;
+  position: string | null;
 }
