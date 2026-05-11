@@ -2,8 +2,8 @@
 /* 💡 i-Score 規約: 選手・スタッフ両対応の出欠スキーマ */
 
 import { sqliteTable, text, integer, primaryKey } from "drizzle-orm/sqlite-core";
-import { users } from "./users";
-import { teams } from "./teams";
+import { user } from "./auth";
+import { teams } from "./team";
 
 export const events = sqliteTable("events", {
   id: text("id").primaryKey(),
@@ -15,11 +15,11 @@ export const events = sqliteTable("events", {
 
 export const attendances = sqliteTable("attendances", {
   eventId: text("event_id").notNull().references(() => events.id),
-  userId: text("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull().references(() => user.id),
   // 💡 選手以外も考慮したステータス
   status: text("status").$type<"present" | "absent" | "pending" | "late">().default("pending"),
   // 💡 その日の役割（選手、監督、審判、配車スタッフ、カメラ等）
-  roleInEvent: text("role_in_event").default("player"), 
+  roleInEvent: text("role_in_event").default("player"),
   hasCar: integer("has_car", { mode: "boolean" }).default(false),
   comment: text("comment"),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
