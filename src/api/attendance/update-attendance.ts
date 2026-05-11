@@ -1,5 +1,5 @@
 // filepath: src/api/attendance/update-attendance.ts
-/* 💡 iScoreCloud 規約: 出欠データの更新系ユニット (POST) */
+/* 💡 iScoreCloud 規約: スタッフ対応・出欠更新ユニット */
 
 import { Hono } from 'hono';
 import { db } from '@/lib/db';
@@ -8,36 +8,28 @@ import type { WorkerEnv } from '@/types/api';
 
 const app = new Hono<{ Bindings: WorkerEnv }>();
 
-// 💡 現場での入力ミスを防ぐための厳格なリクエスト型
-interface AttendancePostRequest {
+interface AttendanceUpdateRequest {
   eventId: string;
   userId: string;
-  status: 'present' | 'absent' | 'pending' | 'late' | 'early';
+  status: 'present' | 'absent' | 'pending' | 'late';
+  roleInEvent: string; // "player", "coach", "staff", "umpire" など
   hasCar: boolean;
   comment: string;
 }
 
 app.post('/update', async (c) => {
-  const body = await c.req.json() as AttendancePostRequest;
+  const body = await c.req.json() as AttendanceUpdateRequest;
 
-  if (!body.eventId || !body.userId) {
-    return c.json({ success: false, message: "Missing ID" }, 400);
-  }
-
-  // 💡 D1 (SQLite) 特有の Upsert 処理
   const result = await db.insert(attendances)
     .values({
-      eventId: body.eventId,
-      userId: body.userId,
-      status: body.status,
-      hasCar: body.hasCar,
-      comment: body.comment,
+      ...body,
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
       target: [attendances.eventId, attendances.userId],
       set: {
         status: body.status,
+        roleInEvent: body.roleInEvent,
         hasCar: body.hasCar,
         comment: body.comment,
         updatedAt: new Date(),
