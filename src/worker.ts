@@ -4,6 +4,8 @@
    2. API ユニットの責務分離規約に基づき、参照系と更新系を適切にマウントする。 */
 
 import { Hono } from 'hono'
+import attendanceRoute from './api/attendance'
+import attendanceUpdate from './api/attendance/update-attendance'
 import authRoute from './api/auth'
 import orgsRoute from './api/orgs'
 import teamsRoute from './api/teams'
@@ -22,6 +24,8 @@ const app = new Hono<{ Bindings: WorkerEnv }>()
 
 // 💡 整理整頓された美しいルーティング
 app.route('/api/auth', authRoute)
+app.route('/api/attendance', attendanceRoute)      // GET /api/attendance/:eventId
+app.route('/api/attendance', attendanceUpdate)     // POST /api/attendance/update
 app.route('/api/organizations', orgsRoute)
 app.route('/api/teams', teamsRoute)               // 参照系（GET /api/teams/settings など）
 app.route('/api/teams', teamsUpdateSettings)     // 🌟 更新系（POST /api/teams/update-line）

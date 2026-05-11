@@ -1,7 +1,8 @@
 // filepath: src/api/matches/update-score.ts
 /* 💡 iScoreCloud 規約: 
-   1. スキーマ（match.ts）の定義 (teamId, myScore, opponentScore) に厳格に準拠する。
-   2. 現場での「自チーム vs 相手チーム」の視点を維持したデータ更新。 */
+   1. アトミックな更新: D1へのスコア保存とLINE速報を1つのリクエストで完結させる。
+   2. 野球脳の搭載: checkWalkOff ロジックを用いて「サヨナラ勝ち」を自動判定しステータスを制御。
+   3. 非同期の追求: waitUntil を活用し、LINE送信の待ち時間をユーザーに感じさせない。 */
 
 import { Hono } from 'hono';
 import { drizzle } from 'drizzle-orm/d1';
@@ -10,56 +11,114 @@ import { teams } from '@/db/schema/team';
 import { eq } from 'drizzle-orm';
 import { sendLinePushMessage } from '@/lib/line/push';
 import { formatMatchLineReport } from '@/lib/utils/format-sns';
+import { checkWalkOff } from '@/lib/utils/score-logic';
 import type { WorkerEnv } from '@/types/api';
 
 const matchesApi = new Hono<{ Bindings: WorkerEnv }>();
 
+/**
+ * 🌟 スコア更新 ＆ LINE速報連動ハンドラ
+ */
 matchesApi.post('/update-score', async (c) => {
   const db = drizzle(c.env.DB);
-  const { matchId, homeScore, awayScore, inning, isBottom, action } = await c.req.json();
 
   try {
-    // 1. 試合情報を更新（スキーマのカラム名 myScore / opponentScore に合わせる）
-    // 💡 自チームが後攻(home)か先攻(away)かで代入先が変わりますが、
-    //    一旦「myScore = homeScore」として実装し、必要に応じてロジックを調整します。
+    // 1. リクエストボディの取得
+    const body = await c.req.json();
+    const {
+      matchId,
+      myScore,
+      opponentScore,
+      inning,
+      isBottom,
+      action
+    } = body;
+
+    // 2. 現在の試合状況をDBからロード（規定イニング数やチームIDを知るため）
+    const currentMatch = await db.select()
+      .from(matches)
+      .where(eq(matches.id, matchId))
+      .get();
+
+    if (!currentMatch) {
+      return c.json({ success: false, error: "試合データが見つかりません。" }, 404);
+    }
+
+    // 3. 【美学】サヨナラ勝ち判定
+    // 入力されたスコアと、DBにある規定回数（innings）を照合
+    const isWalkOff = checkWalkOff({
+      myScore,
+      opponentScore,
+      currentInning: inning,
+      isBottom: !!isBottom,
+      innings: currentMatch.innings,
+      battingOrder: currentMatch.battingOrder as 'first' | 'second'
+    });
+
+    // 🌟 判定結果に基づき status を決定
+    const newStatus = isWalkOff ? 'finished' : 'live';
+
+    // 4. D1 データベースの更新
     await db.update(matches)
       .set({
-        myScore: homeScore,
-        opponentScore: awayScore,
-        // currentInning カラムがスキーマにないため、暫定的に innings または別管理が必要ですが、
-        // 現場運用を優先し、既存カラムの status 等の更新に留めるか、スキーマ拡張を検討します。
+        myScore,
+        opponentScore,
+        currentInning: inning,
+        isBottom: !!isBottom,
+        status: newStatus,
+        // 必要に応じてイニング得点（JSON）の更新ロジックをここに追加
       })
       .where(eq(matches.id, matchId));
 
-    // 2. チーム設定を取得 (スキーマ上は matches.teamId)
-    const matchData = await db.select().from(matches).where(eq(matches.id, matchId)).get();
+    // 5. LINE速報の射出（設定が有効な場合のみ）
+    const teamData = await db.select()
+      .from(teams)
+      .where(eq(teams.id, currentMatch.teamId))
+      .get();
 
-    if (!matchData) {
-      return c.json({ success: false, error: "試合が見つかりません" }, 404);
-    }
-
-    const teamData = await db.select().from(teams).where(eq(teams.id, matchData.teamId)).get();
-
-    // 3. LINE速報
     if (teamData?.lineGroupId && teamData.isAutoReportEnabled) {
+      // LINE用のホーム/アウェイ スコア並び順を調整
+      const isMyTeamHome = currentMatch.battingOrder === 'second';
+      const scoresForLine = {
+        home: isMyTeamHome ? myScore : opponentScore,
+        away: isMyTeamHome ? opponentScore : myScore
+      };
+
+      // メッセージ生成
       const message = formatMatchLineReport(
         teamData.name,
-        matchData.opponent, // 🌟 スキーマにある opponent カラムを使用！
-        { home: homeScore, away: awayScore },
-        { number: inning, isBottom },
-        action,
-        'live'
+        currentMatch.opponent,
+        scoresForLine,
+        { number: inning, isBottom: !!isBottom },
+        isWalkOff ? `【劇的サヨナラ！】${action}` : action,
+        newStatus,
+        isWalkOff // 第7引数としてサヨナラフラグを渡す（format-sns.tsの定義に合わせる）
       );
 
+      // 💡 Workerの waitUntil を使い、レスポンス後にバックグラウンドで送信
       c.executionCtx.waitUntil(
-        sendLinePushMessage(teamData.lineGroupId, message, c.env.LINE_CHANNEL_ACCESS_TOKEN)
+        sendLinePushMessage(
+          teamData.lineGroupId,
+          message,
+          c.env.LINE_CHANNEL_ACCESS_TOKEN
+        )
       );
     }
 
-    return c.json({ success: true });
+    // 6. フロントエンドへ結果を返却
+    return c.json({
+      success: true,
+      data: {
+        matchId,
+        status: newStatus,
+        isWalkOff
+      }
+    });
+
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "更新失敗";
-    return c.json({ success: false, error: msg }, 500);
+    console.error(`[Update Score Error]:`, err);
+    const errorMsg = err instanceof Error ? err.message : "Internal Server Error";
+    return c.json({ success: false, error: errorMsg }, 500);
   }
 });
 

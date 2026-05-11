@@ -8,27 +8,25 @@ import { Scoreboard } from "@/components/score/Scoreboard";
 import { ControlPanel } from "@/components/score/ControlPanel";
 import { PlayArea } from "@/components/score/PlayArea";
 import { PlayLog } from "@/components/score/PlayLog";
-import { TestDataGenerator } from "@/components/score/TestDataGenerator";
+import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
-// 💡 1. 内部のコンテンツコンポーネント
-// useSearchParamsを使用するため、Suspenseの内側に配置する必要があります
+/**
+ * 🏟️ iScoreCloud 究極のフルスクリーン・レイアウト
+ * 画面比率を厳格に管理し、ボタンを最大化します。
+ */
 function ScorePageContent() {
   const searchParams = useSearchParams();
   const matchId = searchParams.get("id");
-  const { initMatch } = useScore();
+  const { initMatch, state, isSyncing } = useScore();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (matchId) initMatch(matchId);
-    
-    // Pixel 10 Pro 向けの没入設定
-    document.body.style.overflow = 'hidden';
-    
-    // マウント後にアニメーションフラグをON
+    document.body.style.overflow = "hidden";
     const timer = setTimeout(() => setIsReady(true), 100);
-    
-    return () => { 
-      document.body.style.overflow = 'unset';
+    return () => {
+      document.body.style.overflow = "unset";
       clearTimeout(timer);
     };
   }, [matchId, initMatch]);
@@ -36,59 +34,71 @@ function ScorePageContent() {
   return (
     <div className="fixed inset-0 z-[100] bg-background h-[100dvh] w-full flex flex-col overflow-hidden select-none">
       
-      {/* 🏟 上部：掲示板 */}
-      <header className={`
-        h-[22%] shrink-0 z-30 transition-transform duration-700 ease-[0.22,1,0.36,1]
-        ${isReady ? "translate-y-0" : "-translate-y-full"}
-      `}>
+      {/* 1. 【上部：掲示板】(約18%) */}
+      <header className={cn(
+        "shrink-0 z-30 transition-transform duration-700",
+        isReady ? "translate-y-0" : "-translate-y-full"
+      )}>
         <Scoreboard />
       </header>
 
-      {/* 🏟 中央：フィールド */}
-      <main className={`
-        flex-1 relative flex flex-col items-center justify-center z-10 transition-all duration-1000 delay-300
-        ${isReady ? "opacity-100 scale-110" : "opacity-0 scale-95"}
-      `}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.08)_0%,transparent_70%)] pointer-events-none" />
-        <div className="w-full max-w-[300px] aspect-square">
-          <PlayArea />
+      {/* 2. 【中央：メインエリア】(約50%) */}
+      <main className={cn(
+        "flex-1 relative flex flex-col items-center justify-between z-10 py-1 transition-all duration-1000",
+        isReady ? "opacity-100 scale-100" : "opacity-0 scale-95"
+      )}>
+        {/* フィールド：アスペクト比を保ちつつ最大化 */}
+        <div className="w-full flex-1 flex items-center justify-center min-h-0">
+          <div className="h-full max-h-[260px] aspect-square">
+            <PlayArea />
+          </div>
         </div>
-        <div className="absolute bottom-4 w-full px-12 opacity-50">
-          <PlayLog limit={1} />
+
+        {/* プレイログ：高さを100pxに抑え、フィールドとパネルの繋ぎ役に */}
+        <div className="w-full px-4 shrink-0 h-[100px] mb-1">
+          <div className="h-full bg-muted/20 backdrop-blur-md rounded-[24px] border border-border/30 p-2 shadow-inner flex flex-col">
+            <div className="flex items-center gap-1.5 mb-1 px-1">
+              <div className="w-1 h-1 rounded-full bg-primary/60" />
+              <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Recent Actions</span>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <PlayLog limit={3} />
+            </div>
+          </div>
         </div>
       </main>
 
-      {/* 🏟 下部：パネル */}
-      <footer className={`
-        h-[25%] shrink-0 z-30 bg-card/80 backdrop-blur-3xl border-t border-border/40 px-4 pt-3 pb-8 shadow-[0_-20px_50px_rgba(0,0,0,0.1)]
-        transition-transform duration-700 ease-[0.22,1,0.36,1]
-        ${isReady ? "translate-y-0" : "translate-y-full"}
-      `}>
-        <div className="max-w-md mx-auto h-full relative">
+      {/* 3. 【下部：操作パネル】(約32%) 🌟 ここが戦場 🌟 */}
+      <footer className={cn(
+        "shrink-0 z-40 bg-card border-t border-border px-2 pt-2 pb-6 shadow-[0_-15px_50px_rgba(0,0,0,0.2)]",
+        "h-[32dvh] min-h-[260px]", // Footerの高さをしっかり確保
+        isReady ? "translate-y-0" : "translate-y-full transition-none",
+        "transition-transform duration-700 ease-out"
+      )}>
+        <div className="max-w-md mx-auto h-full w-full">
+          {/* 💡 ControlPanel 内で h-full を使い、ボタンを縦に引き伸ばす */}
           <ControlPanel />
-          
-          {/* 💡 テストデータボタン：ここもSuspenseで保護 */}
-          <div className="absolute -top-20 right-0">
-            <Suspense fallback={null}>
-              <TestDataGenerator />
-            </Suspense>
-          </div>
         </div>
       </footer>
+
+      {/* 勝利演出 */}
+      {state.status === 'finished' && (
+        <div className="absolute inset-0 z-[200] bg-background/90 backdrop-blur-xl flex items-center justify-center animate-in fade-in duration-500">
+          <div className="text-center">
+            <h2 className="text-5xl font-black italic text-primary animate-bounce">GAME SET</h2>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// 💡 2. Next.jsが要求するデフォルトエクスポート
-// これが「React Component」として認識される必要があります
-const ScorePage = () => {
+export default function ScorePage() {
   return (
-    <Suspense fallback={<div className="h-screen bg-background flex items-center justify-center text-muted-foreground">Loading Field...</div>}>
+    <Suspense fallback={<div className="h-screen flex items-center justify-center">Loading...</div>}>
       <ScoreProvider>
         <ScorePageContent />
       </ScoreProvider>
     </Suspense>
   );
-};
-
-export default ScorePage;
+}

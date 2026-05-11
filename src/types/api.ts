@@ -1,7 +1,7 @@
 // filepath: src/types/api.ts
 /* 💡 iScoreCloud 規約: 
-   1. Cloudflare Workers の環境変数、APIレスポンス、サービス層の型を一元管理。
-   2. Messaging API 連携に伴う LINE アクセストークンの型定義を厳守する。 */
+   1. Drizzle スキーマの拡張（currentInning, isBottom 等）を即座に型定義に反映する。
+   2. 試合状況の型を 'scheduled' | 'live' | 'finished' と厳格に定義し、UI分岐を容易にする。 */
 
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import type * as schema from "@/db/schema";
@@ -130,26 +130,47 @@ export interface LineReportResponse {
 // getMatchesByTeam の戻り値型
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+/**
+ * 🌟 拡張：試合一覧や詳細で扱う試合データの型
+ */
 export interface MatchRow {
   id: string;
+  teamId: string;
   opponent: string;
   date: string;
-  myScore: number;
-  opponentScore: number;
-  status: string;
   matchType: "official" | "practice";
   battingOrder: "first" | "second";
+
+  // 🏟️ 現場状況（追加カラム）
+  currentInning: number;
+  isBottom: boolean;
+  isTiebreaker: boolean;
+  isColdGame: boolean;
+
+  venueId: string | null;
   surfaceDetails: string | null;
-  tournamentName: string | null;
-  innings: number;
-  myInningScores: number[];
-  opponentInningScores: number[];
+  innings: number; // 規定イニング (7 or 9)
+
+  status: 'scheduled' | 'live' | 'finished';
+
+  myScore: number;
+  opponentScore: number;
+  myInningScores: number[]; // JSON.parse 後の配列として定義
+  opponentInningScores: number[]; // JSON.parse 後の配列として定義
+
+  weather: string | null;
 }
 
-export interface InningRow {
-  teamType: "home" | "away";
-  inningNumber: number;
-  runs: number;
+/**
+ * 🌟 追加：イニング更新用のペイロード型
+ */
+export interface UpdateInningPayload {
+  matchId: string;
+  currentInning: number;
+  isBottom: boolean;
+  myScore: number;
+  opponentScore: number;
+  action: string; // 速報用テキスト
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

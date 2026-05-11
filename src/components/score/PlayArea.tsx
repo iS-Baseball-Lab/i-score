@@ -7,8 +7,25 @@ import { cn } from "@/lib/utils";
 import { User } from "lucide-react";
 
 export function PlayArea() {
-  const { state } = useScore();
+  const { state, updateRunners } = useScore();
   const { runners } = state;
+
+  // 🌟 究極ポイント：ベースを叩いて状況を操作する
+  const handleBaseClick = (baseNum: 1 | 2 | 3) => {
+    const key = `base${baseNum}` as keyof typeof runners;
+    const isCurrentlyRunner = !!runners[key];
+    
+    // 現在のランナー状態を反転させる（簡易的な進塁操作）
+    const newRunners = {
+      ...runners,
+      [key]: isCurrentlyRunner ? null : "player-id-placeholder", // 本来は名簿から選択
+    };
+    
+    updateRunners(newRunners);
+    
+    // 💡 触覚フィードバック（ブラウザが対応していれば）
+    if (window.navigator.vibrate) window.navigator.vibrate(10);
+  };
 
   const Base = ({ baseNum, isRunner }: { baseNum: 1 | 2 | 3; isRunner: boolean }) => {
     const positions = {
@@ -18,63 +35,74 @@ export function PlayArea() {
     };
 
     return (
-      <div className={cn("absolute w-8 h-8 sm:w-10 sm:h-10 transition-all duration-700", positions[baseNum])}>
+      <button
+        onClick={() => handleBaseClick(baseNum)}
+        className={cn(
+          "absolute w-12 h-12 sm:w-14 sm:h-14 transition-all duration-300 z-20 flex items-center justify-center outline-none",
+          positions[baseNum]
+        )}
+      >
+        {/* ランナーがいる時の波紋エフェクト */}
         {isRunner && (
-          <div className="absolute inset-0 rounded-sm bg-primary/40 animate-ping" />
+          <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
         )}
 
         <div
           className={cn(
-            "absolute inset-0 rotate-45 rounded-sm border-2 transition-all duration-500",
-            // 💡 修正: 非ランナー時のベースの色をライトモードでも見やすく（bg-muted/50）
+            "w-8 h-8 sm:w-10 sm:h-10 rotate-45 rounded-sm border-2 transition-all duration-500",
             isRunner
-              ? "bg-primary border-primary shadow-[0_0_15px_rgba(var(--primary),0.5)] z-10 scale-110"
-              : "bg-background dark:bg-zinc-900 border-muted-foreground/30 dark:border-white/10 z-0 shadow-sm"
+              ? "bg-primary border-primary shadow-[0_0_20px_rgba(var(--primary),0.6)] scale-110"
+              : "bg-background dark:bg-zinc-900 border-muted-foreground/30 dark:border-white/10 opacity-80"
           )}
         >
+          {/* ベース内部のデザイン */}
           <div className="absolute inset-[2px] border border-black/5 dark:border-white/10 rounded-sm" />
+          
+          {/* ランナーがいる時だけ表示される背番号風ドット */}
+          {isRunner && (
+            <div className="-rotate-45 h-full w-full flex items-center justify-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            </div>
+          )}
         </div>
-      </div>
+      </button>
     );
   };
 
   return (
-    <div className="relative w-full max-w-[280px] aspect-square mx-auto">
+    <div className="relative w-full max-w-[280px] aspect-square mx-auto my-8">
 
-      {/* 🏟 ダイヤモンド（土のライン）
-          💡 修正: border-dashed の色を濃くし、opacity を調整 */}
-      <div className="absolute inset-4 border-2 border-dashed border-muted-foreground/40 dark:border-white/20 rotate-45 rounded-sm" />
+      {/* 🏟 ダイヤモンド（土のライン） */}
+      <div className="absolute inset-4 border-[3px] border-dashed border-primary/20 dark:border-white/10 rotate-45 rounded-sm shadow-inner" />
 
+      {/* 各ベース（インタラクティブ） */}
       <Base baseNum={1} isRunner={!!runners.base1} />
       <Base baseNum={2} isRunner={!!runners.base2} />
       <Base baseNum={3} isRunner={!!runners.base3} />
 
-      {/* 🏠 ホームベース
-          💡 修正: 背景色と境界線のコントラストを強化 */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-10 h-10 flex flex-col items-center drop-shadow-sm">
-        <div className="w-8 h-5 bg-background dark:bg-zinc-900 border-2 border-muted-foreground/30 dark:border-white/20" />
-        <div className="w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[12px] border-t-background dark:border-t-zinc-900 relative -mt-[2px]">
-          {/* ホームベースの縁取り */}
-          <div className="absolute -top-[14px] -left-[18px] w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-t-[14px] border-t-muted-foreground/30 dark:border-t-white/20 -z-10" />
-        </div>
+      {/* 🏠 ホームベース（戻り値：得点への意志） */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-12 h-12 flex flex-col items-center group active:scale-90 transition-transform cursor-pointer">
+        <div className="w-9 h-6 bg-white dark:bg-zinc-100 border-2 border-muted-foreground/30 shadow-lg" />
+        <div className="w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-t-[14px] border-t-white dark:border-t-zinc-100 relative -mt-[2px]" />
       </div>
 
-      {/* 投球フォーカス */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative group">
-          <div className="absolute inset-0 bg-primary/10 rounded-full scale-[2.5] blur-2xl opacity-40" />
-          <div className="relative bg-card/60 dark:bg-zinc-900/80 backdrop-blur-md border border-muted-foreground/20 dark:border-white/10 rounded-2xl px-3 py-1.5 flex items-center gap-2 shadow-sm">
-            <div className="w-2 h-2 rounded-full bg-primary/50" />
-            <span className="text-[10px] font-black italic tracking-tighter uppercase text-muted-foreground">Pitcher</span>
+      {/* 投球・打者情報（浮遊感のあるモダンなバッジ） */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl scale-[3]" />
+          <div className="relative bg-card/40 dark:bg-black/40 backdrop-blur-2xl border border-white/10 rounded-full px-5 py-2 flex flex-col items-center gap-0.5 shadow-2xl">
+            <span className="text-[7px] font-black text-primary/60 uppercase tracking-[0.2em]">Pitcher</span>
+            <span className="text-[10px] font-black italic text-foreground tracking-tighter">#18 SATOH</span>
           </div>
         </div>
       </div>
 
-      {/* 打者フォーカス */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-        <div className="bg-primary/10 dark:bg-primary/20 border border-primary/20 rounded-2xl px-4 py-1.5 flex items-center gap-2 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-700">
-          <User className="w-3 h-3 text-primary" />
-          <span className="text-[10px] font-black italic tracking-tighter uppercase text-primary">Batter</span>
+      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-full text-center pointer-events-none">
+        <div className="inline-flex flex-col items-center gap-1">
+          <div className="bg-primary px-4 py-1 rounded-full shadow-[0_0_15px_rgba(var(--primary),0.4)]">
+            <span className="text-[10px] font-black italic text-primary-foreground tracking-widest uppercase">Batter Up</span>
+          </div>
+          <p className="text-[12px] font-black italic text-foreground mt-1">#51 SUZUKI</p>
         </div>
       </div>
 
