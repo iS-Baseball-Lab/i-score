@@ -52,7 +52,7 @@ export function Scoreboard() {
       <div className="flex flex-col rounded-lg overflow-hidden border border-zinc-300 dark:border-zinc-700 shadow-sm">
         
         {/* 🚀 ヘッダー */}
-        <div className="flex items-center justify-between px-3 border-b border-zinc-300 dark:border-zinc-700 bg-muted/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+        <div className="flex items-center justify-between p-3 border-b border-zinc-300 dark:border-zinc-700 bg-muted/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
           <div className="flex-1 truncate text-left">{state.tournamentName || "OFFICIAL GAME"}</div>
           <div className="flex-none px-4 text-xs font-black text-foreground tracking-widest">vs {state.opponentTeamName || "相手チーム"}</div>
           <div className="flex-1 truncate text-right">{state.venueName || "BASEBALL FIELD"}</div>
