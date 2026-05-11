@@ -91,8 +91,7 @@ matchesApi.post('/update-score', async (c) => {
         scoresForLine,
         { number: inning, isBottom: !!isBottom },
         isWalkOff ? `【劇的サヨナラ！】${action}` : action,
-        newStatus,
-        isWalkOff // 第7引数としてサヨナラフラグを渡す（format-sns.tsの定義に合わせる）
+        newStatus
       );
 
       // 💡 Workerの waitUntil を使い、レスポンス後にバックグラウンドで送信
