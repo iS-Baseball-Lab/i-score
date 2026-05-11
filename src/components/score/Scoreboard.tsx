@@ -52,7 +52,7 @@ export function Scoreboard() {
       <div className="flex flex-col rounded-lg overflow-hidden border border-zinc-300 dark:border-zinc-700 shadow-sm">
         
         {/* 🚀 ヘッダー */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-300 dark:border-zinc-700 bg-muted/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+        <div className="flex items-center justify-between px-3 border-b border-zinc-300 dark:border-zinc-700 bg-muted/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
           <div className="flex-1 truncate text-left">{state.tournamentName || "OFFICIAL GAME"}</div>
           <div className="flex-none px-4 text-xs font-black text-foreground tracking-widest">vs {state.opponentTeamName || "相手チーム"}</div>
           <div className="flex-1 truncate text-right">{state.venueName || "BASEBALL FIELD"}</div>
@@ -139,7 +139,7 @@ export function Scoreboard() {
         </div>
 
         {/* 🚀 下段 */}
-        <div className="flex items-center justify-between px-4 py-0 h-16 bg-muted/5">
+        <div className="flex items-center justify-between px-3 h-16 bg-muted/5">
           <div className="flex items-center text-primary h-full">
             <div className="flex items-end pb-1.5">
               <span className={cn("text-4xl leading-none", numberStyle)}>{state.inning}</span>
