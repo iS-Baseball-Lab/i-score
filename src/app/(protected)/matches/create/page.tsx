@@ -3,13 +3,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  ChevronLeft,
-  PlayCircle,
-} from "lucide-react";
+import { ChevronLeft, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { useTeam } from "@/contexts/TeamContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
