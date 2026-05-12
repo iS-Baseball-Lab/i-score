@@ -1,90 +1,54 @@
 // filepath: src/contexts/ScoreContext.tsx
-/* 💡 試合の状態管理とAPI同期を担当。Sonner通知を廃止し、state.logs を通じて PlayLog へ即時反映する。 */
+/* 💡 iScoreCloud 規約: 
+   1. 型の共通化: src/types/score.ts からインポートし、二重管理を廃止。
+   2. 堅牢な同期: updateMatchSettings を実装し、Scoreboard等のUI操作をDBへ反映。
+   3. 野球脳の維持: 状態更新と同時に PlayLog への自動記録を行う。 */
 
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⚾️ 型定義
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-export interface BaseAdvance {
-  runnerId: string;
-  fromBase: 0 | 1 | 2 | 3;
-  toBase: 1 | 2 | 3 | 4;
-}
-
-export interface PlayLogEntry {
-  id: string;
-  description: string;
-  inning: number;
-  isTop: boolean;
-  timestamp: number;
-}
-
-interface MatchResponse {
-  success: boolean;
-  match?: {
-    id: string;
-    status: string;
-    myScore: number;
-    opponentScore: number;
-    myInningScores: string;
-    opponentInningScores: string;
-    battingOrder: string;
-    currentInning: number;
-    isBottom: boolean;
-  };
-}
-
-interface ScoreState {
-  matchId: string;
-  inning: number;
-  isTop: boolean;
-  balls: number;
-  strikes: number;
-  outs: number;
-  runners: { base1: string | null; base2: string | null; base3: string | null };
-  myScore: number;
-  opponentScore: number;
-  myInningScores: number[];
-  opponentInningScores: number[];
-  batterId: string | null;
-  pitcherId: string | null;
-  pitchCount: number;
-  logs: PlayLogEntry[]; // 🌟 ログを状態として保持
-}
-
-interface ScoreContextType {
-  state: ScoreState;
-  isLoading: boolean;
-  isSyncing: boolean;
-  initMatch: (matchId: string) => Promise<void>;
-  recordPitch: (result: "ball" | "strike" | "foul" | "swinging_strike" | "out") => Promise<void>;
-  recordInPlay: (result: string, rbi: number, advances: BaseAdvance[], attackTeam?: number) => Promise<void>;
-  changeInning: () => void;
-  updateRunners: (runners: { base1: string | null; base2: string | null; base3: string | null }) => void;
-  resetBatter: (playerId: string | null) => void;
-  finishMatch: () => Promise<void>;
-}
+// 🌟 切り出した型をインポート
+import {
+  ScoreState,
+  ScoreContextType,
+  MatchResponse,
+  PlayLogEntry,
+  BaseAdvance
+} from "@/types/score";
 
 const ScoreContext = createContext<ScoreContextType | undefined>(undefined);
 
 export function ScoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<ScoreState>({
-    matchId: "", inning: 1, isTop: true, balls: 0, strikes: 0, outs: 0,
+    matchId: "",
+    inning: 1,
+    isTop: true,
+    balls: 0,
+    strikes: 0,
+    outs: 0,
     runners: { base1: null, base2: null, base3: null },
-    myScore: 0, opponentScore: 0, myInningScores: [], opponentInningScores: [],
-    batterId: null, pitcherId: null, pitchCount: 0,
+    myScore: 0,
+    opponentScore: 0,
+    myInningScores: [],
+    opponentInningScores: [],
+    myHits: 0,
+    opponentHits: 0,
+    myErrors: 0,
+    opponentErrors: 0,
+    maxInnings: 7, // デフォルト
+    isGuestFirst: true,
+    batterId: null,
+    pitcherId: null,
+    pitchCount: 0,
     logs: [],
   });
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // 💡 内部用：新しいログエントリを作成するヘルパー
-  const appendLog = (description: string, s: ScoreState): PlayLogEntry[] => {
+  // 💡 内部用：ログ記録ヘルパー
+  const appendLog = useCallback((description: string, s: ScoreState): PlayLogEntry[] => {
     const newEntry: PlayLogEntry = {
       id: crypto.randomUUID(),
       description,
@@ -92,13 +56,10 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
       isTop: s.isTop,
       timestamp: Date.now(),
     };
-    // 最新を先頭に、最大50件保持
     return [newEntry, ...s.logs].slice(0, 50);
-  };
+  }, []);
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🚀 1. バックエンド同期
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const syncWithBackend = useCallback(async (updatedState: ScoreState, actionNote: string) => {
     setIsSyncing(true);
     try {
@@ -112,20 +73,18 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
           inning: updatedState.inning,
           isBottom: !updatedState.isTop,
           action: actionNote,
+          // 必要に応じて hits/errors 等も送信
         }),
       });
-      // ✅ 成功時の通知(toast)を廃止。更新はログで確認。
     } catch (e) {
       console.error("Sync Error:", e);
-      toast.error("通信エラーが発生しました。"); 
+      toast.error("同期に失敗しました");
     } finally {
       setIsSyncing(false);
     }
   }, []);
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // 🚀 2. 試合初期化
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🚀 2. 試合初期化 (DBデータ -> Stateへの変換)
   const initMatch = useCallback(async (matchId: string) => {
     setIsLoading(true);
     try {
@@ -136,12 +95,17 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
         setState(prev => ({
           ...prev,
           matchId: m.id,
+          tournamentName: m.tournament,
+          venueName: m.venue,
+          opponentTeamName: m.opponent,
           inning: m.currentInning || 1,
+          isTop: !m.isBottom,
           myScore: m.myScore || 0,
           opponentScore: m.opponentScore || 0,
           myInningScores: JSON.parse(m.myInningScores || "[]"),
           opponentInningScores: JSON.parse(m.opponentInningScores || "[]"),
-          isTop: !m.isBottom,
+          maxInnings: m.innings || 7,
+          isGuestFirst: m.battingOrder === 'first', // DBの文字列をbooleanに変換
         }));
       }
     } catch (error) {
@@ -151,9 +115,16 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // 🚀 3. 投球記録 (Ball, Strike, Out)
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🚀 3. 試合設定の更新 (Scoreboard等からの呼び出し用)
+  const updateMatchSettings = useCallback((settings: Partial<ScoreState>) => {
+    setState(prev => {
+      const next = { ...prev, ...settings };
+      syncWithBackend(next, "試合設定の変更");
+      return next;
+    });
+  }, [syncWithBackend]);
+
+  // 🚀 4. 投球記録
   const recordPitch = async (result: "ball" | "strike" | "foul" | "swinging_strike" | "out") => {
     setState(prev => {
       let newStrikes = prev.strikes;
@@ -193,66 +164,53 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
         strikes: isAtBatEnd ? 0 : newStrikes,
         outs: newOuts,
         pitchCount: isAtBatEnd ? 0 : prev.pitchCount + 1,
-        logs: appendLog(description, prev), // 🌟 即座にログへ反映
+        logs: appendLog(description, prev),
       };
 
-      if (isAtBatEnd || result === "out") {
-        syncWithBackend(next, description);
-      }
-      
+      if (isAtBatEnd || result === "out") syncWithBackend(next, description);
       return next;
     });
   };
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // 🚀 4. 打球・インプレイ記録
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  const recordInPlay = async (result: string, rbi: number, hits: number, errors: number) => {
+  // 🚀 5. インプレイ記録
+  const recordInPlay = async (result: string, rbi: number, hits: number, errors: number, advances?: BaseAdvance[]) => {
     setState(prev => {
-        const isTopRow = prev.isTop; // 表か裏か
-        const currentInningIdx = prev.inning - 1;
+      const isTopRow = prev.isTop;
+      const currentInningIdx = prev.inning - 1;
 
-        // 1. スコア配列のコピー
-        const updatedOpponentInningScores = [...prev.opponentInningScores];
-        const updatedMyInningScores = [...prev.myInningScores];
+      const updatedOpponentInningScores = [...prev.opponentInningScores];
+      const updatedMyInningScores = [...prev.myInningScores];
 
-        // 2. 攻撃中のチームに得点を加算
-        if (isTopRow) {
-            // 表：上段(先攻)に加算
-            while (updatedOpponentInningScores.length <= currentInningIdx) updatedOpponentInningScores.push(0);
-            updatedOpponentInningScores[currentInningIdx] += rbi;
-        } else {
-            // 裏：下段(後攻)に加算
-            while (updatedMyInningScores.length <= currentInningIdx) updatedMyInningScores.push(0);
-            updatedMyInningScores[currentInningIdx] += rbi;
-        }
+      if (isTopRow) {
+        while (updatedOpponentInningScores.length <= currentInningIdx) updatedOpponentInningScores.push(0);
+        updatedOpponentInningScores[currentInningIdx] += rbi;
+      } else {
+        while (updatedMyInningScores.length <= currentInningIdx) updatedMyInningScores.push(0);
+        updatedMyInningScores[currentInningIdx] += rbi;
+      }
 
-        // 3. 状態の更新（安打・エラー・合計点）
-        return {
-            ...prev,
-            // 攻撃中のチームの合計値を更新
-            opponentScore: isTopRow ? prev.opponentScore + rbi : prev.opponentScore,
-            myScore: !isTopRow ? prev.myScore + rbi : prev.myScore,
-            
-            opponentHits: isTopRow ? (prev.opponentHits || 0) + hits : prev.opponentHits,
-            myHits: !isTopRow ? (prev.myHits || 0) + hits : prev.myHits,
+      const next = {
+        ...prev,
+        opponentScore: isTopRow ? prev.opponentScore + rbi : prev.opponentScore,
+        myScore: !isTopRow ? prev.myScore + rbi : prev.myScore,
+        opponentHits: isTopRow ? prev.opponentHits + hits : prev.opponentHits,
+        myHits: !isTopRow ? prev.myHits + hits : prev.myHits,
+        opponentErrors: !isTopRow ? prev.opponentErrors + errors : prev.opponentErrors,
+        myErrors: isTopRow ? prev.myErrors + errors : prev.myErrors,
+        opponentInningScores: updatedOpponentInningScores,
+        myInningScores: updatedMyInningScores,
+        balls: 0,
+        strikes: 0,
+        outs: result.includes("アウト") ? prev.outs + 1 : prev.outs,
+        logs: appendLog(`${result} (${rbi}打点)`, prev),
+      };
 
-            opponentErrors: !isTopRow ? (prev.opponentErrors || 0) + errors : prev.opponentErrors, // 守備側がエラー
-            myErrors: isTopRow ? (prev.myErrors || 0) + errors : prev.myErrors,
-
-            opponentInningScores: updatedOpponentInningScores,
-            myInningScores: updatedMyInningScores,
-            
-            // カウントリセット
-            balls: 0, strikes: 0,
-            outs: result.includes("アウト") ? prev.outs + 1 : prev.outs,
-        };
+      syncWithBackend(next, result);
+      return next;
     });
   };
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // 🚀 5. その他コントロール
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // 🚀 6. コントロール
   const changeInning = () => {
     setState(prev => {
       const next = {
@@ -284,6 +242,7 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ myScore: state.myScore, opponentScore: state.opponentScore }),
       });
+      toast.success("試合終了を記録しました");
     } finally {
       setIsSyncing(false);
     }
@@ -292,7 +251,8 @@ export function ScoreProvider({ children }: { children: React.ReactNode }) {
   return (
     <ScoreContext.Provider value={{
       state, isLoading, isSyncing, initMatch, recordPitch, recordInPlay,
-      changeInning, updateRunners, resetBatter, finishMatch
+      changeInning, updateRunners, resetBatter, finishMatch,
+      updateMatchSettings
     }}>
       {children}
     </ScoreContext.Provider>

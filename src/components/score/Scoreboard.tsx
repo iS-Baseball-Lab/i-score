@@ -1,4 +1,4 @@
-// filepath: `src/components/score/Scoreboard.tsx`
+// filepath: src/components/score/Scoreboard.tsx
 "use client";
 
 import { useState, useRef } from "react";
@@ -6,19 +6,23 @@ import { useScore } from "@/contexts/ScoreContext";
 import { cn } from "@/lib/utils";
 
 export function Scoreboard() {
+  // 💡 Contextから最新の状態と関数を取得
   const { state, updateMatchSettings } = useScore();
   const [offsetX, setOffsetX] = useState(0);
   const startX = useRef(0);
-  
-  const displayInningsCount = Math.max(state.maxInnings || 9, state.inning);
+
+  // 💡 maxInningsがない場合のフォールバック（型定義に合わせて安全に参照）
+  const displayInningsCount = Math.max(state.maxInnings || 7, state.inning);
   const innings = Array.from({ length: displayInningsCount }, (_, i) => i + 1);
 
-  // 試合開始前判定
-  const isPreGame = state.inning === 1 && state.isTop && 
-                    state.myScore === 0 && state.opponentScore === 0 &&
-                    state.outs === 0 && state.balls === 0 && state.strikes === 0;
+  // 試合開始前判定（設定変更を許可する条件：1回表、0対0、無死無走者）
+  const isPreGame = state.inning === 1 && state.isTop &&
+    state.myScore === 0 && state.opponentScore === 0 &&
+    state.outs === 0 && state.balls === 0 && state.strikes === 0;
 
-  // 🌟 自チームが攻撃中かどうかの判定ロジック
+  // 🌟 自チームが攻撃中かどうかの判定（isGuestFirst を使用）
+  // 表(isTop) かつ 先攻(isGuestFirst) ＝ 攻撃
+  // 裏(!isTop) かつ 後攻(!isGuestFirst) ＝ 攻撃
   const isMyAttack = (state.isTop && state.isGuestFirst) || (!state.isTop && !state.isGuestFirst);
   const attackStatusText = isMyAttack ? "攻撃" : "守備";
 
@@ -33,14 +37,15 @@ export function Scoreboard() {
     if (move > 0) {
       // 🌟 最大スライド幅を 80px に制限
       setOffsetX(Math.min(move, 80));
-      isMyAttak = !isMyAttak;
     }
   };
 
   const handleTouchEnd = () => {
-    // 🌟 60px以上スライドして離したら確定で切替を実行
+    // 🌟 60px以上スライドして離したら「先攻・後攻」を切り替えて確定
     if (offsetX >= 60) {
-      updateMatchSettings?.({ isGuestFirst: !state.isGuestFirst });
+      updateMatchSettings({ isGuestFirst: !state.isGuestFirst });
+      // フィードバックとしてスマホを振動させる（任意）
+      if ("vibrate" in navigator) navigator.vibrate(50);
     }
     setOffsetX(0);
   };
@@ -50,8 +55,8 @@ export function Scoreboard() {
   return (
     <div className="w-full bg-background select-none font-sans p-1">
       <div className="flex flex-col rounded-lg overflow-hidden border border-zinc-300 dark:border-zinc-700 shadow-sm">
-        
-        {/* 🚀 ヘッダー */}
+
+        {/* 🚀 ヘッダー：大会名・対戦相手・球場 */}
         <div className="flex items-center justify-between p-3 border-b border-zinc-300 dark:border-zinc-700 bg-muted/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
           <div className="flex-1 truncate text-left">{state.tournamentName || "OFFICIAL GAME"}</div>
           <div className="flex-none px-4 text-xs font-black text-foreground tracking-widest">vs {state.opponentTeamName || "相手チーム"}</div>
@@ -60,22 +65,22 @@ export function Scoreboard() {
 
         {/* 🚀 メイン掲示板 */}
         <div className="relative overflow-hidden bg-card border-b border-zinc-300 dark:border-zinc-700">
-          
-          {/* 🌟 攻守切替幕 (背面固定) */}
-          <div 
+
+          {/* 🌟 攻守切替幕 (背面：スライドしたときだけ見える) */}
+          <div
             className="absolute left-0 top-0 bottom-0 bg-primary z-10 flex items-center justify-center transition-opacity"
-            style={{ 
+            style={{
               width: `${offsetX}px`,
               opacity: offsetX > 0 ? 1 : 0
             }}
           >
             <span className="font-black text-white text-[12px] tracking-widest whitespace-nowrap">
-              攻守切替
+              先後切替
             </span>
           </div>
 
           {/* 🌟 スコアボード本体 (前面) */}
-          <div 
+          <div
             className="relative z-20 bg-card transition-transform duration-300 cubic-bezier(0.2, 0.8, 0.2, 1) shadow-[-2px_0_8px_rgba(0,0,0,0.1)]"
             style={{ transform: `translateX(${offsetX}px)` }}
             onTouchStart={handleTouchStart}
@@ -93,7 +98,7 @@ export function Scoreboard() {
                       </span>
                       <span className="text-[8px] font-black text-rose-600 tracking-tighter">LIVE</span>
                     </div>
-                  </th> 
+                  </th>
                   {innings.map(i => (
                     <th key={i} className={cn("py-2 text-base px-1", numberStyle, state.inning === i ? "bg-primary text-primary-foreground" : "")}>{i}</th>
                   ))}
@@ -103,6 +108,7 @@ export function Scoreboard() {
                 </tr>
               </thead>
               <tbody>
+                {/* 先攻行 (opponentInningScores を参照) */}
                 <tr className={cn("border-b border-border/50 h-10", state.isTop ? "bg-primary/5" : "")}>
                   <td className="text-center font-black text-[13px]">
                     <span className={state.isTop ? "text-primary" : "text-foreground/40"}>先</span>
@@ -118,6 +124,7 @@ export function Scoreboard() {
                   <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.opponentHits ?? 0}</td>
                   <td className="text-center text-sm text-muted-foreground/40 font-bold">{state.opponentErrors ?? 0}</td>
                 </tr>
+                {/* 後攻行 (myInningScores を参照) */}
                 <tr className={cn("h-10", !state.isTop ? "bg-primary/5" : "")}>
                   <td className="text-center font-black text-[13px]">
                     <span className={!state.isTop ? "text-primary" : "text-foreground/40"}>後</span>
@@ -138,7 +145,7 @@ export function Scoreboard() {
           </div>
         </div>
 
-        {/* 🚀 下段 */}
+        {/* 🚀 下段 (回数・攻守・BSOカウント) */}
         <div className="flex items-center justify-between px-3 h-16 bg-muted/5">
           <div className="flex items-center text-primary h-full">
             <div className="flex items-end pb-1.5">
@@ -149,7 +156,7 @@ export function Scoreboard() {
               </div>
             </div>
             <div className="mx-4 h-5 w-[1px] bg-muted-foreground/20" />
-            
+
             <div className="flex items-center h-full">
               <span className={cn(
                 "text-[14px] font-black px-3 py-1.5 rounded-md shadow-sm min-w-[65px] text-center tracking-widest leading-none flex items-center justify-center",
