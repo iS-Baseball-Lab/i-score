@@ -22,11 +22,9 @@ interface CreateMatchResponse {
 
 export default function CreateMatchPage() {
   const router = useRouter();
+  const { currentTeam } = useTeam(); // 🌟 Contextから現在のチームを取得
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode") || "real";
-
-  // 💡 暫定の teamId (認証実装後は context 等から取得)
-  const teamId = "team-001";
 
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -54,11 +52,17 @@ export default function CreateMatchPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!formData.opponent) {
       toast.error("対戦相手を入力してください");
       return;
     }
 
+    // 💡 チームが選ばれていない場合のガード
+    if (!currentTeam?.id) {
+      toast.error("操作するチームを選択してください");
+      return;
+    }
     setIsLoading(true);
 
     try {
@@ -67,7 +71,7 @@ export default function CreateMatchPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teamId,
+          teamId: currentTeam.id,
           opponent: formData.opponent,
           date: formData.date,
           matchType: formData.matchType,
