@@ -13,17 +13,17 @@ app.post('/create', async (c) => {
     const body = await c.req.json();
     const matchId = crypto.randomUUID();
 
-    // 💡 空文字を null に変換するヘルパー
-    const nullIfEmpty = (val: any) => (val === "" || val === undefined ? null : val);
+    // 💡 空文字や undefined を確実に null へ変換する
+    const n = (val: any) => (val === "" || val === undefined ? null : val);
 
     await db.insert(matches).values({
       id: matchId,
-      teamId: body.teamId, // ここは必須
-      opponent: body.opponent, // ここも必須
+      teamId: body.teamId,
+      opponent: body.opponent,
 
-      // 🌟 空文字ではなく明示的に null を渡す
-      tournamentId: nullIfEmpty(body.tournamentId),
-      venueId: nullIfEmpty(body.venueId),
+      // 🌟 ID系は null でないと外部キー制約に引っかかる可能性あり
+      tournamentId: n(body.tournamentId),
+      venueId: n(body.venueId),
 
       date: body.date || new Date().toISOString().split('T')[0],
       matchType: body.matchType || 'practice',
@@ -42,15 +42,17 @@ app.post('/create', async (c) => {
       myInningScores: '[]',
       opponentInningScores: '[]',
 
-      surfaceDetails: nullIfEmpty(body.surfaceDetails),
+      surfaceDetails: n(body.surfaceDetails),
       weather: null,
-      // createdAt はデフォルト値(strftime)に任せるため、ここで送らなくてもOK
+
+      // 🌟 重要: created_at はここには書かない！
+      // 書かなければ、スキーマ側の .default(sql`(strftime('%s', 'now'))`) が自動適用されます。
     });
 
     return c.json({ success: true, matchId });
   } catch (err: any) {
-    // 💡 エラーログをより詳細に出す
-    console.error("Match Create Error Detail:", err.message);
+    // 💡 エラー詳細をフロントに返す
+    console.error("Match Create Error:", err);
     return c.json({ success: false, error: err.message }, 500);
   }
 });
