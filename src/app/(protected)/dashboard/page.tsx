@@ -11,13 +11,15 @@ import {
   Navigation,
   Wind,
   MapPin,
-  CalendarDays
+  CalendarDays,
+  PlayCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchList } from "@/components/matches/match-list";
 import { ScoreTypeSelector } from "@/components/features/dashboard/ScoreTypeSelector";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
+import { useTeam } from "@/contexts/TeamContext"; // 💡 TeamContextを使用
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Match } from "@/types/match";
@@ -33,6 +35,7 @@ interface WeatherData {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { currentTeam } = useTeam(); // 💡 Contextから取得
   const [matches, setMatches] = useState<Match[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [locationName, setLocationName] = useState<string | null>(null);
@@ -121,18 +124,22 @@ export default function DashboardPage() {
       }
     };
     fetchDashboardData();
-  }, []);
+  }, [currentTeam?.id]); // 💡 チームが切り替わったら再取得
 
-  // 💡 チーム勝敗成績の自動計算
+  // 💡 進行中の試合を抽出
+  const liveMatch = useMemo(() => {
+    return matches.find(m => m.status === 'live');
+  }, [matches]);
+
+  // 💡 完了した試合の統計計算（liveは除外して計算するのが一般的）
   const stats = useMemo(() => {
     const s = { win: 0, loss: 0, draw: 0 };
-    matches.forEach(m => {
+    matches.filter(m => m.status === 'finished').forEach(m => {
       if (m.myScore > m.opponentScore) s.win++;
       else if (m.myScore < m.opponentScore) s.loss++;
       else s.draw++;
     });
     const total = s.win + s.loss + s.draw;
-    // 野球特有の勝率表記 (.xxx)
     const rate = total > 0 ? (s.win / total).toFixed(3).replace(/^0/, '') : ".000";
     return { ...s, total, rate };
   }, [matches]);
@@ -217,7 +224,58 @@ export default function DashboardPage() {
             </div>
           </div>
         </section>
-        
+
+        {/* --- 🚀 進行中の試合 (LIVE HERO SECTION) --- */}
+        {liveMatch && (
+          <section className="animate-bounce-in">
+            <div
+              onClick={() => router.push(`/matches/score?id=${liveMatch.id}`)}
+              className="group relative overflow-hidden bg-zinc-900 border-2 border-primary rounded-[2.5rem] p-8 shadow-2xl shadow-primary/20 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {/* 背景の装飾 */}
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                <PlayCircle className="h-32 w-32 text-primary" />
+              </div>
+
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="flex items-center gap-4">
+                  <span className="flex h-3 w-3 rounded-full bg-primary animate-ping" />
+                  <span className="text-primary font-black tracking-widest text-sm uppercase">Live Now Scoring</span>
+                </div>
+
+                <div className="flex items-center gap-8 sm:gap-16">
+                  <div className="text-center">
+                    <p className="text-[10px] font-black text-zinc-500 uppercase mb-2">My Team</p>
+                    <p className="text-5xl font-black text-white tabular-nums">{liveMatch.myScore}</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-zinc-700 font-black text-2xl italic">VS</span>
+                    <span className="bg-primary/20 text-primary text-[10px] font-black px-3 py-1 rounded-full mt-2 uppercase tracking-tighter">
+                      {liveMatch.currentInning}回{liveMatch.isBottom ? "裏" : "表"}
+                    </span>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[10px] font-black text-zinc-500 uppercase mb-2">Opponent</p>
+                    <p className="text-5xl font-black text-white tabular-nums">{liveMatch.opponentScore}</p>
+                  </div>
+                </div>
+
+                <Button className="rounded-full px-8 h-14 font-black bg-primary text-primary-foreground group-hover:shadow-[0_0_20px_rgba(var(--primary),0.4)]">
+                  スコア入力に戻る
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-white/5 flex justify-between items-center text-zinc-500">
+                <span className="text-sm font-bold">{liveMatch.tournament || "公式戦"}</span>
+                <span className="text-sm font-bold flex items-center gap-2">
+                  <MapPin className="h-3 w-3" /> {liveMatch.venue || "球場未設定"}
+                </span>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* --- 3. スコア入力選択 (Real / Quick) --- */}
         <section>
           <ScoreTypeSelector />

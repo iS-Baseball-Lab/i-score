@@ -12,7 +12,7 @@ export type MatchStatus = 'scheduled' | 'live' | 'finished';
 export interface Team {
   id: string;
   name: string;
-  lineGroupId?: string; 
+  lineGroupId?: string;
   isAutoReportEnabled: boolean;
 }
 
@@ -22,6 +22,13 @@ export interface Match {
   date: string;
   myScore: number;
   opponentScore: number;
+
+  // 🌟 ライブ情報を追加
+  currentInning?: number;   // 現在の回 (1, 2, 3...)
+  isBottom?: boolean;      // 裏かどうか (false: 表, true: 裏)
+  venue?: string;          // 球場
+  tournament?: string;     // 大会名
+
   status: MatchStatus;
   matchType: MatchType;
   battingOrder: BattingOrder;
@@ -46,7 +53,7 @@ export interface LineWebhookEvent {
   source: {
     type: 'user' | 'group' | 'room';
     userId?: string;
-    groupId?: string; 
+    groupId?: string;
     roomId?: string;
   };
   message?: {
