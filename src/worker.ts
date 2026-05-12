@@ -11,6 +11,7 @@ import orgsRoute from './api/orgs'
 import teamsRoute from './api/teams'
 import teamsUpdateSettings from './api/teams/update-settings' // 🌟 追加：更新用ユニット
 import matchesRoute from './api/matches'
+import createMatchRoute from '@/api/matches/create-match';
 import matchesApi from './api/matches/update-score';
 import webhookRoute from './api/matches/webhook'
 import adminRoute from './api/admin'
@@ -30,23 +31,24 @@ app.route('/api/organizations', orgsRoute)
 app.route('/api/teams', teamsRoute)               // 参照系（GET /api/teams/settings など）
 app.route('/api/teams', teamsUpdateSettings)     // 🌟 更新系（POST /api/teams/update-line）
 app.route('/api/matches', matchesRoute)
+app.route('/api/matches', createMatchRoute)
 app.route('/api/matches', matchesApi)
 app.route('/api/matches/webhook', webhookRoute)
 app.route('/api/admin', adminRoute)
 app.route('/api/images', imagesRouter)
 app.route('/api/seed', seed)
 app.route('/api/tournaments', tournaments)
-app.route('/api/teams', testPush) 
+app.route('/api/teams', testPush)
 
 export default {
   async fetch(request: Request, env: WorkerEnv, ctx: ExecutionContext) {
     const url = new URL(request.url)
-    
+
     // 💡 規約: API パスは Hono に、静的アセットは ASSETS (Cloudflare Workers) に振り分け
     if (url.pathname.startsWith('/api/')) {
       return app.fetch(request, env, ctx)
     }
-    
+
     return env.ASSETS.fetch(request)
   }
 }
