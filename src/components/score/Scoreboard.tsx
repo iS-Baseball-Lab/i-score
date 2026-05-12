@@ -58,9 +58,9 @@ export function Scoreboard() {
 
         {/* 🚀 ヘッダー：大会名・対戦相手・球場 */}
         <div className="flex items-center justify-between p-3 border-b border-zinc-300 dark:border-zinc-700 bg-muted/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
-          <div className="flex-1 truncate text-left">{state.tournamentName || "OFFICIAL GAME"}</div>
+          <div className="flex-1 truncate text-left">{state.tournamentName || "大会未設定"}</div>
           <div className="flex-none px-4 text-xs font-black text-foreground tracking-widest">vs {state.opponentTeamName || "相手チーム"}</div>
-          <div className="flex-1 truncate text-right">{state.venueName || "BASEBALL FIELD"}</div>
+          <div className="flex-1 truncate text-right">{state.venueName || "球場未設定"}</div>
         </div>
 
         {/* 🚀 メイン掲示板 */}
