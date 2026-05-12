@@ -13,21 +13,28 @@ app.post('/create', async (c) => {
     const body = await c.req.json();
     const matchId = crypto.randomUUID();
 
-    // 💡 スキーマの型定義に100%一致させます
+    // 💡 空文字を null に変換するヘルパー
+    const nullIfEmpty = (val: any) => (val === "" || val === undefined ? null : val);
+
     await db.insert(matches).values({
       id: matchId,
-      teamId: body.teamId,
-      opponent: body.opponent || "対戦相手未定",
-      // tournament プロパティを削除し、スキーマにある tournamentId (null可) を使用
-      tournamentId: body.tournamentId || null,
+      teamId: body.teamId, // ここは必須
+      opponent: body.opponent, // ここも必須
+
+      // 🌟 空文字ではなく明示的に null を渡す
+      tournamentId: nullIfEmpty(body.tournamentId),
+      venueId: nullIfEmpty(body.venueId),
 
       date: body.date || new Date().toISOString().split('T')[0],
-      matchType: body.matchType || 'practice', // 'official' または 'practice'
+      matchType: body.matchType || 'practice',
       battingOrder: body.battingOrder || 'first',
 
       innings: body.innings || 7,
       currentInning: 1,
       isBottom: false,
+
+      isTiebreaker: false,
+      isColdGame: false,
 
       status: 'scheduled',
       myScore: 0,
@@ -35,15 +42,16 @@ app.post('/create', async (c) => {
       myInningScores: '[]',
       opponentInningScores: '[]',
 
-      venueId: body.venueId || null,
-      isTiebreaker: false,
-      isColdGame: false,
+      surfaceDetails: nullIfEmpty(body.surfaceDetails),
+      weather: null,
+      // createdAt はデフォルト値(strftime)に任せるため、ここで送らなくてもOK
     });
 
     return c.json({ success: true, matchId });
-  } catch (err: unknown) {
-    console.error("Match Create Error:", err);
-    return c.json({ success: false, error: "試合の作成に失敗しました" }, 500);
+  } catch (err: any) {
+    // 💡 エラーログをより詳細に出す
+    console.error("Match Create Error Detail:", err.message);
+    return c.json({ success: false, error: err.message }, 500);
   }
 });
 
