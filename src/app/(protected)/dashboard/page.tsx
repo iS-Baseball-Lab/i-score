@@ -238,7 +238,7 @@ export default function DashboardPage() {
           <section className="animate-bounce-in">
             <div
               onClick={() => router.push(`/matches/score?id=${liveMatch.id}`)}
-              className="group relative overflow-hidden bg-zinc-900 border-2 border-primary rounded-3x1 p-8 shadow-2xl shadow-primary/20 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative overflow-hidden bg-zinc-900 border-2 border-primary rounded-3xl p-8 shadow-2xl shadow-primary/20 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               {/* 背景の装飾 */}
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
