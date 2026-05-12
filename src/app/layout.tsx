@@ -1,17 +1,12 @@
-// src/app/layout.tsx
+// filepath: src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-/**
- * 💡 究極のルートレイアウト (背景一任 ＋ AppShell統合版)
- * 1. 修正: body タグから `bg-background` クラスを削除。
- * 2. 追加: 全画面共通のヘッダーとボトムナビを管理する `AppShell` を導入。
- */
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { DensityProvider } from "@/components/providers/density-provider";
-import { AppShell } from "@/components/layout/app-shell";
+import { TeamProvider } from "@/contexts/TeamContext"; // 💡 追加
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -22,7 +17,6 @@ export const metadata: Metadata = {
     icon: "/logo.png",
     apple: "/apple-logo.png",
   },
-  // 💡 PWA設定（ホーム画面インストール時の挙動）
   manifest: "/manifest.json",
 };
 
@@ -53,15 +47,21 @@ export default function RootLayout({
             enableSystem={true}
             disableTransitionOnChange={false}
           >
-            <Toaster
-              position="top-center"
-              toastOptions={{
-                className: "rounded-2xl border-border bg-background/80 backdrop-blur-md font-bold shadow-none",
-              }}
-            />
+            {/* 💡 TeamProvider を追加：アプリ全体で「どのチームを操作しているか」を共有 */}
+            <TeamProvider>
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  className: "rounded-2xl border-border bg-background/80 backdrop-blur-md font-bold shadow-none",
+                }}
+              />
 
-            {children}
-
+              {/* 💡 ここに children を配置。
+                AppShell を children の中で使っている場合はこのままでOKです。
+                もし AppShell をここで使いたい場合は、TeamProvider の内側に配置します。
+              */}
+              {children}
+            </TeamProvider>
           </ThemeProvider>
         </DensityProvider>
       </body>

@@ -13,15 +13,17 @@ app.post('/create', async (c) => {
     const body = await c.req.json();
     const matchId = crypto.randomUUID();
 
-    // 💡 空文字や undefined を確実に null へ変換する
-    const n = (val: any) => (val === "" || val === undefined ? null : val);
+    // 💡 徹底的に null 変換するヘルパー
+    const n = (val: any) => (val === "" || val === undefined || val === null ? null : val);
 
+    // 💡 INSERT実行
     await db.insert(matches).values({
       id: matchId,
-      teamId: body.teamId,
+      // 🌟 teamId が DB の teams テーブルに実在することを確認してください
+      teamId: body.teamId || "team-001",
       opponent: body.opponent,
 
-      // 🌟 ID系は null でないと外部キー制約に引っかかる可能性あり
+      // 🌟 ID系は絶対に "" ではなく null を渡す
       tournamentId: n(body.tournamentId),
       venueId: n(body.venueId),
 
@@ -31,7 +33,7 @@ app.post('/create', async (c) => {
 
       innings: body.innings || 7,
       currentInning: 1,
-      isBottom: false,
+      isBottom: false, // SQLiteでは自動で 0 になります
 
       isTiebreaker: false,
       isColdGame: false,
@@ -45,14 +47,14 @@ app.post('/create', async (c) => {
       surfaceDetails: n(body.surfaceDetails),
       weather: null,
 
-      // 🌟 重要: created_at はここには書かない！
-      // 書かなければ、スキーマ側の .default(sql`(strftime('%s', 'now'))`) が自動適用されます。
+      // 🌟 重要: created_at はここから削除します
+      // スキーマの default(sql`...`) に完全に任せるのが SQLite (D1) の安全策です
     });
 
     return c.json({ success: true, matchId });
   } catch (err: any) {
-    // 💡 エラー詳細をフロントに返す
-    console.error("Match Create Error:", err);
+    console.error("Match Create Error Detail:", err.message);
+    // 💡 もし "FOREIGN KEY constraint failed" と出たら、teamId の存在を確認！
     return c.json({ success: false, error: err.message }, 500);
   }
 });
