@@ -1,18 +1,11 @@
-// filepath: `src/app/(protected)/matches/create/page.tsx`
+// filepath: src/app/(protected)/matches/create/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronLeft,
-  Swords,
-  Calendar,
-  Trophy,
-  MapPin,
-  ArrowRightLeft,
   PlayCircle,
-  PlusCircle,
-  Hash // スコア用
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,10 +13,20 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+// 💡 APIレスポンスの型定義
+interface CreateMatchResponse {
+  success: boolean;
+  matchId?: string;
+  error?: string;
+}
+
 export default function CreateMatchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode") || "real";
+
+  // 💡 暫定の teamId (認証実装後は context 等から取得)
+  const teamId = "team-001";
 
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,14 +37,13 @@ export default function CreateMatchPage() {
     surfaceDetails: "",
     battingOrder: "first" as "first" | "second",
     innings: 7,
-    // 💡 Quickモード用の追加フィールド
     myScore: "",
     opponentScore: "",
     myInningScores: [] as string[],
     opponentInningScores: [] as string[],
   });
 
-  // イニングスコア入力欄の初期化
+  // イニング数に合わせてスコア入力欄を初期化
   useEffect(() => {
     setFormData(prev => ({
       ...prev,
@@ -59,23 +61,44 @@ export default function CreateMatchPage() {
 
     setIsLoading(true);
 
-    // 💡 本来はここでDBに試合を保存し、発行された ID を取得します
-    // 一旦、デモ用に ID を生成してスタメン画面へバトンを渡します
-    const mockMatchId = "new-match-123";
+    try {
+      // 🚀 実APIへのリクエスト送信
+      const res = await fetch("/api/matches/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamId,
+          opponent: formData.opponent,
+          date: formData.date,
+          matchType: formData.matchType,
+          battingOrder: formData.battingOrder,
+          innings: formData.innings,
+          surfaceDetails: formData.surfaceDetails,
+        }),
+      });
 
-    setTimeout(() => {
-      setIsLoading(false);
+      // 💡 unknown型をキャストしてエラー回避
+      const result = (await res.json()) as CreateMatchResponse;
+
+      if (!result.success) {
+        throw new Error(result.error || "試合の作成に失敗しました");
+      }
 
       if (mode === "real") {
-        toast.success("試合をセットアップしました。スタメンを登録しましょう！");
-        // 💡 修正ポイント：スタメン登録画面へ、matchIdとteamIdを持って遷移
-        router.push(`/matches/lineup?id=${mockMatchId}`);
+        toast.success("試合をセットアップしました！");
+        // 🌟 統一ルール: クエリパラメータ形式でスタメン画面へ遷移
+        router.push(`/matches/lineup?id=${result.matchId}`);
       } else {
-        // Quickモードは結果を保存してダッシュボードへ
+        // Quickモード（簡易保存）
         toast.success("試合結果を保存しました");
         router.push("/dashboard");
       }
-    }, 800);
+    } catch (error: any) {
+      console.error("Submit Error:", error);
+      toast.error(error.message || "接続エラーが発生しました");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -87,13 +110,17 @@ export default function CreateMatchPage() {
           <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
             <ChevronLeft className="h-6 w-6" />
           </Button>
-          <SectionHeader title={mode === "real" ? "LIVE SCORE" : "QUICK SCORE"} subtitle={mode === "real" ? "Lineup & Play-by-play" : "Quick Entry"} showPulse />
+          <SectionHeader
+            title={mode === "real" ? "LIVE SCORE" : "QUICK SCORE"}
+            subtitle={mode === "real" ? "Lineup & Play-by-play" : "Quick Entry"}
+            showPulse
+          />
           <div className="w-10" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
 
-          {/* 1. 基本情報（共通） */}
+          {/* 1. 基本情報 */}
           <div className="bg-card border-2 border-border/40 rounded-3xl p-6 space-y-6 shadow-xs">
             <div className="space-y-4">
               <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Opponent</label>
@@ -120,12 +147,11 @@ export default function CreateMatchPage() {
             </div>
           </div>
 
-          {/* 💡 2. Quickモード専用：スコア入力セクション */}
+          {/* 2. Quickモード（スコア入力） */}
           {mode === "quick" && (
             <div className="animate-in slide-in-from-top-4 duration-500 space-y-6">
               <SectionHeader title="スコア入力" subtitle="Match Result" />
               <div className="bg-card border-2 border-border/40 rounded-3xl p-6 space-y-8 shadow-xs">
-
                 {/* 合計スコア */}
                 <div className="flex items-center justify-around gap-4 py-4">
                   <div className="text-center space-y-2">
@@ -151,7 +177,7 @@ export default function CreateMatchPage() {
                   </div>
                 </div>
 
-                {/* 各回スコア（スクローラブル） */}
+                {/* 各回スコア */}
                 <div className="space-y-4">
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Inning Scores (Optional)</p>
                   <div className="overflow-x-auto pb-2 -mx-2 px-2">
@@ -190,7 +216,7 @@ export default function CreateMatchPage() {
             </div>
           )}
 
-          {/* 3. 詳細設定（共通：Realなら必須、Quickなら隠し気味でも良いが今回は表示） */}
+          {/* 3. 詳細設定 */}
           <div className="bg-card border-2 border-dashed border-border/40 rounded-3xl p-6 space-y-6 shadow-xs">
             <div className="space-y-4">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Match Type / Location</label>
