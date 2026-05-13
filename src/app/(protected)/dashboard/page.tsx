@@ -258,7 +258,7 @@ export default function DashboardPage() {
                     <p className="text-5xl font-black text-white tabular-nums">{liveMatch.myScore}</p>
                   </div>
                   <div className="flex flex-col items-center">
-                    <span className="text-zinc-700 font-black text-2xl italic">VS</span>
+                    <span className="text-zinc-700 font-black text-2xl">VS</span>
                     <span className="bg-primary/20 text-primary text-[10px] font-black px-3 py-1 rounded-full mt-2 uppercase tracking-tighter">
                       {liveMatch.currentInning}回{liveMatch.isBottom ? "裏" : "表"}
                     </span>
