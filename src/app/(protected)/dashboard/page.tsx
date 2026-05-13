@@ -345,16 +345,15 @@ export default function DashboardPage() {
             />
           )}
           {/* 🌟 追加：試合予定作成ボタン（現場の指に優しい特大サイズ） */}
-          <div className="pt-2">
-            <Link href="/matches/create?mode=real" className="block w-full">
-              <Button 
-                className="w-full h-16 rounded-full text-base font-black tracking-[0.1em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+          <div className="flex justify-center pt-6">
+              <Button
+                onClick={() => router.push('/matches/create?mode=real')}
+                className="bg-white/50 dark:bg-zinc-800/50 hover:bg-primary/10 text-primary border-2 border-primary/20 rounded-full px-12 h-16 font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 group shadow-sm"
               >
-                <CalendarPlus className="mr-3 h-6 w-6" />
                 新しい試合予定を作成
+                <ChevronRight className="ml-2 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
-            </Link>
-          </div>
+            </div>
         </section>
 
         {/* --- 6. 試合結果 (LATEST MATCHES) --- */}
