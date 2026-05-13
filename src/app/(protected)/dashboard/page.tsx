@@ -255,7 +255,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-8 sm:gap-16">
                   <div className="text-center">
                     <p className="text-[10px] font-black text-zinc-500 uppercase mb-2">My Team</p>
-                    <p className="text-5xl font-black text-white tabular-nums">{liveMatch.myScore}</p>
+                    <p className="text-5xl font-black text-[bg-card dark:] tabular-nums">{liveMatch.myScore}</p>
                   </div>
                   <div className="flex flex-col items-center">
                     <span className="text-zinc-700 font-black text-2xl">VS</span>
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-center">
                     <p className="text-[10px] font-black text-zinc-500 uppercase mb-2">Opponent</p>
-                    <p className="text-5xl font-black text-white tabular-nums">{liveMatch.opponentScore}</p>
+                    <p className="text-5xl font-black text-[bg-card dark:] tabular-nums">{liveMatch.opponentScore}</p>
                   </div>
                 </div>
 
