@@ -269,7 +269,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <Button className="rounded-full px-8 h-14 font-black bg-primary text-primary-foreground group-hover:shadow-[0_0_20px_rgba(var(--primary),0.4)]">
+                <Button className="rounded-3xl px-8 h-14 font-black bg-primary text-primary-foreground group-hover:shadow-[0_0_20px_rgba(var(--primary),0.4)]">
                   スコア入力に戻る
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -348,7 +348,7 @@ export default function DashboardPage() {
           <div className="flex justify-center pt-6">
               <Button
                 onClick={() => router.push('/matches/create?mode=real')}
-                className="bg-white/50 dark:bg-zinc-800/50 hover:bg-primary/10 text-primary border-2 border-primary/20 rounded-full px-12 h-16 font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 group shadow-sm"
+                className="bg-white/50 dark:bg-zinc-800/50 hover:bg-primary/10 text-primary border-2 border-primary/20 rounded-3xl px-12 h-16 font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 group shadow-sm"
               >
                 新しい試合予定を作成
                 <ChevronRight className="ml-2 h-6 w-6 group-hover:translate-x-1 transition-transform" />
@@ -367,7 +367,7 @@ export default function DashboardPage() {
             <div className="flex justify-center pt-6">
               <Button
                 onClick={() => router.push('/matches')}
-                className="bg-white/50 dark:bg-zinc-800/50 hover:bg-primary/10 text-primary border-2 border-primary/20 rounded-full px-12 h-16 font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 group shadow-sm"
+                className="bg-white/50 dark:bg-zinc-800/50 hover:bg-primary/10 text-primary border-2 border-primary/20 rounded-3xl px-12 h-16 font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 group shadow-sm"
               >
                 全ての試合結果を表示
                 <ChevronRight className="ml-2 h-6 w-6 group-hover:translate-x-1 transition-transform" />
