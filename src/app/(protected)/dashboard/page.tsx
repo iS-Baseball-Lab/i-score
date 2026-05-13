@@ -190,7 +190,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               <div className="p-2 sm:p-2.5 bg-primary/10 rounded-xl text-primary shrink-0"><Clock className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">{dateString}</p>
+                <p className="text-[bg-card dark:] font-bold text-muted-foreground uppercase">{dateString}</p>
                 <p className="text-base sm:text-xl font-black text-foreground tabular-nums leading-none mt-1.5">{timeString}</p>
               </div>
             </div>
@@ -239,7 +239,7 @@ export default function DashboardPage() {
           <section className="animate-bounce-in">
             <div
               onClick={() => router.push(`/matches/score?id=${liveMatch.id}`)}
-              className="group relative overflow-hidden bg-zinc-900 border-2 border-primary rounded-3xl p-8 shadow-2xl shadow-primary/20 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative overflow-hidden bg-card dark:bg-zinc-900 border-2 border-primary rounded-3xl p-8 shadow-2xl shadow-primary/20 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               {/* 背景の装飾 */}
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
