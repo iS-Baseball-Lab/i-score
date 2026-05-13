@@ -12,6 +12,7 @@ import {
   Wind,
   MapPin,
   CalendarDays,
+  CalendarPlus,
   PlayCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
