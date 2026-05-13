@@ -342,7 +342,19 @@ export default function DashboardPage() {
               title="現在、予定されている試合はありません"
               description="Next match scheduling coming soon"
             />
-          )}        </section>
+          )}
+          {/* 🌟 追加：試合予定作成ボタン（現場の指に優しい特大サイズ） */}
+          <div className="pt-2">
+            <Link href="/matches/create?mode=real" className="block w-full">
+              <Button 
+                className="w-full h-16 rounded-full text-base font-black tracking-[0.1em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                <CalendarPlus className="mr-3 h-6 w-6" />
+                新しい試合予定を作成
+              </Button>
+            </Link>
+          </div>
+        </section>
 
         {/* --- 6. 試合結果 (LATEST MATCHES) --- */}
         <section className="space-y-10">
