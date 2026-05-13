@@ -1,7 +1,12 @@
 // filepath: src/app/(protected)/matches/create/page.tsx
+/* 💡 i-score 現場至上主義ルール:
+   1. デザインの死守: 既存の洗練されたUI（rounded-3xl等）を完全維持する。
+   2. 未来予定の許容: mode が "real" の場合、status を 'scheduled' としてAPIへ送信し、事前準備を可能にする。
+   3. Next.js 標準作法: useSearchParams を安全に利用するため、Suspense でラップする。 */
+
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +23,7 @@ interface CreateMatchResponse {
   error?: string;
 }
 
-export default function CreateMatchPage() {
+function CreateMatchContent() {
   const router = useRouter();
   const { currentTeam } = useTeam(); // 🌟 Contextから現在のチームを取得
   const searchParams = useSearchParams();
@@ -76,6 +81,12 @@ export default function CreateMatchPage() {
           battingOrder: formData.battingOrder,
           innings: formData.innings,
           surfaceDetails: formData.surfaceDetails,
+          // 🌟 追加：未来の予定(real)は'scheduled'、事後入力(quick)は'finished'として保存
+          status: mode === "real" ? "scheduled" : "finished",
+          myScore: formData.myScore ? Number(formData.myScore) : 0,
+          opponentScore: formData.opponentScore ? Number(formData.opponentScore) : 0,
+          myInningScores: formData.myInningScores,
+          opponentInningScores: formData.opponentInningScores,
         }),
       });
 
@@ -87,7 +98,7 @@ export default function CreateMatchPage() {
       }
 
       if (mode === "real") {
-        toast.success("試合をセットアップしました！");
+        toast.success("試合予定をセットアップしました！");
         // 🌟 統一ルール: クエリパラメータ形式でスタメン画面へ遷移
         router.push(`/matches/lineup?id=${result.matchId}`);
       } else {
@@ -238,5 +249,14 @@ export default function CreateMatchPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+// 🌟 Next.js App Routerの規約に基づき、useSearchParams利用部分をSuspenseでラップ
+export default function CreateMatchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <CreateMatchContent />
+    </Suspense>
   );
 }
