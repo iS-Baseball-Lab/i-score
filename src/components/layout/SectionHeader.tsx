@@ -16,6 +16,8 @@ export function SectionHeader({ title, subtitle, showPulse = false, className }:
         {/* 左側のドット */}
         <div className="flex gap-2">
           <span className="w-1.5 h-1.5 bg-primary/20 rounded-full" />
+          <span className="w-1.5 h-1.5 bg-primary/30 rounded-full" />
+          <span className="w-1.5 h-1.5 bg-primary/40 rounded-full" />
           <span className="w-1.5 h-1.5 bg-primary/50 rounded-full" />
           <span className={cn(
             "w-1.5 h-1.5 bg-primary rounded-full", 
@@ -32,6 +34,8 @@ export function SectionHeader({ title, subtitle, showPulse = false, className }:
             showPulse && "animate-pulse" // 💡 復活！
           )} />
           <span className="w-1.5 h-1.5 bg-primary/50 rounded-full" />
+          <span className="w-1.5 h-1.5 bg-primary/40 rounded-full" />
+          <span className="w-1.5 h-1.5 bg-primary/30 rounded-full" />
           <span className="w-1.5 h-1.5 bg-primary/20 rounded-full" />
         </div>
       </h2>
