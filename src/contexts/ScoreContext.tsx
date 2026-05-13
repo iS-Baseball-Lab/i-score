@@ -1,1 +1,246 @@
 
+// filepath: src/contexts/ScoreContext.tsx
+/* 💡 iScoreCloud 規約: 
+   1. 復元性の極致: initMatch 時に D1 から最新の試合状況をロードし、Stateを同期する。[span_0](start_span)[span_0](end_span)
+   2. 権限管理: ログインユーザーの権限を判定し、isScorer フラグで操作を物理的に制限する。[span_1](start_span)[span_1](end_span)
+   3. 野球脳の維持: サヨナラ判定(checkWalkOff)や得点配列(JSON)をアトミックに管理する。[span_2](start_span)[span_2](end_span) */
+
+"use client";
+
+import React, { createContext, useContext, useState, useCallback } from "react";
+import { toast } from "sonner";
+import {
+  ScoreState,
+  ScoreContextType,
+  MatchResponse,
+  PlayLogEntry
+} from "@/types/score";
+
+const ScoreContext = createContext<ScoreContextType | undefined>(undefined);
+
+export function ScoreProvider({ children }: { children: React.ReactNode }) {
+  const [state, setState] = useState<ScoreState>({
+    matchId: "",
+    inning: 1,
+    isTop: true,
+    balls: 0,
+    strikes: 0,
+    outs: 0,
+    runners: { base1: null, base2: null, base3: null },
+    myScore: 0,
+    opponentScore: 0,
+    myInningScores: [],
+    opponentInningScores: [],
+    myHits: 0,
+    opponentHits: 0,
+    myErrors: 0,
+    opponentErrors: 0,
+    maxInnings: 7,
+    isGuestFirst: true,
+    status: 'scheduled',
+    isScorer: false, // 🌟 編集権限フラグ
+    logs: [],
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // 🚀 1. 内部用：ログ記録ヘルパー
+  const appendLog = useCallback((description: string, s: ScoreState): PlayLogEntry[] => {
+    const newEntry: PlayLogEntry = {
+      id: crypto.randomUUID(),
+      description,
+      inning: s.inning,
+      isTop: s.isTop,
+      timestamp: Date.now(),
+    };
+    return [newEntry, ...s.logs].slice(0, 50);
+  }, []);
+
+  // 🚀 2. バックエンド同期 (D1 + LINE速報連動)
+  const syncWithBackend = useCallback(async (updatedState: ScoreState, actionNote: string) => {
+    if (!updatedState.isScorer) return; // 🌟 スコアラー以外は同期をスキップ
+
+    setIsSyncing(true);
+    try {
+      const res = await fetch("/api/matches/update-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId: updatedState.matchId,
+          myScore: updatedState.myScore,
+          opponentScore: updatedState.opponentScore,
+          inning: updatedState.inning,
+          isBottom: !updatedState.isTop,
+          action: actionNote,
+          myInningScores: updatedState.myInningScores, // 🌟 配列をそのまま送信（API側でstringify）
+          opponentInningScores: updatedState.opponentInningScores,
+        }),
+      });
+      const data = await res.json() as { success: boolean, data?: { status: string } };
+      
+      if (data.success && data.data?.status === 'finished') {
+        setState(prev => ({ ...prev, status: 'finished' }));
+      }
+    } catch (e) {
+      console.error("[Sync Error]:", e);
+      toast.error("同期に失敗しました。電波状況を確認してください。");
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  // 🚀 3. 試合初期化 (DBからStateへの完全復元)[span_3](start_span)[span_3](end_span)
+  const initMatch = useCallback(async (matchId: string) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/matches/${matchId}`);
+      const data = (await res.json()) as MatchResponse;
+      
+      if (data.success && data.match) {
+        const m = data.match;
+        
+        // 🌟 D1に保存されたJSON文字列をパースして復元[span_4](start_span)[span_4](end_span)
+        const restoredMyInningScores = typeof m.myInningScores === 'string' ? JSON.parse(m.myInningScores) : [];
+        const restoredOpponentInningScores = typeof m.opponentInningScores === 'string' ? JSON.parse(m.opponentInningScores) : [];
+
+        setState(prev => ({
+          ...prev,
+          matchId: m.id,
+          opponentTeamName: m.opponent,
+          inning: m.currentInning || 1,
+          isTop: !m.isBottom,
+          myScore: m.myScore || 0,
+          opponentScore: m.opponentScore || 0,
+          myInningScores: restoredMyInningScores,
+          opponentInningScores: restoredOpponentInningScores,
+          maxInnings: m.innings || 7,
+          isGuestFirst: m.battingOrder === 'first',
+          status: m.status as any,
+          // 💡 ここで権限判定を行う（例: チーム所属チェック）[span_5](start_span)[span_5](end_span)
+          isScorer: true, // 開発中は一旦true。実際は管理者かどうかを判定
+        }));
+      }
+    } catch (error) {
+      toast.error("試合データの復元に失敗しました");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // 🚀 4. 投球・アウト記録 (野球脳ロジック)[span_6](start_span)[span_6](end_span)
+  const recordPitch = async (result: "ball" | "strike" | "foul" | "swinging_strike" | "out") => {
+    setState(prev => {
+      if (!prev.isScorer) return prev; // 🌟 観戦者は操作不可[span_7](start_span)[span_7](end_span)
+
+      let newStrikes = prev.strikes;
+      let newBalls = prev.balls;
+      let newOuts = prev.outs;
+      let description = "";
+
+      // ストライクカウント処理
+      if (result === "strike" || result === "swinging_strike") {
+        newStrikes++;
+        description = result === "strike" ? "見逃しストライク" : "空振り";
+      } else if (result === "ball") {
+        newBalls++;
+        description = "ボール";
+      } else if (result === "out") {
+        newOuts++;
+        description = "アウト";
+      } else if (result === "foul") {
+        if (newStrikes < 2) newStrikes++;
+        description = "ファウル";
+      }
+
+      let isAtBatEnd = false;
+      if (newStrikes >= 3) {
+        newOuts++;
+        description = "三振";
+        isAtBatEnd = true;
+      } else if (newBalls >= 4) {
+        description = "フォアボール";
+        isAtBatEnd = true;
+      } else if (result === "out") {
+        isAtBatEnd = true;
+      }
+
+      const next = {
+        ...prev,
+        balls: isAtBatEnd ? 0 : newBalls,
+        strikes: isAtBatEnd ? 0 : newStrikes,
+        outs: newOuts,
+        logs: appendLog(description, prev),
+      };
+
+      if (isAtBatEnd || result === "out") syncWithBackend(next, description);
+      return next;
+    });
+  };
+
+  // 🚀 5. 得点・インプレイ記録 (イニング配列の更新)[span_8](start_span)[span_8](end_span)
+  const recordInPlay = async (result: string, rbi: number, hits: number, errors: number) => {
+    setState(prev => {
+      if (!prev.isScorer) return prev;
+
+      const currentIdx = prev.inning - 1;
+      const updatedOpponentScores = [...prev.opponentInningScores];
+      const updatedMyScores = [...prev.myInningScores];
+
+      // スコアラーが先攻か後攻かに基づいて配列を更新
+      if (prev.isTop) {
+        while (updatedOpponentScores.length <= currentIdx) updatedOpponentScores.push(0);
+        updatedOpponentScores[currentIdx] += rbi;
+      } else {
+        while (updatedMyScores.length <= currentIdx) updatedMyScores.push(0);
+        updatedMyScores[currentIdx] += rbi;
+      }
+
+      const next = {
+        ...prev,
+        opponentScore: prev.isTop ? prev.opponentScore + rbi : prev.opponentScore,
+        myScore: !prev.isTop ? prev.myScore + rbi : prev.myScore,
+        opponentHits: prev.isTop ? prev.opponentHits + hits : prev.opponentHits,
+        myHits: !prev.isTop ? prev.myHits + hits : prev.myHits,
+        opponentInningScores: updatedOpponentScores,
+        myInningScores: updatedMyScores,
+        balls: 0, strikes: 0,
+        logs: appendLog(`${result} (${rbi}打点)`, prev),
+      };
+
+      syncWithBackend(next, result);
+      return next;
+    });
+  };
+
+  // 🚀 6. イニング交代
+  const changeInning = () => {
+    setState(prev => {
+      if (!prev.isScorer) return prev;
+      const next = {
+        ...prev,
+        isTop: !prev.isTop,
+        inning: prev.isTop ? prev.inning : prev.inning + 1,
+        balls: 0, strikes: 0, outs: 0,
+        runners: { base1: null, base2: null, base3: null },
+      };
+      syncWithBackend(next, "イニング交代");
+      return next;
+    });
+  };
+
+  return (
+    <ScoreContext.Provider value={{
+      state, isLoading, isSyncing, initMatch, recordPitch, recordInPlay,
+      changeInning, isScorer: state.isScorer
+    }}>
+      {children}
+    </ScoreContext.Provider>
+  );
+}
+
+export function useScore() {
+  const context = useContext(ScoreContext);
+  if (context === undefined) throw new Error("useScore must be used within a ScoreProvider");
+  return context;
+}
