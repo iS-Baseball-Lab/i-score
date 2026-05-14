@@ -46,7 +46,7 @@ export interface UserSession {
 export const DEFAULT_ROLES: Record<string, TeamRole> = {
   manager: {
     id: 'manager',
-    label: '監督/代表者',
+    label: '監督',
     permissions: ['score_write', 'roster_edit', 'match_manage', 'stats_view', 'team_settings', 'billing_manage'],
   },
   coach: {
@@ -54,9 +54,9 @@ export const DEFAULT_ROLES: Record<string, TeamRole> = {
     label: 'コーチ',
     permissions: ['score_write', 'roster_edit', 'match_manage', 'stats_view'],
   },
-  player: {
-    id: 'player',
-    label: '選手',
+  Parent: {
+    id: 'Parent',
+    label: '保護者',
     permissions: ['stats_view'],
   }
 };
