@@ -169,7 +169,7 @@ export default function DashboardPage() {
           <h2 className="text-3xl sm:text-4xl font-black text-primary uppercase tracking-[0.5em] flex items-center justify-center gap-4">
             <Activity className="h-8 w-8 sm:h-10 sm:w-10" /> Dashboard
           </h2>
-          <h1 className="text-[9px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.4em] opacity-50">
+          <h1 className="text-[9px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.4em]">
             Match Management & Live Recording
           </h1>
         </section>
@@ -324,7 +324,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex justify-center">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">
-              Total: {stats.total} Games Played
+              Total: {stats.total} Matches Played
             </p>
           </div>
         </section>
