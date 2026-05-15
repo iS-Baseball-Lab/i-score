@@ -31,6 +31,7 @@ interface SprayData {
 function PlayerDetailContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    
     const teamId = searchParams.get("teamId");
     const playerName = searchParams.get("playerName");
     const uniformNumber = searchParams.get("uniformNumber") || "--";
@@ -49,7 +50,7 @@ function PlayerDetailContent() {
         const fetchPlayerStats = async () => {
             setIsLoading(true);
             try {
-                // Cloudflare Workers (Hono) APIからのデータ取得
+                // Cloudflare Workers APIからのデータ取得
                 const [bStatsRes, pStatsRes, sprayRes] = await Promise.all([
                     fetch(`/api/teams/${teamId}/stats`),
                     fetch(`/api/teams/${teamId}/pitcher-stats`),
@@ -95,7 +96,7 @@ function PlayerDetailContent() {
         );
     }
 
-    // 💡 現場仕様: 情報不足時は EmptyState
+    // 現場仕様: 情報不足時は EmptyState
     if (!playerName) {
         return (
             <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
@@ -134,7 +135,7 @@ function PlayerDetailContent() {
                     <SectionHeader title="選手詳細" subtitle="PLAYER DETAILS" showPulse={false} />
                 </div>
 
-                {/* 💡 究極UI: 大迫力のヒーローパネル */}
+                {/* 究極UI: ヒーローパネル */}
                 <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground rounded-[32px] p-6 sm:p-10 shadow-lg shadow-primary/20 border border-primary/20 group">
                     <div className="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full pointer-events-none transition-transform duration-700 group-hover:scale-110" />
 
@@ -165,7 +166,8 @@ function PlayerDetailContent() {
 
                 <div className="grid gap-6 lg:grid-cols-2">
                     <div className="space-y-6">
-                        {/* 💡 究極UI: 打撃成績 */}
+                        
+                        {/* 究極UI: 打撃成績 */}
                         <Card className="rounded-[32px] border-border/50 bg-card shadow-xs overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/30">
                             <div className="bg-muted/30 p-5 sm:p-6 border-b border-border/50">
                                 <h2 className="text-xl font-black tracking-tight flex items-center gap-2.5 text-foreground">
@@ -218,7 +220,7 @@ function PlayerDetailContent() {
                             </CardContent>
                         </Card>
 
-                        {/* 💡 究極UI: 投手成績 */}
+                        {/* 究極UI: 投手成績 */}
                         <Card className="rounded-[32px] border-border/50 bg-card shadow-xs overflow-hidden transition-all duration-300 hover:shadow-md hover:border-blue-500/30">
                             <div className="bg-muted/30 p-5 sm:p-6 border-b border-border/50">
                                 <h2 className="text-xl font-black tracking-tight flex items-center gap-2.5 text-foreground">
@@ -258,7 +260,7 @@ function PlayerDetailContent() {
                         </Card>
                     </div>
 
-                    {/* 💡 究極UI: スプレーチャート */}
+                    {/* 究極UI: スプレーチャート */}
                     <div>
                         <Card className="rounded-[32px] border-border/50 bg-card shadow-xs overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-md hover:border-green-500/30">
                             <div className="bg-muted/30 p-5 sm:p-6 border-b border-border/50 shrink-0">
@@ -280,4 +282,51 @@ function PlayerDetailContent() {
                                                 <line x1="50" y1="90" x2="85" y2="20" stroke="white" strokeWidth="0.5" />
                                                 <polygon points="50,88 52,90 50,92 48,90" fill="white" />
                                                 <polygon points="63,66 65,68 63,70 61,68" fill="white" />
-                                  
+                                                <polygon points="50,44 52,46 50,48 48,46" fill="white" />
+                                                <polygon points="37,66 39,68 37,70 35,68" fill="white" />
+                                            </svg>
+
+                                            {sprayData.map((hit, i) => {
+                                                const isOut = hit.result.includes('out') || hit.result.includes('double_play');
+                                                const isHomeRun = hit.result === 'home_run';
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        className={cn(
+                                                            "absolute w-3.5 h-3.5 -ml-[7px] -mt-[7px] rounded-full border-[1.5px] border-white shadow-md transition-transform duration-200 hover:scale-[2] z-10 cursor-pointer",
+                                                            isHomeRun ? "bg-orange-500" : isOut ? "bg-red-500" : "bg-blue-500"
+                                                        )}
+                                                        style={{ left: `${hit.hitX}%`, top: `${hit.hitY}%` }}
+                                                        title={`${hit.result}`}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="flex justify-center gap-4 mt-6 text-xs font-bold text-muted-foreground">
+                                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 border border-white" />安打</div>
+                                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 border border-white" />本塁打</div>
+                                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 border border-white" />アウト</div>
+                                        </div>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}
+
+// 💡 確実にSuspenseでラップし、エクスポートします
+export default function PlayerDetailPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-[60vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary/40" />
+            </div>
+        }>
+            <PlayerDetailContent />
+        </Suspense>
+    );
+}
