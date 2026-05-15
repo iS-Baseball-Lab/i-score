@@ -1,12 +1,14 @@
 // filepath: src/components/features/players/PlayerCard.tsx
 "use client";
-/* 💡 選手一覧のカードUIコンポーネント（左右独立スワイプ操作対応） */
+/* 💡 選手一覧のカードUIコンポーネント（左右独立スワイプ＆アコーディオン展開対応） */
 
 import React, { useState, useRef } from "react";
-import { Pencil, Trash2, ChevronRight } from "lucide-react";
+// 💡 ChevronDown/Up, User, BarChart2 を追加
+import { Pencil, Trash2, ChevronDown, ChevronUp, User, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Player, PositionKey } from "@/types/player";
 import { getCategory, POSITION_COLOR, POSITION_LABELS } from "./constants";
+import { Button } from "@/components/ui/button";
 
 interface PlayerCardProps {
   player: Player;
@@ -27,14 +29,17 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
   const throwsLabel = player.throws === "R" ? "右" : player.throws === "L" ? "左" : null;
   const batsLabel = player.bats === "R" ? "右" : player.bats === "L" ? "左" : player.bats === "B" ? "両" : null;
 
+  // ━━ 💡 展開状態の管理 ━━
+  const [isExpanded, setIsExpanded] = useState(false);
+
   // ━━ スワイプ操作の状態管理 ━━
   const [offsetX, setOffsetX] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
-  const startOffsetX = useRef<number>(0); // 💡 開いている状態からのスワイプも滑らかにするための記憶用
+  const startOffsetX = useRef<number>(0);
   const isVerticalScroll = useRef(false);
 
-  const ACTION_WIDTH = 65; // ボタンの幅（現場で押しやすい65pxに設定🔥）
+  const ACTION_WIDTH = 75; // 💡 現場で押しやすい75pxに変更
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -51,14 +56,18 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
 
-    // 💡 縦方向の移動量が大きい場合はスクロールとみなし、スワイプをキャンセル
+    // 縦スクロール判定
     if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 5) {
       isVerticalScroll.current = true;
       setOffsetX(0);
       return;
     }
 
-    // 💡 新しいオフセット位置を計算し、左右の最大幅で制限
+    // 💡 展開中は誤動作防止のため横スワイプを無効化
+    if (isExpanded) {
+      return;
+    }
+
     let newOffsetX = startOffsetX.current + diffX;
     if (newOffsetX > ACTION_WIDTH) newOffsetX = ACTION_WIDTH;
     if (newOffsetX < -ACTION_WIDTH) newOffsetX = -ACTION_WIDTH;
@@ -70,107 +79,152 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
     touchStartX.current = null;
     touchStartY.current = null;
 
-    // 半分以上スワイプされていたら全開、そうでなければ閉じる
     if (offsetX > ACTION_WIDTH / 2) {
-      setOffsetX(ACTION_WIDTH); // 右スワイプ -> 左の編集ボタンを開く
+      setOffsetX(ACTION_WIDTH);
     } else if (offsetX < -ACTION_WIDTH / 2) {
-      setOffsetX(-ACTION_WIDTH); // 左スワイプ -> 右の削除ボタンを開く
+      setOffsetX(-ACTION_WIDTH);
     } else {
       setOffsetX(0);
     }
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // 💡 スワイプが開いている時は、詳細に飛ばずに「閉じる」動作を優先
+    // スワイプが開いている時は「閉じる」動作を優先
     if (offsetX !== 0) {
       e.preventDefault();
       e.stopPropagation();
       setOffsetX(0);
       return;
     }
-    onDetail(player);
+    // 💡 タップで展開・収縮を切り替え
+    setIsExpanded(!isExpanded);
   };
 
   return (
+    // 💡 外側ラッパーによる角丸くり抜き（Outer Masking）
     <div className={cn(
-      "group relative overflow-hidden bg-card border border-border",
-      "rounded-[var(--radius-2xl)]",
-      "transition-all duration-200 hover:shadow-md hover:shadow-black/5 dark:hover:shadow-black/20",
-      !isActive && "opacity-60",
+      "group relative overflow-hidden transition-all duration-200 ease-out",
+      "rounded-[var(--radius-2xl)] border",
+      isExpanded ? "border-primary/40 shadow-sm shadow-primary/5" : "border-border/50 shadow-sm",
+      !isActive && "opacity-60"
     )}>
       
-      {/* ━━ 背面左：編集ボタン（右スワイプで露出） ━━ */}
-      <div className="absolute top-0 left-0 h-full flex items-center justify-start z-0">
-        <button
-          onClick={(e) => { e.stopPropagation(); onEdit(player); setOffsetX(0); }}
-          className="h-full w-[65px] flex flex-col items-center justify-center gap-1 bg-primary/10 text-primary active:bg-primary/20 transition-colors"
-        >
-          <Pencil className="h-4 w-4" strokeWidth={2.5} />
-          <span className="text-[9px] font-black uppercase tracking-wider">編集</span>
-        </button>
-      </div>
-
-      {/* ━━ 背面右：削除ボタン（左スワイプで露出） ━━ */}
-      <div className="absolute top-0 right-0 h-full flex items-center justify-end z-0">
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(player); setOffsetX(0); }}
-          className="h-full w-[65px] flex flex-col items-center justify-center gap-1 bg-destructive/10 text-destructive active:bg-destructive/20 transition-colors"
-        >
-          <Trash2 className="h-4 w-4" strokeWidth={2.5} />
-          <span className="text-[9px] font-black uppercase tracking-wider">削除</span>
-        </button>
-      </div>
-
-      {/* ━━ 前面：選手情報カード ━━ */}
-      <div
-        className="relative z-10 flex items-stretch h-full bg-card transition-transform duration-200 ease-out"
-        style={{ transform: `translateX(${offsetX}px)`, touchAction: "pan-y" }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onClick={handleCardClick}
-      >
-        {/* 左：背番号カラム */}
-        <div className={cn("flex flex-col items-center justify-center w-[4.5rem] shrink-0 py-4 gap-1", colors.accent)}>
-          <span className={cn("text-3xl font-black italic tabular-nums leading-none tracking-tighter", colors.accentText)}>
-            {player.uniformNumber}
-          </span>
-          {player.primaryPosition && (
-            <span className={cn("text-[9px] font-black uppercase tracking-wider leading-none opacity-80", colors.accentText)}>
-              {player.primaryPosition}
-            </span>
-          )}
+      {/* ━━ 背面ボタン（Opacity Controlによる透け防止） ━━ */}
+      <div className={cn(
+        "absolute inset-0 z-0 transition-opacity duration-150 bg-transparent",
+        (offsetX !== 0) ? "opacity-100" : "opacity-0 pointer-events-none"
+      )}>
+        <div className="absolute top-0 left-0 h-full w-[75px]">
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(player); setOffsetX(0); }}
+            className="h-full w-full flex flex-col items-center justify-center gap-1 bg-blue-500 text-white active:bg-blue-600 transition-colors"
+          >
+            <Pencil className="h-5 w-5 mb-1" strokeWidth={2.5} />
+            <span className="text-[10px] font-black uppercase tracking-wider">編集</span>
+          </button>
         </div>
+        <div className="absolute top-0 right-0 h-full w-[75px]">
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(player); setOffsetX(0); }}
+            className="h-full w-full flex flex-col items-center justify-center gap-1 bg-rose-500 text-white active:bg-rose-600 transition-colors"
+          >
+            <Trash2 className="h-5 w-5 mb-1" strokeWidth={2.5} />
+            <span className="text-[10px] font-black uppercase tracking-wider">削除</span>
+          </button>
+        </div>
+      </div>
 
-        {/* 中央：選手情報 */}
-        <div className="flex-1 px-3.5 py-3 min-w-0 flex flex-col justify-center gap-0.5 pointer-events-none">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className={cn("inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md border", colors.badge)}>
-              <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", colors.dot)} />
-              {posLabel ?? "未設定"}
+      {/* ━━ 前面カード本体 ━━ */}
+      <div
+        style={{ transform: `translateX(${offsetX}px)`, touchAction: "pan-y" }}
+        className={cn(
+          "relative z-10 flex flex-col h-full transition-transform duration-200 ease-out",
+          isExpanded ? "bg-primary/5 dark:bg-primary/10" : "bg-card"
+        )}
+      >
+        {/* カードヘッダー（タップ領域） */}
+        <div
+          className="flex items-stretch cursor-pointer"
+          onClick={handleCardClick}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* 左：背番号カラム */}
+          <div className={cn("flex flex-col items-center justify-center w-[4.5rem] shrink-0 py-4 gap-1", colors.accent)}>
+            <span className={cn("text-3xl font-black italic tabular-nums leading-none tracking-tighter", colors.accentText)}>
+              {player.uniformNumber}
             </span>
-            {!isActive && (
-              <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
-                非アクティブ
+            {player.primaryPosition && (
+              <span className={cn("text-[9px] font-black uppercase tracking-wider leading-none opacity-80", colors.accentText)}>
+                {player.primaryPosition}
               </span>
             )}
           </div>
-          <p className="text-[1.05rem] font-black tracking-tight text-card-foreground leading-snug truncate">
-            {player.name}
-          </p>
-          {(throwsLabel || batsLabel) && (
-            <p className="text-[10px] font-bold text-muted-foreground leading-none">
-              {throwsLabel && `投：${throwsLabel}`}{throwsLabel && batsLabel && "　"}{batsLabel && `打：${batsLabel}`}
+
+          {/* 中央：選手情報 */}
+          <div className="flex-1 px-3.5 py-3 min-w-0 flex flex-col justify-center gap-0.5 pointer-events-none">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className={cn("inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md border", colors.badge)}>
+                <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", colors.dot)} />
+                {posLabel ?? "未設定"}
+              </span>
+              {!isActive && (
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
+                  非アクティブ
+                </span>
+              )}
+            </div>
+            <p className="text-[1.05rem] font-black tracking-tight text-foreground leading-snug truncate">
+              {player.name}
             </p>
-          )}
+            {(throwsLabel || batsLabel) && (
+              <p className="text-[10px] font-bold text-muted-foreground leading-none">
+                {throwsLabel && `投：${throwsLabel}`}{throwsLabel && batsLabel && "　"}{batsLabel && `打：${batsLabel}`}
+              </p>
+            )}
+          </div>
+
+          {/* 💡 右：展開状態を示すアイコンに変更 */}
+          <div className="flex items-center justify-center px-4 shrink-0 text-muted-foreground/50 border-l border-border/40 pointer-events-none">
+            {isExpanded ? (
+              <ChevronUp className="h-5 w-5 text-primary" strokeWidth={2.5} />
+            ) : (
+              <ChevronDown className="h-5 w-5" strokeWidth={2} />
+            )}
+          </div>
         </div>
 
-        {/* 右：詳細へ進むアイコン（常時表示） */}
-        <div className="flex items-center justify-center px-3 shrink-0 text-muted-foreground/50 border-l border-border/40 pointer-events-none">
-          <ChevronRight className="h-5 w-5" strokeWidth={2} />
-        </div>
+        {/* ━━ 💡 展開時の詳細情報エリア ━━ */}
+        {isExpanded && (
+          <div className="border-t border-border/50 bg-card">
+            <div className="p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              
+              {/* 直近の活躍プレースホルダー（今後のアップデート用） */}
+              <div className="rounded-xl bg-muted/30 border border-dashed border-border/60 p-4 text-center mb-4">
+                <BarChart2 className="h-6 w-6 text-muted-foreground/40 mx-auto mb-2" strokeWidth={2} />
+                <p className="text-sm font-black text-muted-foreground/80">直近試合の成績がここに表示されます</p>
+                <p className="text-[10px] font-bold text-muted-foreground/50 mt-1 tracking-wider uppercase">
+                  ※今後のアップデートで実装予定🔥
+                </p>
+              </div>
+
+              {/* 選手明細ページへの導線 */}
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation(); // 展開が閉じるのを防ぐ
+                  onDetail(player);
+                }}
+                className="w-full h-12 rounded-[var(--radius-lg)] font-black gap-2 shadow-sm text-sm"
+              >
+                <User className="h-4 w-4" strokeWidth={2.5} />
+                選手の詳細情報を見る
+              </Button>
+            </div>
+          </div>
+        )}
+
       </div>
-
     </div>
   );
 }
