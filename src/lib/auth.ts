@@ -11,6 +11,9 @@ interface AuthEnv {
   GOOGLE_CLIENT_SECRET?: string;
   LINE_CLIENT_ID?: string;
   LINE_CLIENT_SECRET?: string;
+  MICROSOFT_CLIENT_ID?: string;
+  MICROSOFT_CLIENT_SECRET?: string;
+  MICROSOFT_TENANT_ID?: string;
   [key: string]: unknown; // 他の Bindings（DB, BUCKET, ASSETS 等）を許容
 }
 
@@ -64,11 +67,18 @@ export const getAuth = (d1: D1Database, env?: AuthEnv) => {
           clientSecret: env.LINE_CLIENT_SECRET || "",
         },
       } : {}),
+      ...(env?.MICROSOFT_CLIENT_ID ? {
+        microsoft: {
+          clientId: env.MICROSOFT_CLIENT_ID,
+          clientSecret: env.MICROSOFT_CLIENT_SECRET || "",
+          tenantId: env.MICROSOFT_TENANT_ID || "common",
+        },
+      } : {}),
     },
     account: {
       accountLinking: {
         enabled: true,
-        trustedProviders: ["google", "line"], // 信頼するプロバイダを指定
+        trustedProviders: ["google", "line", "microsoft"], // 信頼するプロバイダを指定
       },
     },
   });

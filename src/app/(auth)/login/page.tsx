@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { BsMicrosoft } from "react-icons/bs";
 /** 💡 Better-Auth のクライアントをインポート */
 import { authClient } from "@/lib/auth-client"; 
 
@@ -17,7 +18,7 @@ export default function LoginPage() {
    * 💡 ソーシャルログイン実行 (Better-Auth 仕様)
    * signIn.social を使用して、各プロバイダーの承認ページへ安全に遷移します。
    */
-  const handleSocialLogin = async (provider: "line" | "google") => {
+  const handleSocialLogin = async (provider: "line" | "google" | "microsoft") => {
     setLoadingProvider(provider);
     
     try {
@@ -32,7 +33,8 @@ export default function LoginPage() {
 
     } catch (error) {
       console.error(`${provider} login error:`, error);
-      toast.error("承認ページへの移動に失敗しました。");
+      const providerName = provider === 'google' ? 'Google' : provider === 'line' ? 'LINE' : 'Microsoft';
+      toast.error(`${providerName}でのログインに失敗しました。`);
       setLoadingProvider(null);
     }
   };
@@ -107,6 +109,23 @@ export default function LoginPage() {
                     <Image src="/google-logo.png" alt="Google" fill className="object-contain" />
                   </div>
                   <span className="w-full text-center pr-8">Googleで入場</span>
+                </>
+              )}
+            </Button>
+
+            {/* Microsoft ログイン */}
+            <Button 
+              onClick={() => handleSocialLogin("microsoft")}
+              disabled={!!loadingProvider}
+              variant="secondary"
+              className="h-16 w-full rounded-[24px] bg-[#2f2f2f] hover:bg-[#1a1a1a] text-white font-black text-lg shadow-xl shadow-black/10 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
+            >
+              {loadingProvider === "microsoft" ? (
+                <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
+              ) : (
+                <>
+                  <BsMicrosoft size={32} className="shrink-0 text-[#00a4ef]" />
+                  <span className="w-full text-center pr-8">Microsoftで入場</span>
                 </>
               )}
             </Button>
