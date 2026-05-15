@@ -194,9 +194,8 @@ export default function PlayerRosterPage() {
                   router.push(`/players/detail?${params.toString()}`);
                 }}
               />
-            ))
-          )}
-        </div>
+          ))
+        )}
       </div>
 
       {/* ━━ 💡 現場仕様: 各種ダイアログを完全復旧（onInteractOutside装備） ━━ */}
