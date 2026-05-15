@@ -10,11 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Search, UserPlus, Loader2, UserCircle, Users } from "lucide-react";
 import { toast } from "sonner";
 
-// 共通レイアウトコンポーネント
+// 💡 共通レイアウトコンポーネント（現場至上主義UI）
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
 
-// 分割したコンポーネント・型・定数
+// 💡 分割したコンポーネント・型・定数のインポート
 import { Player, PlayerFormData, PosCategory } from "@/types/player";
 import { getCategory } from "@/components/features/players/constants";
 import { PlayerCard } from "@/components/features/players/PlayerCard";
@@ -29,18 +29,20 @@ export default function PlayerRosterPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<PosCategory | "すべて">("すべて");
 
-  // 💡 モーダル表示用の状態
+  // ダイアログ・モーダル用の状態管理
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Player | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Player | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ━━ データの取得 (Cloudflare Workers API) ━━
   const fetchPlayers = useCallback(async (tid: string) => {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/teams/${tid}/players`);
       if (!res.ok) throw new Error("データの取得に失敗しました");
       
+      // 💡 unknownエラー回避のための明示的な型キャスト
       const data = (await res.json()) as Player[];
       setPlayers(Array.isArray(data) ? data : []);
     } catch {
@@ -52,21 +54,27 @@ export default function PlayerRosterPage() {
 
   useEffect(() => {
     const tid = localStorage.getItem("iscore_selectedTeamId");
-    if (!tid) { setIsLoading(false); return; }
+    if (!tid) {
+      setIsLoading(false);
+      return;
+    }
     setTeamId(tid);
     fetchPlayers(tid);
   }, [fetchPlayers]);
 
+  // ━━ CRUD アクション ━━
   const handleAdd = async (data: PlayerFormData) => {
     if (!teamId) return;
     setIsSubmitting(true);
     try {
       const res = await fetch(`/api/teams/${teamId}/players`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error();
       toast.success(`${data.name} 選手を登録しました`);
-      setIsAddOpen(false); // 💡 成功したら閉じる
+      setIsAddOpen(false);
       await fetchPlayers(teamId);
     } catch {
       toast.error("登録に失敗しました");
@@ -80,11 +88,13 @@ export default function PlayerRosterPage() {
     setIsSubmitting(true);
     try {
       const res = await fetch(`/api/teams/${teamId}/players/${editTarget.id}`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error();
       toast.success(`${data.name} 選手を更新しました`);
-      setEditTarget(null); // 💡 成功したら閉じる
+      setEditTarget(null);
       await fetchPlayers(teamId);
     } catch {
       toast.error("更新に失敗しました");
@@ -97,10 +107,12 @@ export default function PlayerRosterPage() {
     if (!teamId || !deleteTarget) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch(`/api/teams/${teamId}/players/${deleteTarget.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/teams/${teamId}/players/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error();
       toast.success(`${deleteTarget.name} 選手を削除しました`);
-      setDeleteTarget(null); // 💡 成功したら閉じる
+      setDeleteTarget(null);
       await fetchPlayers(teamId);
     } catch {
       toast.error("削除に失敗しました");
@@ -109,6 +121,7 @@ export default function PlayerRosterPage() {
     }
   };
 
+  // ━━ フィルタリング ━━
   const filtered = players.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.uniformNumber.includes(searchQuery);
     const cat = getCategory(p.primaryPosition);
@@ -121,6 +134,7 @@ export default function PlayerRosterPage() {
     return acc;
   }, {});
 
+  // ━━ レンダリング ━━
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -132,10 +146,16 @@ export default function PlayerRosterPage() {
     );
   }
 
+  // チーム未選択時
   if (!teamId) {
     return (
       <div className="flex h-[60vh] items-center justify-center p-6 animate-in fade-in">
-        <EmptyState icon={UserCircle} title="チームが選択されていません" description="ダッシュボードでチームを選択してください" className="w-full max-w-sm"/>
+        <EmptyState 
+          icon={UserCircle} 
+          title="チームが選択されていません" 
+          description="ダッシュボードでチームを選択してください" 
+          className="w-full max-w-sm"
+        />
       </div>
     );
   }
@@ -144,16 +164,22 @@ export default function PlayerRosterPage() {
     <div className="min-h-screen pb-28 animate-in fade-in duration-400">
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
         
+        {/* ━━ ページヘッダー ━━ */}
         <div className="space-y-4">
-          <SectionHeader title="選手名簿" subtitle="PLAYERS" showPulse={true} />
+          <SectionHeader 
+            title="選手名簿" 
+            subtitle="PLAYERS" 
+            showPulse={true} 
+          />
           
           <div className="flex items-center justify-between bg-card p-3 rounded-[var(--radius-xl)] border border-border shadow-sm">
             <p className="text-sm font-black text-foreground flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-primary" />{players.length}
+              <Users className="h-4 w-4 text-primary" />
+              {players.length}
               <span className="text-xs font-bold text-muted-foreground">名登録中</span>
             </p>
             <Button 
-              onClick={() => setIsAddOpen(true)} // 💡 ここでモーダルを開く
+              onClick={() => setIsAddOpen(true)} 
               size="sm" 
               className="h-9 px-4 rounded-[var(--radius-lg)] font-black gap-2"
             >
@@ -163,28 +189,48 @@ export default function PlayerRosterPage() {
           </div>
         </div>
 
+        {/* ━━ カテゴリ別サマリー ━━ */}
         <div className="grid grid-cols-4 gap-2">
           {(["投手", "捕手", "内野手", "外野手"] as PosCategory[]).map(cat => (
-            <SummaryCard key={cat} cat={cat} count={counts[cat] ?? 0} isActive={filter === cat} onClick={() => setFilter(filter === cat ? "すべて" : cat)} />
+            <SummaryCard 
+              key={cat} 
+              cat={cat} 
+              count={counts[cat] ?? 0} 
+              isActive={filter === cat} 
+              onClick={() => setFilter(filter === cat ? "すべて" : cat)} 
+            />
           ))}
         </div>
 
+        {/* ━━ 検索窓 ━━ */}
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input placeholder="名前・背番号で検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-11 pl-10 rounded-[var(--radius-xl)] font-medium bg-card border-border" />
+          <Input 
+            placeholder="名前・背番号で検索..." 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)} 
+            className="h-11 pl-10 rounded-[var(--radius-xl)] font-medium bg-card border-border" 
+          />
         </div>
 
+        {/* ━━ 選手リスト ━━ */}
         <div className="grid grid-cols-1 gap-3">
           {filtered.length === 0 ? (
-            <EmptyState icon={Users} title="選手が見つかりません" description="検索条件を変更するか、新しい選手を追加してください" className="mt-4"/>
+            <EmptyState 
+              icon={Users} 
+              title="選手が見つかりません" 
+              description="検索条件を変更するか、新しい選手を追加してください" 
+              className="mt-4"
+            />
           ) : (
             filtered.map(player => (
-              <PlayerCard
-                key={player.id}
-                player={player}
-                teamId={teamId}
-                onEdit={setEditTarget}
-                onDelete={setDeleteTarget}
+              <PlayerCard 
+                key={player.id} 
+                player={player} 
+                teamId={teamId} 
+                onEdit={setEditTarget} 
+                onDelete={setDeleteTarget} 
+                // 💡 Hono/Cloudflare用のURLパラメータ付き遷移！
                 onDetail={() => {
                   const params = new URLSearchParams({
                     teamId: teamId || "",
@@ -192,15 +238,15 @@ export default function PlayerRosterPage() {
                     uniformNumber: player.uniformNumber
                   });
                   router.push(`/players/detail?${params.toString()}`);
-                }}
+                }} 
               />
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
 
-      {/* ━━ 💡 現場仕様: 各種ダイアログを完全復旧（onInteractOutside装備） ━━ */}
+      {/* ━━ 各種ダイアログ (現場仕様: onInteractOutsideを装備) ━━ */}
       
-      {/* 選手追加ダイアログ */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent onInteractOutside={(e) => e.preventDefault()} className="rounded-[var(--radius-2xl)] bg-card border-border sm:max-w-md">
           <DialogHeader>
@@ -211,7 +257,6 @@ export default function PlayerRosterPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 選手編集ダイアログ */}
       <Dialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)}>
         <DialogContent onInteractOutside={(e) => e.preventDefault()} className="rounded-[var(--radius-2xl)] bg-card border-border sm:max-w-md">
           <DialogHeader>
@@ -231,7 +276,6 @@ export default function PlayerRosterPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 選手削除ダイアログ */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent onInteractOutside={(e) => e.preventDefault()} className="rounded-[var(--radius-2xl)] bg-card border-border sm:max-w-md">
           <DialogHeader>
@@ -249,7 +293,6 @@ export default function PlayerRosterPage() {
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }
