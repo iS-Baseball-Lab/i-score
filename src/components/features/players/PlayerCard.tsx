@@ -55,12 +55,14 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
 
+    // 💡 Smart Swipe Control: 縦スクロールと判定したらスワイプをキャンセル
     if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 5) {
       isVerticalScroll.current = true;
       setOffsetX(0);
       return;
     }
 
+    // 展開中は誤動作防止のため横スワイプを無効化
     if (isExpanded) {
       return;
     }
@@ -96,6 +98,7 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
   };
 
   return (
+    // 💡 外側ラッパーによる角丸くり抜き（Outer Masking）
     <div className={cn(
       "group relative overflow-hidden transition-all duration-200 ease-out",
       "rounded-[var(--radius-2xl)] border",
@@ -103,6 +106,7 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
       !isActive && "opacity-60"
     )}>
       
+      {/* ━━ 背面ボタン（Opacity Controlによる透け防止） ━━ */}
       <div className={cn(
         "absolute inset-0 z-0 transition-opacity duration-150 bg-transparent",
         (offsetX !== 0) ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -127,6 +131,7 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
         </div>
       </div>
 
+      {/* ━━ 前面カード本体 ━━ */}
       <div
         style={{ transform: `translateX(${offsetX}px)`, touchAction: "pan-y" }}
         className={cn(
@@ -134,6 +139,7 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
           isExpanded ? "bg-primary/5 dark:bg-primary/10" : "bg-card"
         )}
       >
+        {/* カードヘッダー（タップ領域） */}
         <div
           className="flex items-stretch cursor-pointer"
           onClick={handleCardClick}
@@ -183,7 +189,7 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
           </div>
         </div>
 
-        {/* ━━ 💡 展開時の詳細情報エリア (背景を bg-transparent に変更) ━━ */}
+        {/* ━━ 💡 展開時の詳細情報エリア (背景をシームレス化) ━━ */}
         {isExpanded && (
           <div className="border-t border-border/50 bg-transparent">
             <div className="p-4 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -196,6 +202,7 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
                 </p>
               </div>
 
+              {/* URLパラメータ付きで明細ページへ遷移するためのフック */}
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
