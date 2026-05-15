@@ -179,7 +179,21 @@ export default function PlayerRosterPage() {
             <EmptyState icon={Users} title="選手が見つかりません" description="検索条件を変更するか、新しい選手を追加してください" className="mt-4"/>
           ) : (
             filtered.map(player => (
-              <PlayerCard key={player.id} player={player} teamId={teamId} onEdit={setEditTarget} onDelete={setDeleteTarget} onDetail={() => router.push(`/players/${player.id}`)} />
+              <PlayerCard
+                key={player.id}
+                player={player}
+                teamId={teamId}
+                onEdit={setEditTarget}
+                onDelete={setDeleteTarget}
+                onDetail={() => {
+                  const params = new URLSearchParams({
+                    teamId: teamId || "",
+                    playerName: player.name,
+                    uniformNumber: player.uniformNumber
+                  });
+                  router.push(`/players/detail?${params.toString()}`);
+                }}
+              />
             ))
           )}
         </div>
