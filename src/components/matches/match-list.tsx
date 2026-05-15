@@ -1,7 +1,7 @@
 // filepath: `src/components/matches/match-list.tsx`
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Edit2, Calendar, MapPin, Trophy, Trash2, ChevronDown, ChevronUp, Swords } from "lucide-react";
 import { toast } from "sonner";
@@ -37,24 +37,29 @@ const formatScoreDisplay = ({ score, isBottom, isInningFinal, isHomeWinning }: F
 export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
   const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [swipeId, setSwipeId] = useState<string | null>(null);
-  const [startX, setStartX] = useState(0);
-  const [startY, setStartY] = useState(0);
-  const [offsetX, setOffsetX] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
   const [teamFullName, setTeamFullName] = useState("");
+
+  // ━━ スワイプ操作の状態管理 (選手一覧のSmart Swipe Controlを移植) ━━
+  const [swipeId, setSwipeId] = useState<string | null>(null);
+  const [offsetX, setOffsetX] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const startOffsetX = useRef<number>(0);
+  const isVerticalScroll = useRef(false);
+
+  const ACTION_WIDTH = 75; // 💡 現場で押しやすい75px幅に設定
 
   useEffect(() => {
     const fetchTeamName = async () => {
-      // 💡 キーを小文字sに統一
       const teamId = localStorage.getItem("iscore_selectedTeamId");
       if (!teamId) return;
       const teamRes = await fetch("/api/auth/me");
       if (teamRes.ok) {
+        // 💡 厳格な型定義とキャスト
         const res = (await teamRes.json()) as { data: { memberships: { teamId: string; organizationName?: string; teamName: string }[] } };
         const currentMembership = res.data.memberships.find(m => m.teamId === teamId);
         if (currentMembership) {
-          setTeamFullName(`${currentMembership.organizationName} ${currentMembership.teamName}`);
+          setTeamFullName(`${currentMembership.organizationName ?? ""} ${currentMembership.teamName}`.trim());
         }
       }
     };
@@ -64,7 +69,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
   // 1. ローディング状態の表示
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 px-1">
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-28 w-full rounded-2xl bg-muted/50 animate-pulse" />
         ))}
@@ -72,7 +77,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
     );
   }
 
-  // 2. 💡 統一された EmptyState への対応
+  // 2. データゼロ時の EmptyState 適用
   if (!matches || matches.length === 0) {
     return (
       <EmptyState
@@ -83,37 +88,72 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
     );
   }
 
-  // スワイプ操作等のハンドラー (ロジック維持)
+  // ━━ タッチイベントハンドラー ━━
   const handleTouchStart = (e: React.TouchEvent, id: string) => {
-    setStartX(e.touches[0].clientX);
-    setStartY(e.touches[0].clientY);
-    setSwipeId(id);
-    setIsScrolling(false);
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    
+    // 💡 別のカードをスワイプし始めたら、既存のカードを閉じる
+    if (swipeId !== id) {
+      setOffsetX(0);
+      setSwipeId(id);
+      startOffsetX.current = 0;
+    } else {
+      startOffsetX.current = offsetX;
+    }
+    isVerticalScroll.current = false;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null || isVerticalScroll.current) return;
+
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
-    const diffX = currentX - startX;
-    const diffY = currentY - startY;
+    const diffX = currentX - touchStartX.current;
+    const diffY = currentY - touchStartY.current;
 
-    if (!isScrolling && Math.abs(diffY) > Math.abs(diffX)) {
-      setIsScrolling(true);
+    // 💡 縦スクロールと判定したらスワイプをキャンセル（Smart Swipe Control）
+    if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 5) {
+      isVerticalScroll.current = true;
+      setOffsetX(0);
       return;
     }
-    if (isScrolling) return;
 
-    if (Math.abs(diffX) > 5) {
-      if (expandedId !== null) setExpandedId(null);
-      if (Math.abs(diffX) < 100) setOffsetX(diffX);
+    // 💡 詳細展開中（スコア表が開いている時）は横スワイプを無効化し、誤動作を防ぐ
+    if (expandedId === swipeId) {
+      return;
     }
+
+    let newOffsetX = startOffsetX.current + diffX;
+    if (newOffsetX > ACTION_WIDTH) newOffsetX = ACTION_WIDTH;
+    if (newOffsetX < -ACTION_WIDTH) newOffsetX = -ACTION_WIDTH;
+
+    setOffsetX(newOffsetX);
   };
 
   const handleTouchEnd = () => {
-    if (offsetX > 50) setOffsetX(80);
-    else if (offsetX < -50) setOffsetX(-80);
-    else { setOffsetX(0); setSwipeId(null); }
-    setIsScrolling(false);
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    if (offsetX > ACTION_WIDTH / 2) {
+      setOffsetX(ACTION_WIDTH); // 右スワイプ -> 編集露出
+    } else if (offsetX < -ACTION_WIDTH / 2) {
+      setOffsetX(-ACTION_WIDTH); // 左スワイプ -> 削除露出
+    } else {
+      setOffsetX(0);
+      setSwipeId(null);
+    }
+  };
+
+  const handleCardClick = (id: string) => {
+    // 💡 スワイプが開いている時は、詳細展開をキャンセルして「閉じる」動作を優先
+    if (swipeId === id && offsetX !== 0) {
+      setOffsetX(0);
+      setTimeout(() => setSwipeId(null), 200); // アニメーション終了後にIDクリア
+      return;
+    }
+    // スコア詳細のトグル展開
+    setExpandedId(expandedId === id ? null : id);
   };
 
   const handleDelete = async (id: string) => {
@@ -123,9 +163,11 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
       if (res.ok) {
         toast.success("試合を削除しました");
         if (onDelete) onDelete(id);
+      } else {
+        throw new Error();
       }
     } catch (error) {
-      toast.error("エラーが発生しました");
+      toast.error("削除エラーが発生しました");
     }
   };
 
@@ -137,6 +179,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
         const isDraw = match.myScore === match.opponentScore;
         const isExpanded = expandedId === match.id;
         const isSwiping = swipeId === match.id;
+        const currentOffset = isSwiping ? offsetX : 0;
 
         const firstScore = match.battingOrder === 'first' ? match.myScore : match.opponentScore;
         const secondScore = match.battingOrder === 'first' ? match.opponentScore : match.myScore;
@@ -150,49 +193,48 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
         const isHomeWinning = secondScore > firstScore;
 
         return (
-          <div key={match.id} className="relative">
-            {/* 背面ボタン */}
-            <div className={cn(
-              "absolute inset-0 flex items-center justify-between px-1 transition-opacity duration-200",
-              (isSwiping && Math.abs(offsetX) > 10) ? "opacity-100" : "opacity-0 pointer-events-none"
-            )}>
+          <div key={match.id} className="relative rounded-2xl">
+            
+            {/* ━━ 背面左：編集ボタン（高コントラスト版） ━━ */}
+            <div className="absolute top-0 left-0 h-full flex items-center justify-start z-0 w-1/2">
               <button
-                onClick={() => router.push(`/matches/edit?id=${match.id}`)}
-                className="flex flex-col items-center justify-center w-16 h-[calc(100%-8px)] bg-blue-500 text-white rounded-xl shadow-sm active:scale-95"
+                onClick={(e) => { e.stopPropagation(); router.push(`/matches/edit?id=${match.id}`); }}
+                className="flex flex-col items-center justify-center w-[75px] h-full bg-blue-500 text-white rounded-l-2xl shadow-sm active:bg-blue-600 transition-colors"
               >
                 <Edit2 className="h-5 w-5 mb-1" />
-                <span className="text-[10px] font-black">編集</span>
-              </button>
-              <button
-                onClick={() => handleDelete(match.id)}
-                className="flex flex-col items-center justify-center w-16 h-[calc(100%-8px)] bg-rose-500 text-white rounded-xl shadow-sm active:scale-95"
-              >
-                <Trash2 className="h-5 w-5 mb-1" />
-                <span className="text-[10px] font-black">削除</span>
+                <span className="text-[10px] font-black uppercase tracking-wider">編集</span>
               </button>
             </div>
 
-            {/* カード本体 */}
+            {/* ━━ 背面右：削除ボタン（高コントラスト版） ━━ */}
+            <div className="absolute top-0 right-0 h-full flex items-center justify-end z-0 w-1/2">
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDelete(match.id); setOffsetX(0); }}
+                className="flex flex-col items-center justify-center w-[75px] h-full bg-rose-500 text-white rounded-r-2xl shadow-sm active:bg-rose-600 transition-colors"
+              >
+                <Trash2 className="h-5 w-5 mb-1" />
+                <span className="text-[10px] font-black uppercase tracking-wider">削除</span>
+              </button>
+            </div>
+
+            {/* ━━ 前面カード本体 ━━ */}
             <div
               onTouchStart={(e) => handleTouchStart(e, match.id)}
               onTouchMove={(e) => handleTouchMove(e)}
-              onTouchEnd={() => handleTouchEnd()}
-              style={{ transform: isSwiping ? `translateX(${offsetX}px)` : 'translateX(0)' }}
+              onTouchEnd={handleTouchEnd}
+              style={{ transform: `translateX(${currentOffset}px)`, touchAction: "pan-y" }}
               className={cn(
-                "relative z-10 rounded-2xl border transition-all duration-300 ease-out",
+                "relative z-10 rounded-2xl border transition-all duration-200 ease-out",
                 isExpanded
-                  ? "bg-primary/10 border-primary shadow-sm shadow-primary/5"
+                  ? "bg-primary/5 border-primary/40 shadow-sm shadow-primary/5" // 💡 グラスモーフィズムを排除しソリッドに
                   : "bg-card border-border/50 shadow-sm"
               )}
             >
               <div
                 className="p-4 sm:p-5 cursor-pointer"
-                onClick={() => {
-                  if (Math.abs(offsetX) < 10) setExpandedId(isExpanded ? null : match.id);
-                  setOffsetX(0); setSwipeId(null);
-                }}
+                onClick={() => handleCardClick(match.id)}
               >
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center justify-between gap-4 pointer-events-none">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className={cn(
@@ -219,10 +261,10 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                   <div className="flex flex-col items-center gap-1.5 shrink-0">
                     <div className="w-14 text-center">
                       {isWin && <span className="block w-full bg-blue-600 text-white text-[11px] font-black py-0.5 rounded shadow-sm">WIN</span>}
-                      {isLoss && <span className="block w-full bg-red-600 text-white text-[11px] font-black py-0.5 rounded shadow-sm">LOSE</span>}
+                      {isLoss && <span className="block w-full bg-rose-600 text-white text-[11px] font-black py-0.5 rounded shadow-sm">LOSE</span>}
                       {isDraw && <span className="block w-full bg-zinc-500 text-white text-[11px] font-black py-0.5 rounded shadow-sm">DRAW</span>}
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-xl border border-primary/20">
                       <div className="text-center w-7">
                         <p className="text-[9px] font-black text-primary/70 uppercase leading-none">先</p>
                         <span className="text-xl font-black tabular-nums leading-none text-foreground">{firstScore}</span>
@@ -237,7 +279,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                   </div>
                 </div>
 
-                {/* スコア詳細テーブル (維持) */}
+                {/* スコア詳細テーブル */}
                 {isExpanded && (
                   <div className="mt-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -287,6 +329,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                 )}
               </div>
             </div>
+
           </div>
         );
       })}
