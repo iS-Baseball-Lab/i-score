@@ -3,7 +3,6 @@
 /* 💡 選手一覧のカードUIコンポーネント（左右独立スワイプ＆アコーディオン展開対応） */
 
 import React, { useState, useRef } from "react";
-// 💡 ChevronDown/Up, User, BarChart2 を追加
 import { Pencil, Trash2, ChevronDown, ChevronUp, User, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Player, PositionKey } from "@/types/player";
@@ -39,7 +38,7 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
   const startOffsetX = useRef<number>(0);
   const isVerticalScroll = useRef(false);
 
-  const ACTION_WIDTH = 75; // 💡 現場で押しやすい75pxに変更
+  const ACTION_WIDTH = 75;
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -56,14 +55,12 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
 
-    // 縦スクロール判定
     if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 5) {
       isVerticalScroll.current = true;
       setOffsetX(0);
       return;
     }
 
-    // 💡 展開中は誤動作防止のため横スワイプを無効化
     if (isExpanded) {
       return;
     }
@@ -89,19 +86,16 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // スワイプが開いている時は「閉じる」動作を優先
     if (offsetX !== 0) {
       e.preventDefault();
       e.stopPropagation();
       setOffsetX(0);
       return;
     }
-    // 💡 タップで展開・収縮を切り替え
     setIsExpanded(!isExpanded);
   };
 
   return (
-    // 💡 外側ラッパーによる角丸くり抜き（Outer Masking）
     <div className={cn(
       "group relative overflow-hidden transition-all duration-200 ease-out",
       "rounded-[var(--radius-2xl)] border",
@@ -109,7 +103,6 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
       !isActive && "opacity-60"
     )}>
       
-      {/* ━━ 背面ボタン（Opacity Controlによる透け防止） ━━ */}
       <div className={cn(
         "absolute inset-0 z-0 transition-opacity duration-150 bg-transparent",
         (offsetX !== 0) ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -134,7 +127,6 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
         </div>
       </div>
 
-      {/* ━━ 前面カード本体 ━━ */}
       <div
         style={{ transform: `translateX(${offsetX}px)`, touchAction: "pan-y" }}
         className={cn(
@@ -142,7 +134,6 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
           isExpanded ? "bg-primary/5 dark:bg-primary/10" : "bg-card"
         )}
       >
-        {/* カードヘッダー（タップ領域） */}
         <div
           className="flex items-stretch cursor-pointer"
           onClick={handleCardClick}
@@ -150,7 +141,6 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          {/* 左：背番号カラム */}
           <div className={cn("flex flex-col items-center justify-center w-[4.5rem] shrink-0 py-4 gap-1", colors.accent)}>
             <span className={cn("text-3xl font-black italic tabular-nums leading-none tracking-tighter", colors.accentText)}>
               {player.uniformNumber}
@@ -162,7 +152,6 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
             )}
           </div>
 
-          {/* 中央：選手情報 */}
           <div className="flex-1 px-3.5 py-3 min-w-0 flex flex-col justify-center gap-0.5 pointer-events-none">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className={cn("inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md border", colors.badge)}>
@@ -185,7 +174,6 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
             )}
           </div>
 
-          {/* 💡 右：展開状態を示すアイコンに変更 */}
           <div className="flex items-center justify-center px-4 shrink-0 text-muted-foreground/50 border-l border-border/40 pointer-events-none">
             {isExpanded ? (
               <ChevronUp className="h-5 w-5 text-primary" strokeWidth={2.5} />
@@ -195,24 +183,22 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
           </div>
         </div>
 
-        {/* ━━ 💡 展開時の詳細情報エリア ━━ */}
+        {/* ━━ 💡 展開時の詳細情報エリア (背景を bg-transparent に変更) ━━ */}
         {isExpanded && (
-          <div className="border-t border-border/50 bg-card">
+          <div className="border-t border-border/50 bg-transparent">
             <div className="p-4 animate-in fade-in slide-in-from-top-2 duration-300">
               
-              {/* 直近の活躍プレースホルダー（今後のアップデート用） */}
-              <div className="rounded-xl bg-muted/30 border border-dashed border-border/60 p-4 text-center mb-4">
-                <BarChart2 className="h-6 w-6 text-muted-foreground/40 mx-auto mb-2" strokeWidth={2} />
-                <p className="text-sm font-black text-muted-foreground/80">直近試合の成績がここに表示されます</p>
-                <p className="text-[10px] font-bold text-muted-foreground/50 mt-1 tracking-wider uppercase">
+              <div className="rounded-xl bg-background/50 border border-dashed border-primary/20 p-4 text-center mb-4">
+                <BarChart2 className="h-6 w-6 text-primary/40 mx-auto mb-2" strokeWidth={2} />
+                <p className="text-sm font-black text-foreground/80">直近試合の成績がここに表示されます</p>
+                <p className="text-[10px] font-bold text-muted-foreground/60 mt-1 tracking-wider uppercase">
                   ※今後のアップデートで実装予定🔥
                 </p>
               </div>
 
-              {/* 選手明細ページへの導線 */}
               <Button
                 onClick={(e) => {
-                  e.stopPropagation(); // 展開が閉じるのを防ぐ
+                  e.stopPropagation();
                   onDetail(player);
                 }}
                 className="w-full h-12 rounded-[var(--radius-lg)] font-black gap-2 shadow-sm text-sm"
