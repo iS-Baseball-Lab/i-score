@@ -3,14 +3,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-// 💡 BookOpen アイコンを追加
-import { Edit2, Calendar, MapPin, Trophy, Trash2, ChevronDown, ChevronUp, Swords, BookOpen } from "lucide-react";
+// 💡 ClipboardList アイコンを追加
+import { Edit2, Calendar, MapPin, Trophy, Trash2, ChevronDown, ChevronUp, Swords, BookOpen, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Match } from "@/types/match";
-// 💡 共通コンポーネントをインポート
 import { EmptyState } from "@/components/layout/EmptyState";
-import { Button } from "@/components/ui/button"; // 💡 Buttonコンポーネントを追加
+import { Button } from "@/components/ui/button";
 
 interface MatchListProps {
   matches: Match[];
@@ -198,7 +197,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
               "absolute inset-0 z-0 transition-opacity duration-150 bg-transparent",
               (isSwiping && Math.abs(offsetX) > 0) ? "opacity-100" : "opacity-0 pointer-events-none"
             )}>
-              {/* 背面左：編集ボタン */}
               <div className="absolute top-0 left-0 h-full w-[75px]">
                 <button
                   onClick={(e) => { e.stopPropagation(); router.push(`/matches/edit?id=${match.id}`); }}
@@ -209,7 +207,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                 </button>
               </div>
 
-              {/* 背面右：削除ボタン */}
               <div className="absolute top-0 right-0 h-full w-[75px]">
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDelete(match.id); setOffsetX(0); }}
@@ -280,7 +277,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                   </div>
                 </div>
 
-                {/* スコア詳細テーブル ＆ 明細ページへの導線 */}
                 {isExpanded && (
                   <div className="mt-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm flex flex-col">
@@ -326,17 +322,31 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                         </table>
                       </div>
                       
-                      {/* 💡 追加: 試合明細への導線ボタン */}
-                      <div className="p-3 border-t border-border/50 bg-muted/20">
+                      {/* 💡 現場至上主義: デュアルアクション導線（横並びボタン） */}
+                      <div className="p-3 border-t border-border/50 bg-muted/20 flex gap-2">
+                        {/* 1. スコアブック（閲覧メイン：アウトラインスタイルで区別） */}
                         <Button
                           onClick={(e) => {
-                            e.stopPropagation(); // 💡 カードのクリックイベント（開閉）を止める！
-                            router.push(`/matches/${match.id}`);
+                            e.stopPropagation();
+                            router.push(`/matches/${match.id}/scorebook`); // 💡 スコアブック用のルート
                           }}
-                          className="w-full h-11 rounded-[var(--radius-lg)] font-black gap-2 shadow-sm text-sm"
+                          variant="outline"
+                          className="flex-1 h-11 rounded-[var(--radius-lg)] font-black gap-1.5 shadow-sm text-xs sm:text-sm bg-card border-border hover:bg-primary/5 hover:text-primary transition-colors"
                         >
-                          <BookOpen className="h-4 w-4" strokeWidth={2.5} />
-                          スコアブックを開く
+                          <BookOpen className="h-4 w-4 text-primary" strokeWidth={2.5} />
+                          スコアブック
+                        </Button>
+
+                        {/* 2. 試合明細（入力・詳細：プライマリースタイルで強調） */}
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/matches/${match.id}`); // 💡 試合明細（Play-by-play）用のルート
+                          }}
+                          className="flex-1 h-11 rounded-[var(--radius-lg)] font-black gap-1.5 shadow-sm text-xs sm:text-sm"
+                        >
+                          <ClipboardList className="h-4 w-4" strokeWidth={2.5} />
+                          試合明細
                         </Button>
                       </div>
 
