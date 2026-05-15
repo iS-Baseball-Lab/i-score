@@ -1,4 +1,4 @@
-// filepath: `src/components/matches/match-list.tsx`
+// filepath: src/components/matches/match-list.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -39,7 +39,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [teamFullName, setTeamFullName] = useState("");
 
-  // ━━ スワイプ操作の状態管理 (選手一覧のSmart Swipe Controlを移植) ━━
+  // ━━ スワイプ操作の状態管理 ━━
   const [swipeId, setSwipeId] = useState<string | null>(null);
   const [offsetX, setOffsetX] = useState(0);
   const touchStartX = useRef<number | null>(null);
@@ -47,7 +47,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
   const startOffsetX = useRef<number>(0);
   const isVerticalScroll = useRef(false);
 
-  const ACTION_WIDTH = 75; // 💡 現場で押しやすい75px幅に設定
+  const ACTION_WIDTH = 75; // 現場で押しやすい75px幅
 
   useEffect(() => {
     const fetchTeamName = async () => {
@@ -55,7 +55,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
       if (!teamId) return;
       const teamRes = await fetch("/api/auth/me");
       if (teamRes.ok) {
-        // 💡 厳格な型定義とキャスト
         const res = (await teamRes.json()) as { data: { memberships: { teamId: string; organizationName?: string; teamName: string }[] } };
         const currentMembership = res.data.memberships.find(m => m.teamId === teamId);
         if (currentMembership) {
@@ -66,7 +65,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
     fetchTeamName();
   }, []);
 
-  // 1. ローディング状態の表示
   if (isLoading) {
     return (
       <div className="space-y-3 px-1">
@@ -77,7 +75,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
     );
   }
 
-  // 2. データゼロ時の EmptyState 適用
   if (!matches || matches.length === 0) {
     return (
       <EmptyState
@@ -88,12 +85,10 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
     );
   }
 
-  // ━━ タッチイベントハンドラー ━━
   const handleTouchStart = (e: React.TouchEvent, id: string) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     
-    // 💡 別のカードをスワイプし始めたら、既存のカードを閉じる
     if (swipeId !== id) {
       setOffsetX(0);
       setSwipeId(id);
@@ -112,14 +107,12 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
 
-    // 💡 縦スクロールと判定したらスワイプをキャンセル（Smart Swipe Control）
     if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 5) {
       isVerticalScroll.current = true;
       setOffsetX(0);
       return;
     }
 
-    // 💡 詳細展開中（スコア表が開いている時）は横スワイプを無効化し、誤動作を防ぐ
     if (expandedId === swipeId) {
       return;
     }
@@ -136,9 +129,9 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
     touchStartY.current = null;
 
     if (offsetX > ACTION_WIDTH / 2) {
-      setOffsetX(ACTION_WIDTH); // 右スワイプ -> 編集露出
+      setOffsetX(ACTION_WIDTH);
     } else if (offsetX < -ACTION_WIDTH / 2) {
-      setOffsetX(-ACTION_WIDTH); // 左スワイプ -> 削除露出
+      setOffsetX(-ACTION_WIDTH);
     } else {
       setOffsetX(0);
       setSwipeId(null);
@@ -146,13 +139,11 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
   };
 
   const handleCardClick = (id: string) => {
-    // 💡 スワイプが開いている時は、詳細展開をキャンセルして「閉じる」動作を優先
     if (swipeId === id && offsetX !== 0) {
       setOffsetX(0);
-      setTimeout(() => setSwipeId(null), 200); // アニメーション終了後にIDクリア
+      setTimeout(() => setSwipeId(null), 200);
       return;
     }
-    // スコア詳細のトグル展開
     setExpandedId(expandedId === id ? null : id);
   };
 
@@ -193,41 +184,52 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
         const isHomeWinning = secondScore > firstScore;
 
         return (
-          <div key={match.id} className="relative rounded-2xl">
+          // 💡 修正1: 一番外側のラッパーに角丸(rounded)と枠線(border)、overflow-hiddenを持たせる
+          <div key={match.id} className={cn(
+            "group relative overflow-hidden transition-all duration-200 ease-out",
+            "rounded-[var(--radius-2xl)] border",
+            isExpanded
+              ? "border-primary/40 shadow-sm shadow-primary/5"
+              : "border-border/50 shadow-sm"
+          )}>
             
-            {/* ━━ 背面左：編集ボタン（高コントラスト版） ━━ */}
-            <div className="absolute top-0 left-0 h-full flex items-center justify-start z-0 w-1/2">
-              <button
-                onClick={(e) => { e.stopPropagation(); router.push(`/matches/edit?id=${match.id}`); }}
-                className="flex flex-col items-center justify-center w-[75px] h-full bg-blue-500 text-white rounded-l-2xl shadow-sm active:bg-blue-600 transition-colors"
-              >
-                <Edit2 className="h-5 w-5 mb-1" />
-                <span className="text-[10px] font-black uppercase tracking-wider">編集</span>
-              </button>
+            {/* 💡 修正2: スワイプしていない時は完全に見えなくする(opacity-0)ことで、透け問題を解決 */}
+            <div className={cn(
+              "absolute inset-0 z-0 transition-opacity duration-150 bg-transparent",
+              (isSwiping && Math.abs(offsetX) > 0) ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}>
+              {/* 背面左：編集ボタン */}
+              <div className="absolute top-0 left-0 h-full w-[75px]">
+                <button
+                  onClick={(e) => { e.stopPropagation(); router.push(`/matches/edit?id=${match.id}`); }}
+                  className="flex flex-col items-center justify-center w-full h-full bg-blue-500 text-white active:bg-blue-600 transition-colors"
+                >
+                  <Edit2 className="h-5 w-5 mb-1" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">編集</span>
+                </button>
+              </div>
+
+              {/* 背面右：削除ボタン */}
+              <div className="absolute top-0 right-0 h-full w-[75px]">
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDelete(match.id); setOffsetX(0); }}
+                  className="flex flex-col items-center justify-center w-full h-full bg-rose-500 text-white active:bg-rose-600 transition-colors"
+                >
+                  <Trash2 className="h-5 w-5 mb-1" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">削除</span>
+                </button>
+              </div>
             </div>
 
-            {/* ━━ 背面右：削除ボタン（高コントラスト版） ━━ */}
-            <div className="absolute top-0 right-0 h-full flex items-center justify-end z-0 w-1/2">
-              <button
-                onClick={(e) => { e.stopPropagation(); handleDelete(match.id); setOffsetX(0); }}
-                className="flex flex-col items-center justify-center w-[75px] h-full bg-rose-500 text-white rounded-r-2xl shadow-sm active:bg-rose-600 transition-colors"
-              >
-                <Trash2 className="h-5 w-5 mb-1" />
-                <span className="text-[10px] font-black uppercase tracking-wider">削除</span>
-              </button>
-            </div>
-
-            {/* ━━ 前面カード本体 ━━ */}
+            {/* 💡 修正3: 前面カード自体からは角丸と枠線を外し、純粋に背景色だけを持たせてスライドさせる */}
             <div
               onTouchStart={(e) => handleTouchStart(e, match.id)}
               onTouchMove={(e) => handleTouchMove(e)}
               onTouchEnd={handleTouchEnd}
               style={{ transform: `translateX(${currentOffset}px)`, touchAction: "pan-y" }}
               className={cn(
-                "relative z-10 rounded-2xl border transition-all duration-200 ease-out",
-                isExpanded
-                  ? "bg-primary/5 border-primary/40 shadow-sm shadow-primary/5" // 💡 グラスモーフィズムを排除しソリッドに
-                  : "bg-card border-border/50 shadow-sm"
+                "relative z-10 h-full transition-transform duration-200 ease-out",
+                isExpanded ? "bg-primary/5 dark:bg-primary/10" : "bg-card"
               )}
             >
               <div
