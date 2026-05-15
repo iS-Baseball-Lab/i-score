@@ -10,11 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Search, UserPlus, Loader2, UserCircle, Users } from "lucide-react";
 import { toast } from "sonner";
 
-// 💡 共通レイアウトコンポーネント
+// 共通レイアウトコンポーネント
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
 
-// 💡 分割したコンポーネント・型・定数のインポート
+// 分割したコンポーネント・型・定数
 import { Player, PlayerFormData, PosCategory } from "@/types/player";
 import { getCategory } from "@/components/features/players/constants";
 import { PlayerCard } from "@/components/features/players/PlayerCard";
@@ -29,6 +29,7 @@ export default function PlayerRosterPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<PosCategory | "すべて">("すべて");
 
+  // 💡 モーダル表示用の状態
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Player | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Player | null>(null);
@@ -37,7 +38,6 @@ export default function PlayerRosterPage() {
   const fetchPlayers = useCallback(async (tid: string) => {
     setIsLoading(true);
     try {
-      // 💡 Cloudflare WorkersのAPIエンドポイント
       const res = await fetch(`/api/teams/${tid}/players`);
       if (!res.ok) throw new Error("データの取得に失敗しました");
       
@@ -57,7 +57,57 @@ export default function PlayerRosterPage() {
     fetchPlayers(tid);
   }, [fetchPlayers]);
 
-  // ... (handleAdd, handleEdit, handleDelete のロジックは変更なし) ...
+  const handleAdd = async (data: PlayerFormData) => {
+    if (!teamId) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`/api/teams/${teamId}/players`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(`${data.name} 選手を登録しました`);
+      setIsAddOpen(false); // 💡 成功したら閉じる
+      await fetchPlayers(teamId);
+    } catch {
+      toast.error("登録に失敗しました");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = async (data: PlayerFormData) => {
+    if (!teamId || !editTarget) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`/api/teams/${teamId}/players/${editTarget.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(`${data.name} 選手を更新しました`);
+      setEditTarget(null); // 💡 成功したら閉じる
+      await fetchPlayers(teamId);
+    } catch {
+      toast.error("更新に失敗しました");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!teamId || !deleteTarget) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`/api/teams/${teamId}/players/${deleteTarget.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast.success(`${deleteTarget.name} 選手を削除しました`);
+      setDeleteTarget(null); // 💡 成功したら閉じる
+      await fetchPlayers(teamId);
+    } catch {
+      toast.error("削除に失敗しました");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const filtered = players.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.uniformNumber.includes(searchQuery);
@@ -82,16 +132,10 @@ export default function PlayerRosterPage() {
     );
   }
 
-  // 💡 チーム未選択時のEmptyState適用
   if (!teamId) {
     return (
       <div className="flex h-[60vh] items-center justify-center p-6 animate-in fade-in">
-        <EmptyState 
-          icon={UserCircle} 
-          title="チームが選択されていません" 
-          description="ダッシュボードでチームを選択してください" 
-          className="w-full max-w-sm"
-        />
+        <EmptyState icon={UserCircle} title="チームが選択されていません" description="ダッシュボードでチームを選択してください" className="w-full max-w-sm"/>
       </div>
     );
   }
@@ -100,22 +144,16 @@ export default function PlayerRosterPage() {
     <div className="min-h-screen pb-28 animate-in fade-in duration-400">
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
         
-        {/* ━━ ページヘッダー (日本語メイン・英語サブに反転) ━━ */}
         <div className="space-y-4">
-          <SectionHeader 
-            title="選手名簿"   // 💡 メインを日本語に
-            subtitle="PLAYERS" // 💡 サブを英語に
-            showPulse={true} 
-          />
+          <SectionHeader title="選手名簿" subtitle="PLAYERS" showPulse={true} />
           
           <div className="flex items-center justify-between bg-card p-3 rounded-[var(--radius-xl)] border border-border shadow-sm">
             <p className="text-sm font-black text-foreground flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-primary" />
-              {players.length}
+              <Users className="h-4 w-4 text-primary" />{players.length}
               <span className="text-xs font-bold text-muted-foreground">名登録中</span>
             </p>
             <Button 
-              onClick={() => setIsAddOpen(true)} 
+              onClick={() => setIsAddOpen(true)} // 💡 ここでモーダルを開く
               size="sm" 
               className="h-9 px-4 rounded-[var(--radius-lg)] font-black gap-2"
             >
@@ -125,29 +163,20 @@ export default function PlayerRosterPage() {
           </div>
         </div>
 
-        {/* ━━ カテゴリ別サマリー ━━ */}
         <div className="grid grid-cols-4 gap-2">
           {(["投手", "捕手", "内野手", "外野手"] as PosCategory[]).map(cat => (
             <SummaryCard key={cat} cat={cat} count={counts[cat] ?? 0} isActive={filter === cat} onClick={() => setFilter(filter === cat ? "すべて" : cat)} />
           ))}
         </div>
 
-        {/* ━━ 検索 ━━ */}
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input placeholder="名前・背番号で検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-11 pl-10 rounded-[var(--radius-xl)] font-medium bg-card border-border" />
         </div>
 
-        {/* ━━ 選手リスト ━━ */}
         <div className="grid grid-cols-1 gap-3">
           {filtered.length === 0 ? (
-            // 💡 検索結果ゼロ時 / データなし時のEmptyState適用
-            <EmptyState 
-              icon={Users} 
-              title="選手が見つかりません" 
-              description="検索条件を変更するか、新しい選手を追加してください" 
-              className="mt-4"
-            />
+            <EmptyState icon={Users} title="選手が見つかりません" description="検索条件を変更するか、新しい選手を追加してください" className="mt-4"/>
           ) : (
             filtered.map(player => (
               <PlayerCard key={player.id} player={player} teamId={teamId} onEdit={setEditTarget} onDelete={setDeleteTarget} onDetail={() => router.push(`/players/${player.id}`)} />
@@ -156,8 +185,58 @@ export default function PlayerRosterPage() {
         </div>
       </div>
 
-      {/* ━━ 各種ダイアログ (現場仕様: onInteractOutsideを装備) ━━ */}
-      {/* 略: isAddOpen, editTarget, deleteTarget のDialog */}
+      {/* ━━ 💡 現場仕様: 各種ダイアログを完全復旧（onInteractOutside装備） ━━ */}
+      
+      {/* 選手追加ダイアログ */}
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent onInteractOutside={(e) => e.preventDefault()} className="rounded-[var(--radius-2xl)] bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-black text-xl">新規選手の追加</DialogTitle>
+            <DialogDescription className="text-xs font-bold text-muted-foreground">新しい選手情報を入力してください。</DialogDescription>
+          </DialogHeader>
+          <PlayerForm onSubmit={handleAdd} onCancel={() => setIsAddOpen(false)} isSubmitting={isSubmitting} submitLabel="登録する" />
+        </DialogContent>
+      </Dialog>
+
+      {/* 選手編集ダイアログ */}
+      <Dialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)}>
+        <DialogContent onInteractOutside={(e) => e.preventDefault()} className="rounded-[var(--radius-2xl)] bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-black text-xl">選手情報の編集</DialogTitle>
+            <DialogDescription className="text-xs font-bold text-muted-foreground">登録内容を修正します。</DialogDescription>
+          </DialogHeader>
+          {editTarget && (
+            <PlayerForm
+              initial={{
+                name: editTarget.name, uniformNumber: editTarget.uniformNumber,
+                primaryPosition: editTarget.primaryPosition ?? "",
+                throws: editTarget.throws ?? "", bats: editTarget.bats ?? "",
+              }}
+              onSubmit={handleEdit} onCancel={() => setEditTarget(null)} isSubmitting={isSubmitting} submitLabel="更新する"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 選手削除ダイアログ */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent onInteractOutside={(e) => e.preventDefault()} className="rounded-[var(--radius-2xl)] bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-black text-xl text-destructive">選手の削除</DialogTitle>
+            <DialogDescription className="text-sm font-bold mt-2">
+              本当に <span className="text-foreground">{deleteTarget?.name}</span> 選手を削除してもよろしいですか？<br />
+              <span className="text-xs text-muted-foreground">※この操作は取り消せません。</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1 h-12 rounded-[var(--radius-xl)] font-black">キャンセル</Button>
+            <Button type="button" variant="destructive" onClick={handleDelete} disabled={isSubmitting} className="flex-1 h-12 rounded-[var(--radius-xl)] font-black">
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "削除する"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
