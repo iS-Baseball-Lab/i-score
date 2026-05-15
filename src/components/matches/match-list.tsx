@@ -3,12 +3,14 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Edit2, Calendar, MapPin, Trophy, Trash2, ChevronDown, ChevronUp, Swords } from "lucide-react";
+// 💡 BookOpen アイコンを追加
+import { Edit2, Calendar, MapPin, Trophy, Trash2, ChevronDown, ChevronUp, Swords, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Match } from "@/types/match";
 // 💡 共通コンポーネントをインポート
 import { EmptyState } from "@/components/layout/EmptyState";
+import { Button } from "@/components/ui/button"; // 💡 Buttonコンポーネントを追加
 
 interface MatchListProps {
   matches: Match[];
@@ -47,7 +49,7 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
   const startOffsetX = useRef<number>(0);
   const isVerticalScroll = useRef(false);
 
-  const ACTION_WIDTH = 75; // 現場で押しやすい75px幅
+  const ACTION_WIDTH = 75;
 
   useEffect(() => {
     const fetchTeamName = async () => {
@@ -184,7 +186,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
         const isHomeWinning = secondScore > firstScore;
 
         return (
-          // 💡 修正1: 一番外側のラッパーに角丸(rounded)と枠線(border)、overflow-hiddenを持たせる
           <div key={match.id} className={cn(
             "group relative overflow-hidden transition-all duration-200 ease-out",
             "rounded-[var(--radius-2xl)] border",
@@ -193,7 +194,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
               : "border-border/50 shadow-sm"
           )}>
             
-            {/* 💡 修正2: スワイプしていない時は完全に見えなくする(opacity-0)ことで、透け問題を解決 */}
             <div className={cn(
               "absolute inset-0 z-0 transition-opacity duration-150 bg-transparent",
               (isSwiping && Math.abs(offsetX) > 0) ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -221,7 +221,6 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
               </div>
             </div>
 
-            {/* 💡 修正3: 前面カード自体からは角丸と枠線を外し、純粋に背景色だけを持たせてスライドさせる */}
             <div
               onTouchStart={(e) => handleTouchStart(e, match.id)}
               onTouchMove={(e) => handleTouchMove(e)}
@@ -281,10 +280,10 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                   </div>
                 </div>
 
-                {/* スコア詳細テーブル */}
+                {/* スコア詳細テーブル ＆ 明細ページへの導線 */}
                 {isExpanded && (
                   <div className="mt-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                    <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm flex flex-col">
                       <div className="overflow-x-auto">
                         <table className="w-full text-center whitespace-nowrap">
                           <thead className="bg-primary/5 border-b border-border/50">
@@ -326,6 +325,21 @@ export function MatchList({ matches, isLoading, onDelete }: MatchListProps) {
                           </tbody>
                         </table>
                       </div>
+                      
+                      {/* 💡 追加: 試合明細への導線ボタン */}
+                      <div className="p-3 border-t border-border/50 bg-muted/20">
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation(); // 💡 カードのクリックイベント（開閉）を止める！
+                            router.push(`/matches/${match.id}`);
+                          }}
+                          className="w-full h-11 rounded-[var(--radius-lg)] font-black gap-2 shadow-sm text-sm"
+                        >
+                          <BookOpen className="h-4 w-4" strokeWidth={2.5} />
+                          スコアブックを開く
+                        </Button>
+                      </div>
+
                     </div>
                   </div>
                 )}
