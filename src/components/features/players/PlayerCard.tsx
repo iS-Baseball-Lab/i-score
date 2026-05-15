@@ -1,6 +1,6 @@
 // filepath: src/components/features/players/PlayerCard.tsx
 "use client";
-/* 💡 選手一覧のカードUIコンポーネント（スワイプ操作対応） */
+/* 💡 選手一覧のカードUIコンポーネント（左右独立スワイプ操作対応） */
 
 import React, { useState, useRef } from "react";
 import { Pencil, Trash2, ChevronRight } from "lucide-react";
@@ -31,13 +31,15 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
   const [offsetX, setOffsetX] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const startOffsetX = useRef<number>(0); // 💡 開いている状態からのスワイプも滑らかにするための記憶用
   const isVerticalScroll = useRef(false);
 
-  const MAX_SWIPE = -110; // 編集・削除ボタンの合計幅 (55px * 2)
+  const ACTION_WIDTH = 65; // ボタンの幅（現場で押しやすい65pxに設定🔥）
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
+    startOffsetX.current = offsetX;
     isVerticalScroll.current = false;
   };
 
@@ -56,13 +58,12 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
       return;
     }
 
-    // 左方向へのスワイプ（マイナス値）のみ許可
-    if (diffX < 0) {
-      setOffsetX(Math.max(diffX, MAX_SWIPE));
-    } else if (offsetX < 0 && diffX > 0) {
-      // 既に開いている状態から右へスワイプして閉じる
-      setOffsetX(Math.min(0, offsetX + diffX));
-    }
+    // 💡 新しいオフセット位置を計算し、左右の最大幅で制限
+    let newOffsetX = startOffsetX.current + diffX;
+    if (newOffsetX > ACTION_WIDTH) newOffsetX = ACTION_WIDTH;
+    if (newOffsetX < -ACTION_WIDTH) newOffsetX = -ACTION_WIDTH;
+
+    setOffsetX(newOffsetX);
   };
 
   const handleTouchEnd = () => {
@@ -70,8 +71,10 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
     touchStartY.current = null;
 
     // 半分以上スワイプされていたら全開、そうでなければ閉じる
-    if (offsetX < MAX_SWIPE / 2) {
-      setOffsetX(MAX_SWIPE);
+    if (offsetX > ACTION_WIDTH / 2) {
+      setOffsetX(ACTION_WIDTH); // 右スワイプ -> 左の編集ボタンを開く
+    } else if (offsetX < -ACTION_WIDTH / 2) {
+      setOffsetX(-ACTION_WIDTH); // 左スワイプ -> 右の削除ボタンを開く
     } else {
       setOffsetX(0);
     }
@@ -95,18 +98,23 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
       "transition-all duration-200 hover:shadow-md hover:shadow-black/5 dark:hover:shadow-black/20",
       !isActive && "opacity-60",
     )}>
-      {/* ━━ 背面：アクションボタン（スワイプで露出） ━━ */}
-      <div className="absolute top-0 right-0 h-full flex items-center justify-end z-0">
+      
+      {/* ━━ 背面左：編集ボタン（右スワイプで露出） ━━ */}
+      <div className="absolute top-0 left-0 h-full flex items-center justify-start z-0">
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(player); setOffsetX(0); }}
-          className="h-full w-[55px] flex flex-col items-center justify-center gap-1 bg-primary/10 text-primary active:bg-primary/20 transition-colors"
+          className="h-full w-[65px] flex flex-col items-center justify-center gap-1 bg-primary/10 text-primary active:bg-primary/20 transition-colors"
         >
           <Pencil className="h-4 w-4" strokeWidth={2.5} />
           <span className="text-[9px] font-black uppercase tracking-wider">編集</span>
         </button>
+      </div>
+
+      {/* ━━ 背面右：削除ボタン（左スワイプで露出） ━━ */}
+      <div className="absolute top-0 right-0 h-full flex items-center justify-end z-0">
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(player); setOffsetX(0); }}
-          className="h-full w-[55px] flex flex-col items-center justify-center gap-1 bg-destructive/10 text-destructive active:bg-destructive/20 transition-colors"
+          className="h-full w-[65px] flex flex-col items-center justify-center gap-1 bg-destructive/10 text-destructive active:bg-destructive/20 transition-colors"
         >
           <Trash2 className="h-4 w-4" strokeWidth={2.5} />
           <span className="text-[9px] font-black uppercase tracking-wider">削除</span>
@@ -135,7 +143,7 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
         </div>
 
         {/* 中央：選手情報 */}
-        <div className="flex-1 px-3.5 py-3 min-w-0 flex flex-col justify-center gap-0.5">
+        <div className="flex-1 px-3.5 py-3 min-w-0 flex flex-col justify-center gap-0.5 pointer-events-none">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className={cn("inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md border", colors.badge)}>
               <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", colors.dot)} />
@@ -158,10 +166,11 @@ export function PlayerCard({ player, onEdit, onDelete, onDetail }: PlayerCardPro
         </div>
 
         {/* 右：詳細へ進むアイコン（常時表示） */}
-        <div className="flex items-center justify-center px-3 shrink-0 text-muted-foreground/50 border-l border-border/40">
+        <div className="flex items-center justify-center px-3 shrink-0 text-muted-foreground/50 border-l border-border/40 pointer-events-none">
           <ChevronRight className="h-5 w-5" strokeWidth={2} />
         </div>
       </div>
+
     </div>
   );
 }
