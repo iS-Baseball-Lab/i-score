@@ -40,7 +40,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-background p-6 relative overflow-hidden">
+    <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center p-6 relative overflow-hidden">
       
       {/* 🏟 背景演出（屋外視認性を考慮したソリッドなグロー）[cite: 1] */}
       <div className="absolute top-[-20%] right-[-10%] w-[60%] aspect-square bg-primary/15 blur-[120px] rounded-full pointer-events-none" />
@@ -80,7 +80,7 @@ export default function LoginPage() {
             <Button 
               onClick={() => handleSocialLogin("line")}
               disabled={!!loadingProvider}
-              className="h-16 w-full rounded-[24px] bg-[#06C755] hover:bg-[#05b34c] text-white font-black text-lg shadow-xl shadow-emerald-900/10 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
+              className="h-16 w-full rounded-[24px] bg-[#06C755] hover:bg-[#05b34c] text-white font-black text-lg shadow-md shadow-emerald-900/10 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
             >
               {loadingProvider === "line" ? (
                 <Loader2 className="h-8 w-8 animate-spin mx-auto" />
@@ -99,7 +99,7 @@ export default function LoginPage() {
               onClick={() => handleSocialLogin("google")}
               disabled={!!loadingProvider}
               variant="secondary"
-              className="h-16 w-full rounded-[24px] bg-white text-black hover:bg-zinc-100 font-black text-lg shadow-xl shadow-black/5 active:scale-[0.98] transition-all border border-zinc-200 flex items-center justify-start px-6 relative"
+              className="h-16 w-full rounded-[24px] bg-white text-black hover:bg-zinc-100 font-black text-lg shadow-md shadow-black/5 active:scale-[0.98] transition-all border border-zinc-200 flex items-center justify-start px-6 relative"
             >
               {loadingProvider === "google" ? (
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
@@ -118,7 +118,7 @@ export default function LoginPage() {
               onClick={() => handleSocialLogin("microsoft")}
               disabled={!!loadingProvider}
               variant="secondary"
-              className="h-16 w-full rounded-[24px] bg-[#2f2f2f] hover:bg-[#1a1a1a] text-white font-black text-lg shadow-xl shadow-black/10 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
+              className="h-16 w-full rounded-[24px] bg-[#2f2f2f] hover:bg-[#1a1a1a] text-white font-black text-lg shadow-md shadow-black/10 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
             >
               {loadingProvider === "microsoft" ? (
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
@@ -136,10 +136,10 @@ export default function LoginPage() {
       {/* 💡 規約・ポリシーリンク */}
       <footer className="absolute bottom-10 w-full flex flex-col items-center gap-4">
         <div className="flex gap-6">
-          <Link href="/terms" className="text-[10px] font-black text-muted-foreground/40 hover:text-primary tracking-widest uppercase transition-colors">Terms</Link>
-          <Link href="/privacy" className="text-[10px] font-black text-muted-foreground/40 hover:text-primary tracking-widest uppercase transition-colors">Privacy</Link>
+          <Link href="/terms" className="text-[14px] font-black text-muted-foreground/50 hover:text-primary tracking-widest uppercase transition-colors">Terms</Link>
+          <Link href="/privacy" className="text-[14px] font-black text-muted-foreground/50 hover:text-primary tracking-widest uppercase transition-colors">Privacy</Link>
         </div>
-        <p className="text-[9px] font-medium text-muted-foreground/10 tracking-tighter">© 2026 iScoreCloud / iS Baseball Lab</p>
+        <p className="text-[12px] font-medium text-muted-foreground/50 tracking-tighter">© 2026 iScoreCloud / iS Baseball Lab</p>
       </footer>
     </div>
   );
