@@ -281,7 +281,7 @@ export default function PlayerRosterPage() {
           <DialogHeader>
             <DialogTitle className="font-black text-xl text-destructive">選手の削除</DialogTitle>
             <DialogDescription className="text-sm font-bold mt-2">
-              本当に <span className="text-foreground">{deleteTarget?.name}</span> 選手を削除してもよろしいですか？<br />
+              本当に <span className="text-foreground">{deleteTarget?.name}</span> 選手を削除してもよろしいですか？<br>
               <span className="text-xs text-muted-foreground">※この操作は取り消せません。</span>
             </DialogDescription>
           </DialogHeader>
