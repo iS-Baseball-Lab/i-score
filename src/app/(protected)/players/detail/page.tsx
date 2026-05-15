@@ -56,7 +56,6 @@ function PlayerDetailContent() {
                     fetch(`/api/teams/${teamId}/spray-chart`)
                 ]);
 
-                // 💡 厳格な型キャストと安全なデータ検索
                 if (bStatsRes.ok) {
                     const allBStats = (await bStatsRes.json()) as PlayerStats[];
                     setBatterStat(allBStats.find(s => s.playerName === playerName) || null);
@@ -108,7 +107,6 @@ function PlayerDetailContent() {
         );
     }
 
-    // 打撃指標の計算
     let avg = 0, obp = 0, slg = 0, ops = 0;
     if (batterStat) {
         avg = batterStat.atBats > 0 ? batterStat.hits / batterStat.atBats : 0;
@@ -133,15 +131,14 @@ function PlayerDetailContent() {
                         <ArrowLeft className="h-4 w-4" />
                         戻る
                     </Button>
-                    <SectionHeader title="選手詳細" subtitle="PLAYER DETAILS" />
+                    <SectionHeader title="選手詳細" subtitle="PLAYER DETAILS" showPulse={false} />
                 </div>
 
-                {/* 💡 究極UI: 大迫力のヒーローパネル（脱・グラスモーフィズム対応） */}
+                {/* 💡 究極UI: 大迫力のヒーローパネル */}
                 <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground rounded-[32px] p-6 sm:p-10 shadow-lg shadow-primary/20 border border-primary/20 group">
                     <div className="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full pointer-events-none transition-transform duration-700 group-hover:scale-110" />
 
                     <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 relative z-10">
-                        {/* カメラアイコン付きのプロフィール写真枠（ソリッド背景に変更） */}
                         <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-[28px] bg-white/20 border border-white/30 flex flex-col items-center justify-center shrink-0 overflow-hidden text-white/80 relative shadow-inner">
                             <User className="h-12 w-12 sm:h-16 sm:w-16 mb-1 drop-shadow-sm" />
                             <span className="text-[10px] font-black uppercase tracking-wider">No Photo</span>
@@ -261,7 +258,7 @@ function PlayerDetailContent() {
                         </Card>
                     </div>
 
-                    {/* 💡 究極UI: スプレーチャート（ドット描画を完全復元） */}
+                    {/* 💡 究極UI: スプレーチャート */}
                     <div>
                         <Card className="rounded-[32px] border-border/50 bg-card shadow-xs overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-md hover:border-green-500/30">
                             <div className="bg-muted/30 p-5 sm:p-6 border-b border-border/50 shrink-0">
@@ -277,9 +274,10 @@ function PlayerDetailContent() {
                                     <>
                                         <div className="relative w-full max-w-[340px] aspect-square mx-auto drop-shadow-[0_10px_20px_rgba(0,0,0,0.1)] dark:drop-shadow-none">
                                             <svg viewBox="0 0 100 100" className="w-full h-full rounded-[24px] overflow-hidden bg-muted/10 border-[3px] border-border/40">
-                                                {/* 外野の芝生と内野の土 */}
                                                 <path d="M 50 90 L 15 20 Q 50 5 85 20 Z" fill="#15803d" stroke="#4ade80" strokeWidth="0.5" />
                                                 <path d="M 50 90 L 68 54 Q 50 35 32 54 Z" fill="#a16207" />
-                                                {/* ファウルライン */}
                                                 <line x1="50" y1="90" x2="15" y2="20" stroke="white" strokeWidth="0.5" />
-                                                <line x1="50" y1="90" x2="85" y2="20" stroke="white" strokeWid
+                                                <line x1="50" y1="90" x2="85" y2="20" stroke="white" strokeWidth="0.5" />
+                                                <polygon points="50,88 52,90 50,92 48,90" fill="white" />
+                                                <polygon points="63,66 65,68 63,70 61,68" fill="white" />
+                                  
