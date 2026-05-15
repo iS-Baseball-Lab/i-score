@@ -40,8 +40,8 @@ export function ProtectedClientLayout({ children }: { children: React.ReactNode 
           return;
         }
 
-        // 承認待ちチェック
-        if (session.user.role === "PENDING" && pathname !== "/pending-approval") {
+        // 承認待ちチェック（GUEST = 新規登録直後、PENDING = 申請済み未承認）
+        if ((session.user.role === "GUEST" || session.user.role === "PENDING") && pathname !== "/pending-approval") {
           router.replace("/pending-approval");
           return;
         }
