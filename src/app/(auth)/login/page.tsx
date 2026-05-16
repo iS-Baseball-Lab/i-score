@@ -76,7 +76,7 @@ export default function LoginPage() {
             <Button 
               onClick={() => handleSocialLogin("line")}
               disabled={!!loadingProvider}
-              className="h-16 w-full rounded-[24px] bg-[#06C755] hover:bg-[#05b34c] text-white font-black text-lg shadow-md shadow-emerald-900/20 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
+              className="h-16 w-full rounded-3xl bg-[#06C755] hover:bg-[#05b34c] text-white font-black text-lg shadow-md shadow-emerald-900/20 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
             >
               {loadingProvider === "line" ? (
                 <Loader2 className="h-8 w-8 animate-spin mx-auto" />
@@ -85,7 +85,7 @@ export default function LoginPage() {
                   <div className="relative h-9 w-9 shrink-0">
                     <Image src="/line-logo.png" alt="LINE" fill className="object-contain" />
                   </div>
-                  <span className="w-full text-center pr-9">LINEで入場</span>
+                  <span className="w-full text-center pr-9">LINEでログイン</span>
                 </>
               )}
             </Button>
@@ -95,7 +95,7 @@ export default function LoginPage() {
               onClick={() => handleSocialLogin("google")}
               disabled={!!loadingProvider}
               variant="secondary"
-              className="h-16 w-full rounded-[24px] bg-white text-black hover:bg-zinc-100 font-black text-lg shadow-md shadow-black/10 active:scale-[0.98] transition-all border border-zinc-200 flex items-center justify-start px-6 relative"
+              className="h-16 w-full rounded-3xl bg-white text-black hover:bg-zinc-100 font-black text-lg shadow-md shadow-black/10 active:scale-[0.98] transition-all border border-zinc-200 flex items-center justify-start px-6 relative"
             >
               {loadingProvider === "google" ? (
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
@@ -104,7 +104,7 @@ export default function LoginPage() {
                   <div className="relative h-8 w-8 shrink-0">
                     <Image src="/google-logo.png" alt="Google" fill className="object-contain" />
                   </div>
-                  <span className="w-full text-center pr-8">Googleで入場</span>
+                  <span className="w-full text-center pr-8">Googleでログイン</span>
                 </>
               )}
             </Button>
@@ -114,14 +114,14 @@ export default function LoginPage() {
               onClick={() => handleSocialLogin("microsoft")}
               disabled={!!loadingProvider}
               variant="secondary"
-              className="h-16 w-full rounded-[24px] bg-[#2f2f2f] hover:bg-[#1a1a1a] text-white font-black text-lg shadow-md shadow-black/20 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
+              className="h-16 w-full rounded-3xl bg-[#2f2f2f] hover:bg-[#1a1a1a] text-white font-black text-lg shadow-md shadow-black/20 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
             >
               {loadingProvider === "microsoft" ? (
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
                   <BsMicrosoft size={32} className="shrink-0 text-[#00a4ef]" />
-                  <span className="w-full text-center pr-8">Microsoftで入場</span>
+                  <span className="w-full text-center pr-8">Microsoftでログイン</span>
                 </>
               )}
             </Button>
