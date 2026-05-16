@@ -53,7 +53,7 @@ export function MeshBackground() {
         {/* アニメーション要素本体 */}
         <div className="absolute inset-[-50%] flex items-center justify-center">
           {/* 1. Primary */}
-          <div className="absolute top-[10%] right-[10%] w-[70vw] h-[70vw] min-w-[500px] min-h-[500px] bg-primary/15 blur-[120px] rounded-full animate-mesh-1" />
+          <div className="absolute top-[10%] right-[10%] w-[70vw] h-[70vw] min-w-[500px] min-h-[500px] bg-primary/5 blur-[120px] rounded-full animate-mesh-1" />
           {/* 2. Blue */}
           <div className="absolute bottom-[10%] left-[10%] w-[80vw] h-[80vw] min-w-[600px] min-h-[600px] bg-blue-500/15 blur-[120px] rounded-full animate-mesh-2" />
           {/* 3. Emerald */}
