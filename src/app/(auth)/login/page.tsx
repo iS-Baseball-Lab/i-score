@@ -69,7 +69,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🔓 ログインアクション（ロゴを限界までデカくし、表記を「ログイン」に変更 🔥） */}
+        {/* 🔓 ログインアクション（現場至上主義：圧倒的デカロゴ・文字ブレなし） */}
         <div className="space-y-6">
           <div className="grid gap-5">
             {/* LINE */}
@@ -82,11 +82,9 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin mx-auto" />
               ) : (
                 <>
-                  {/* 💡 枠を h-12 w-12 (48px) に拡大！ */}
                   <div className="relative h-12 w-12 shrink-0">
                     <Image src="/line-logo.png" alt="LINE" fill className="object-contain" />
                   </div>
-                  {/* テキストを中央に保つため、右パディングも pr-12 に調整 */}
                   <span className="w-full text-center pr-12">LINEでログイン</span>
                 </>
               )}
@@ -103,7 +101,6 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
-                  {/* 💡 枠を h-12 w-12 (48px) に拡大！ */}
                   <div className="relative h-12 w-12 shrink-0">
                     <Image src="/google-logo.png" alt="Google" fill className="object-contain" />
                   </div>
@@ -123,10 +120,8 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
-                  {/* 💡 枠を h-12 w-12 (48px) に拡大し、SVG本体も h-11 w-11 (44px) にして迫力UP！ */}
-                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
-                    <BsMicrosoft className="h-11 w-11 text-[#00a4ef]" />
-                  </div>
+                  {/* 💡 修正: 他の画像と完全に同じ h-12 w-12 (48px) を指定し、無駄な縮小を撤廃！ */}
+                  <BsMicrosoft className="shrink-0 h-12 w-12 text-[#00a4ef]" />
                   <span className="w-full text-center pr-12">Microsoftでログイン</span>
                 </>
               )}
