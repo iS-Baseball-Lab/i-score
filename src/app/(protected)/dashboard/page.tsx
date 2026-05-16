@@ -165,13 +165,24 @@ export default function DashboardPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-16">
 
         {/* --- 1. タイトルエリア (巨大Dashboard) --- */}
-        <section className="text-center space-y-3">
-          <h2 className="text-3xl sm:text-4xl font-black text-primary uppercase tracking-[0.5em] flex items-center justify-center gap-4 [-webkit-text-stroke:2px_#ffffff] dark:[-webkit-text-stroke:2px_rgba(255,255,255,0.7)]">
-            <Activity className="h-8 w-8 sm:h-10 sm:w-10" /> Dashboard
-          </h2>
-          <h1 className="text-[9px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.4em]">
-            Match Management & Live Recording
-          </h1>
+        <section className="text-center space-y-4 pt-2">
+          
+          {/* 💡 解決策：ソリッドなカプセル形状（bg-background）で背景から文字を守る！ */}
+          <div className="inline-flex justify-center">
+            <h2 className="text-3xl sm:text-4xl font-black text-primary uppercase tracking-[0.5em] flex items-center justify-center bg-background px-8 py-4 rounded-[40px] shadow-sm border border-border">
+              <Activity className="h-8 w-8 sm:h-10 sm:w-10 mr-4" /> 
+              {/* 💡 ワンポイント：tracking（字幅）を入れると右端に余白ができて中央ズレするため、最後の文字の余白を打ち消す */}
+              <span className="mr-[-0.5em]">Dashboard</span>
+            </h2>
+          </div>
+
+          {/* サブタイトルも同様に、小さなソリッド背景を敷いて視認性を100%保証 */}
+          <div className="inline-flex justify-center">
+            <h1 className="text-[9px] sm:text-[11px] font-bold text-foreground uppercase tracking-[0.4em] bg-background px-4 py-1.5 rounded-full border border-border/50 shadow-sm">
+              <span className="mr-[-0.4em]">Match Management & Live Recording</span>
+            </h1>
+          </div>
+          
         </section>
 
         {/* 現在地表示 */}
