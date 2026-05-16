@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import { MeshBackground } from "@/components/layout/mesh-background";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { DensityProvider } from "@/components/providers/density-provider";
 import { TeamProvider } from "@/contexts/TeamContext"; // 💡 追加
@@ -40,6 +41,8 @@ export default function RootLayout({
           inter.variable
         )}
       >
+        {/* 🌟 アプリ全体を包み込む躍動感のあるスタジアムの空気 */}
+        <MeshBackground />
         <DensityProvider>
           <ThemeProvider
             attribute="class"
