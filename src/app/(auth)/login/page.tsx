@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Loader2, FileText, Shield } from "lucide-react"; // 💡 アイコンを追加インポート
+import { Loader2, FileText, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { BsMicrosoft } from "react-icons/bs";
 /** 💡 Better-Auth のクライアントをインポート */
@@ -69,23 +69,25 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🔓 ログインアクション（テキストを削除し、よりシャープに） */}
+        {/* 🔓 ログインアクション（ロゴをすべて 44px に統一し視認性UP 🔥） */}
         <div className="space-y-6">
           <div className="grid gap-5">
             {/* LINE */}
             <Button 
               onClick={() => handleSocialLogin("line")}
               disabled={!!loadingProvider}
-              className="h-16 w-full rounded-3xl bg-[#06C755] hover:bg-[#05b34c] text-white font-black text-lg shadow-md shadow-emerald-900/20 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
+              className="h-16 w-full rounded-[24px] bg-[#06C755] hover:bg-[#05b34c] text-white font-black text-lg shadow-md shadow-emerald-900/20 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
             >
               {loadingProvider === "line" ? (
                 <Loader2 className="h-8 w-8 animate-spin mx-auto" />
               ) : (
                 <>
-                  <div className="relative h-9 w-9 shrink-0">
+                  {/* h-11 w-11 = 44px */}
+                  <div className="relative h-11 w-11 shrink-0">
                     <Image src="/line-logo.png" alt="LINE" fill className="object-contain" />
                   </div>
-                  <span className="w-full text-center pr-9">LINEでログイン</span>
+                  {/* アイコンサイズに合わせて pr-11 を指定し、テキストを画面中央に保つ */}
+                  <span className="w-full text-center pr-11">LINEで入場</span>
                 </>
               )}
             </Button>
@@ -95,16 +97,17 @@ export default function LoginPage() {
               onClick={() => handleSocialLogin("google")}
               disabled={!!loadingProvider}
               variant="secondary"
-              className="h-16 w-full rounded-3xl bg-white text-black hover:bg-zinc-100 font-black text-lg shadow-md shadow-black/10 active:scale-[0.98] transition-all border border-zinc-200 flex items-center justify-start px-6 relative"
+              className="h-16 w-full rounded-[24px] bg-white text-black hover:bg-zinc-100 font-black text-lg shadow-md shadow-black/10 active:scale-[0.98] transition-all border border-zinc-200 flex items-center justify-start px-6 relative"
             >
               {loadingProvider === "google" ? (
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
-                  <div className="relative h-8 w-8 shrink-0">
+                  {/* h-11 w-11 = 44px */}
+                  <div className="relative h-11 w-11 shrink-0">
                     <Image src="/google-logo.png" alt="Google" fill className="object-contain" />
                   </div>
-                  <span className="w-full text-center pr-8">Googleでログイン</span>
+                  <span className="w-full text-center pr-11">Googleで入場</span>
                 </>
               )}
             </Button>
@@ -114,14 +117,15 @@ export default function LoginPage() {
               onClick={() => handleSocialLogin("microsoft")}
               disabled={!!loadingProvider}
               variant="secondary"
-              className="h-16 w-full rounded-3xl bg-[#2f2f2f] hover:bg-[#1a1a1a] text-white font-black text-lg shadow-md shadow-black/20 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
+              className="h-16 w-full rounded-[24px] bg-[#2f2f2f] hover:bg-[#1a1a1a] text-white font-black text-lg shadow-md shadow-black/20 active:scale-[0.98] transition-all border-none flex items-center justify-start px-6 relative"
             >
               {loadingProvider === "microsoft" ? (
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
-                  <BsMicrosoft size={32} className="shrink-0 text-[#00a4ef]" />
-                  <span className="w-full text-center pr-8">Microsoftでログイン</span>
+                  {/* size={44} = 44px */}
+                  <BsMicrosoft size={44} className="shrink-0 text-[#00a4ef]" />
+                  <span className="w-full text-center pr-11">Microsoftで入場</span>
                 </>
               )}
             </Button>
@@ -129,7 +133,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* 💡 フッター（下部スペース。アイコンを追加してUIの質感を向上） */}
+      {/* 💡 フッター */}
       <div className="flex-1 flex flex-col justify-end w-full pb-4 pt-12 z-10">
         <footer className="w-full flex flex-col items-center gap-5">
           <div className="flex gap-8">
