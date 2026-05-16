@@ -166,7 +166,7 @@ export default function DashboardPage() {
 
         {/* --- 1. タイトルエリア (巨大Dashboard) --- */}
         <section className="text-center space-y-3">
-          <h2 className="text-3xl sm:text-4xl font-black text-primary uppercase tracking-[0.5em] flex items-center justify-center gap-4">
+          <h2 className="text-3xl sm:text-4xl font-black text-primary uppercase tracking-[0.5em] flex items-center justify-center gap-4 [-webkit-text-stroke:2px_#ffffff] dark:[-webkit-text-stroke:2px_rgba(255,255,255,0.7)]">
             <Activity className="h-8 w-8 sm:h-10 sm:w-10" /> Dashboard
           </h2>
           <h1 className="text-[9px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.4em]">
