@@ -165,25 +165,27 @@ export default function DashboardPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-16">
 
         {/* --- 1. タイトルエリア (巨大Dashboard) --- */}
-        <section className="text-center space-y-4 pt-2">
-          
-          {/* 💡 解決策：ソリッドなカプセル形状（bg-background）で背景から文字を守る！ */}
-          <div className="inline-flex justify-center">
-            <h2 className="text-3xl sm:text-4xl font-black text-primary uppercase tracking-[0.5em] flex items-center justify-center bg-background px-8 py-4 rounded-[40px] shadow-sm border border-border">
-              <Activity className="h-8 w-8 sm:h-10 sm:w-10 mr-4" /> 
-              {/* 💡 ワンポイント：tracking（字幅）を入れると右端に余白ができて中央ズレするため、最後の文字の余白を打ち消す */}
-              <span className="mr-[-0.5em]">Dashboard</span>
-            </h2>
-          </div>
-
-          {/* サブタイトルも同様に、小さなソリッド背景を敷いて視認性を100%保証 */}
-          <div className="inline-flex justify-center">
-            <h1 className="text-[9px] sm:text-[11px] font-bold text-foreground uppercase tracking-[0.4em] bg-background px-4 py-1.5 rounded-full border border-border/50 shadow-sm">
-              <span className="mr-[-0.4em]">Match Management & Live Recording</span>
-            </h1>
-          </div>
-          
-        </section>
+      <section className="text-center space-y-3 pt-2">
+        
+        {/* 
+          💡 解決策:
+          1. text-primary -> text-foreground に変更してカメレオン同化を完全に防ぐ！
+          2. アイコン（Activity）だけ text-primary にしてブランド感をシャープに維持。
+          3. drop-shadow-[0_0_16px_hsl(var(--background))] を追加。
+             -> 文字の背後に「背景色（ライトモードなら白、ダークなら黒）の柔らかなオーラ」を展開し、
+                背後のメッシュグラデーションを優しく弾いて視認性を100%確保します！
+        */}
+        <h2 className="text-3xl sm:text-4xl font-black text-foreground uppercase tracking-[0.5em] flex items-center justify-center gap-4 drop-shadow-[0_0_16px_hsl(var(--background))]">
+          <Activity className="h-8 w-8 sm:h-10 sm:w-10 text-primary drop-shadow-md" /> 
+          {/* 💡 ワンポイント：trackingを入れると右側に余白ができて全体が左にズレるため、マイナスマージンで相殺して完璧なド真ん中（シンメトリー）を作ります */}
+          <span className="mr-[-0.5em]">Dashboard</span>
+        </h2>
+        
+        <h1 className="text-[9px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.4em] drop-shadow-[0_0_12px_hsl(var(--background))]">
+          <span className="mr-[-0.4em]">Match Management & Live Recording</span>
+        </h1>
+        
+      </section>
 
         {/* 現在地表示 */}
         <div className="flex justify-center px-1">
