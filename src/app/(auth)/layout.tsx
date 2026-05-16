@@ -19,7 +19,7 @@ export default function AuthLayout({
       <div className="absolute bottom-0 right-0 w-[600px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] -z-10 opacity-50 pointer-events-none" />
 
       {/* コンテンツエリア（モバイル幅に最適化） */}
-      <main className="w-full max-w-md px-6 z-10 flex flex-col items-center">
+      <main className="w-full max-w-md z-10 flex flex-col items-center">
         {children}
       </main>
     </div>
