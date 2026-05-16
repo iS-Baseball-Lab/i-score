@@ -2,44 +2,31 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ShieldAlert, Clock, Users, PlusCircle, ArrowLeft, Send, Loader2 } from "lucide-react";
+import { ShieldAlert, Clock, Send, Loader2, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { LogoutButton } from "@/components/logout";
-import { cn } from "@/lib/utils";
 
-// 💡 画面の表示モードを管理
-type ViewMode = "select" | "join" | "create" | "pending";
+// 💡 画面の表示モード（チーム作成・選択を排除し、シンプル化）
+type ViewMode = "join" | "pending";
 
 // 💡 APIリクエストの型定義（安全な通信のため）
-interface CreateTeamRequest {
-  teamName: string;
-  organizationName?: string;
-}
-
 interface JoinTeamRequest {
   inviteCode: string;
 }
 
 /**
- * 💡 オンボーディング（チーム参加・作成・待合室）画面
- * - ログイン後、チームに所属していないユーザーが必ず通るハブ画面。
+ * 💡 オンボーディング（チーム参加・待合室）画面
+ * - セキュリティと運用保全のため、チーム作成機能を排除。
  * - 現場至上主義に基づき、グラスモーフィズムを排したソリッドな高コントラストUI。
  */
 export default function PendingApprovalPage() {
-  const router = useRouter();
-  
-  // 初期状態は「選択画面」。APIで既に申請済みの場合は "pending" を初期値にする等の拡張が可能です。
-  const [view, setView] = useState<ViewMode>("select");
+  // 初期状態は「参加画面」。APIで既に申請済みの場合は "pending" を初期値にする等の拡張が可能です。
+  const [view, setView] = useState<ViewMode>("join");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // フォーム状態
   const [inviteCode, setInviteCode] = useState("");
-  const [teamName, setTeamName] = useState("");
-  const [orgName, setOrgName] = useState("");
 
   // ━━ チーム参加処理 ━━
   const handleJoin = async (e: React.FormEvent) => {
@@ -67,137 +54,56 @@ export default function PendingApprovalPage() {
     }
   };
 
-  // ━━ チーム作成処理 ━━
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!teamName) return;
-
-    setIsSubmitting(true);
-    try {
-      const payload: CreateTeamRequest = { teamName, organizationName: orgName };
-      const res = await fetch("/api/teams", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("チーム作成に失敗しました");
-      
-      toast.success(`${teamName} を作成しました！`);
-      router.push("/"); // 作成完了（管理者権限付与）後はダッシュボードへ
-    } catch (error) {
-      toast.error("エラーが発生しました。もう一度お試しください。");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
-    <div className="w-full max-w-md mx-auto p-8 rounded-[40px] bg-card border border-border shadow-lg flex flex-col gap-8 animate-in fade-in zoom-in-95 duration-500">
+    <div className="w-full max-w-md mx-auto p-8 rounded-[40px] bg-card border border-border shadow-lg flex flex-col gap-8 animate-in fade-in zoom-in-95 duration-500 relative z-10">
       
-      {/* ━━ 1. アクション選択画面 ━━ */}
-      {view === "select" && (
-        <div className="flex flex-col gap-6 text-center animate-in slide-in-from-right-4 duration-300">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-black tracking-tight text-foreground">チームをはじめよう</h1>
-            <p className="text-sm text-muted-foreground font-bold">
-              i-Scoreへようこそ！<br />まずは所属するチームを選択してください。
+      {/* ━━ 1. チーム参加（招待コード入力）画面 ━━ */}
+      {view === "join" && (
+        <form onSubmit={handleJoin} className="flex flex-col gap-6 animate-in slide-in-from-right-4 duration-300">
+          
+          {/* 💡 現場至上主義：日本語メイン・英語サブのヘッダー */}
+          <div className="flex flex-col items-center text-center space-y-1 mb-2">
+            <div className="bg-primary/10 p-4 rounded-full mb-3">
+              <KeyRound className="w-8 h-8 text-primary" strokeWidth={2.5} />
+            </div>
+            <h1 className="text-2xl font-black tracking-tight text-foreground">
+              チームに参加
+            </h1>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em]">
+              Join Team
             </p>
           </div>
 
-          <div className="grid gap-3 mt-2">
-            <Button 
-              onClick={() => setView("join")}
-              className="h-16 rounded-[var(--radius-xl)] bg-blue-600 hover:bg-blue-700 text-white font-black text-lg gap-3 shadow-md transition-transform active:scale-95"
-            >
-              <Users className="h-6 w-6" strokeWidth={2.5} />
-              既存のチームに参加する
-            </Button>
-
-            <Button 
-              onClick={() => setView("create")}
-              variant="outline"
-              className="h-16 rounded-[var(--radius-xl)] border-2 border-border hover:bg-primary/5 hover:text-primary font-black text-lg gap-3 shadow-sm transition-transform active:scale-95"
-            >
-              <PlusCircle className="h-6 w-6 text-primary" strokeWidth={2.5} />
-              新しくチームを作成する
-            </Button>
-          </div>
-
-          <div className="pt-4 flex justify-center w-full">
-            <LogoutButton className="w-full rounded-full h-12 text-sm font-bold active:scale-95" variant="ghost" />
-          </div>
-        </div>
-      )}
-
-      {/* ━━ 2. チーム参加（招待コード入力）画面 ━━ */}
-      {view === "join" && (
-        <form onSubmit={handleJoin} className="flex flex-col gap-6 animate-in slide-in-from-right-4 duration-300">
-          <div className="flex items-center gap-2 mb-2">
-            <Button type="button" variant="ghost" size="icon" onClick={() => setView("select")} className="h-8 w-8 rounded-full shrink-0 -ml-2">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-xl font-black tracking-tight text-foreground">チームに参加</h1>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">招待コード</Label>
+          <div className="space-y-4">
+            <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground text-center block">
+              招待コード (チームID)
+            </Label>
+            {/* 屋外でのタップしやすさと視認性を考慮した超巨大入力フィールド */}
             <Input 
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
               placeholder="例: ABC-1234-XYZ"
               required
-              className="h-14 rounded-[var(--radius-xl)] text-center text-xl font-bold tracking-widest bg-muted/20"
+              className="h-16 rounded-[var(--radius-xl)] text-center text-2xl font-black tracking-widest bg-muted/30 border-2 focus-visible:ring-primary focus-visible:border-primary transition-all"
             />
-            <p className="text-[10px] text-muted-foreground font-bold text-center mt-2">
-              ※監督やマネージャーから共有されたコードを入力してください。
+            <p className="text-[11px] text-muted-foreground font-bold text-center leading-relaxed">
+              監督やマネージャーから共有された<br />コードを入力してください。
             </p>
           </div>
 
-          <Button type="submit" disabled={isSubmitting || !inviteCode} className="h-14 rounded-[var(--radius-xl)] font-black text-lg gap-2 mt-4 shadow-md">
-            {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" strokeWidth={2.5} />}
-            参加申請を送る
-          </Button>
-        </form>
-      )}
-
-      {/* ━━ 3. チーム作成画面 ━━ */}
-      {view === "create" && (
-        <form onSubmit={handleCreate} className="flex flex-col gap-5 animate-in slide-in-from-right-4 duration-300">
-          <div className="flex items-center gap-2 mb-2">
-            <Button type="button" variant="ghost" size="icon" onClick={() => setView("select")} className="h-8 w-8 rounded-full shrink-0 -ml-2">
-              <ArrowLeft className="h-5 w-5" />
+          <div className="flex flex-col gap-3 mt-4">
+            <Button type="submit" disabled={isSubmitting || !inviteCode} className="h-16 rounded-[var(--radius-xl)] font-black text-lg gap-2 shadow-md hover:scale-[0.98] transition-transform">
+              {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin" /> : <Send className="h-6 w-6" strokeWidth={2.5} />}
+              参加申請を送る
             </Button>
-            <h1 className="text-xl font-black tracking-tight text-foreground">チーム作成</h1>
-          </div>
 
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">チーム名 <span className="text-destructive">*</span></Label>
-              <Input 
-                value={teamName} onChange={(e) => setTeamName(e.target.value)}
-                placeholder="例: 川崎ブルーソックス" required
-                className="h-12 rounded-[var(--radius-xl)] font-bold"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">所属団体/学校名 <span className="text-[10px] font-normal">(任意)</span></Label>
-              <Input 
-                value={orgName} onChange={(e) => setOrgName(e.target.value)}
-                placeholder="例: 株式会社〇〇 / 〇〇大学"
-                className="h-12 rounded-[var(--radius-xl)] font-bold"
-              />
-            </div>
+            {/* 💡 デッドエンド撲滅：コードがわからないユーザーが迷子にならないようログアウトへの導線を確保 */}
+            <LogoutButton className="h-14 rounded-full text-sm font-bold active:scale-95 text-muted-foreground" variant="ghost" />
           </div>
-
-          <Button type="submit" disabled={isSubmitting || !teamName} className="h-14 rounded-[var(--radius-xl)] font-black text-lg gap-2 mt-4 shadow-md">
-            {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <PlusCircle className="h-5 w-5" strokeWidth={2.5} />}
-            チームを設立する
-          </Button>
         </form>
       )}
 
-      {/* ━━ 4. 承認待ち（待合室）画面 ━━ */}
+      {/* ━━ 2. 承認待ち（待合室）画面 ━━ */}
       {view === "pending" && (
         <div className="flex flex-col gap-8 text-center animate-in slide-in-from-bottom-4 duration-500">
           <div className="flex justify-center">
@@ -207,13 +113,16 @@ export default function PendingApprovalPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
+          {/* 💡 現場至上主義：日本語メイン・英語サブのヘッダー */}
+          <div className="space-y-2">
             <h1 className="text-2xl font-black tracking-tight text-foreground">承認待ちです</h1>
-            <p className="text-sm text-muted-foreground leading-relaxed font-bold">
-              現在、参加申請の確認をおこなっています。<br />
-              チーム管理者からの承認をお待ちください。
-            </p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em]">Pending Approval</p>
           </div>
+
+          <p className="text-sm text-muted-foreground leading-relaxed font-bold">
+            現在、参加申請の確認をおこなっています。<br />
+            チーム管理者からの承認をお待ちください。
+          </p>
 
           <div className="p-4 bg-primary/5 rounded-[var(--radius-xl)] border border-primary/20">
             <p className="text-xs text-primary/80 font-black tracking-wider">
@@ -222,10 +131,11 @@ export default function PendingApprovalPage() {
           </div>
 
           <div className="pt-2 flex flex-col gap-3 justify-center w-full">
-            <Button variant="outline" onClick={() => setView("select")} className="w-full rounded-full h-12 text-sm font-bold active:scale-95">
-              別の方法を試す
+            <Button variant="outline" onClick={() => setView("join")} className="w-full rounded-full h-12 text-sm font-bold active:scale-95 border-2">
+              別のコードを入力する
             </Button>
-            <LogoutButton className="w-full rounded-full h-12 text-sm font-bold active:scale-95" variant="ghost" />
+            {/* 💡 デッドエンド撲滅：待合室からのログアウト手段も用意 */}
+            <LogoutButton className="w-full rounded-full h-12 text-sm font-bold active:scale-95 text-muted-foreground" variant="ghost" />
           </div>
         </div>
       )}
