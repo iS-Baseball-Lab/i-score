@@ -40,11 +40,30 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center p-6 relative overflow-hidden bg-transparent">
+    <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center p-6 relative overflow-hidden bg-background z-0">
       
-      {/* 🏟 背景演出（屋外視認性を考慮したソリッドなグロー）[cite: 1] */}
-      <div className="absolute top-[-20%] right-[-10%] w-[60%] aspect-square bg-primary/15 blur-[120px] rounded-3xl pointer-events-none" />
-      <div className="absolute bottom-[-20%] left-[-10%] w-[60%] aspect-square bg-emerald-500/10 blur-[120px] rounded-3xl pointer-events-none" />
+      {/* 🏟 背景演出（メッシュグラデーション・アニメーション） */}
+      {/* 現場視認性のルールに基づき、手前の要素への透過影響は避け、最背面のレイヤーでのみアニメーションを実行します */}
+      <style>{`
+        @keyframes mesh-blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-mesh-1 { animation: mesh-blob 12s infinite alternate ease-in-out; }
+        .animate-mesh-2 { animation: mesh-blob 15s infinite alternate-reverse ease-in-out; }
+        .animate-mesh-3 { animation: mesh-blob 18s infinite alternate ease-in-out; }
+      `}</style>
+
+      <div className="absolute inset-0 z-[-1] overflow-hidden pointer-events-none">
+        {/* Primary Color Blob */}
+        <div className="absolute top-[-10%] right-[-10%] w-[60%] aspect-square bg-primary/10 dark:bg-primary/15 blur-[100px] rounded-full animate-mesh-1" />
+        {/* Secondary Blue Blob */}
+        <div className="absolute top-[20%] left-[-10%] w-[50%] aspect-square bg-blue-500/10 dark:bg-blue-500/15 blur-[100px] rounded-full animate-mesh-2" />
+        {/* Emerald Blob */}
+        <div className="absolute bottom-[-10%] right-[10%] w-[55%] aspect-square bg-emerald-500/10 dark:bg-emerald-500/15 blur-[100px] rounded-full animate-mesh-3" />
+      </div>
 
       <div className="w-full max-w-[360px] space-y-16 z-10 animate-in fade-in zoom-in-95 duration-1000">
         
@@ -69,7 +88,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🔓 ログインアクション（公式ロゴ・左揃え）[cite: 1] */}
+        {/* 🔓 ログインアクション（公式ロゴ・左揃え） */}
         <div className="space-y-6">
           <p className="text-center text-[11px] font-black text-muted-foreground/60 uppercase tracking-widest select-none">
             Welcome to the Stadium
@@ -134,7 +153,7 @@ export default function LoginPage() {
       </div>
 
       {/* 💡 規約・ポリシーリンク */}
-      <footer className="absolute bottom-10 w-full flex flex-col items-center gap-4">
+      <footer className="absolute bottom-10 w-full flex flex-col items-center gap-4 z-10">
         <div className="flex gap-6">
           <Link href="/terms" className="text-[14px] font-black text-muted-foreground/50 hover:text-primary tracking-widest uppercase transition-colors">Terms</Link>
           <Link href="/privacy" className="text-[14px] font-black text-muted-foreground/50 hover:text-primary tracking-widest uppercase transition-colors">Privacy</Link>
