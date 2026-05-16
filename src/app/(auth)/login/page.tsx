@@ -25,7 +25,6 @@ export default function LoginPage() {
       toast.loading(`${provider.toUpperCase()} 認証を開始します...`);
       
       // 🚀 Better-Auth の機能で承認ページへ飛ばす
-      // callbackURL は環境に合わせて調整してください
       await authClient.signIn.social({
         provider: provider,
         callbackURL: "/dashboard", 
@@ -40,11 +39,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center p-6 relative">
-      <div className="w-full max-w-[360px] space-y-16 z-10 animate-in fade-in zoom-in-95 duration-1000">
+    // 💡 min-h-[100dvh] と justify-between で画面全体をFlex管理
+    <div className="w-full min-h-[100dvh] flex flex-col items-center justify-between py-10 px-6">
+      
+      {/* 上部スペース（ロゴとボタンを画面中央に保つためのバランサー） */}
+      <div className="flex-1" />
+
+      {/* ⚾️ メインコンテンツ（shrink-0 で画面が小さくても潰れないように保護） */}
+      <div className="w-full max-w-[360px] space-y-16 z-10 animate-in fade-in zoom-in-95 duration-1000 shrink-0">
         
-        {/* ⚾️ センターロゴ */}
-        <div className="flex flex-col items-center space-y-6 pt-8">
+        {/* センターロゴ */}
+        <div className="flex flex-col items-center space-y-6">
           <div className="relative w-28 h-28 drop-shadow-[0_0_20px_rgba(var(--primary),0.5)]">
             <Image
               src="/logo.webp"
@@ -64,14 +69,14 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🔓 ログインアクション（公式ロゴ・左揃え） */}
+        {/* 🔓 ログインアクション */}
         <div className="space-y-6">
           <p className="text-center text-[11px] font-black text-muted-foreground/80 uppercase tracking-widest select-none">
             Welcome to the Stadium
           </p>
           
           <div className="grid gap-5">
-            {/* LINE ログイン */}
+            {/* LINE */}
             <Button 
               onClick={() => handleSocialLogin("line")}
               disabled={!!loadingProvider}
@@ -89,7 +94,7 @@ export default function LoginPage() {
               )}
             </Button>
 
-            {/* Google ログイン */}
+            {/* Google */}
             <Button 
               onClick={() => handleSocialLogin("google")}
               disabled={!!loadingProvider}
@@ -108,7 +113,7 @@ export default function LoginPage() {
               )}
             </Button>
 
-            {/* Microsoft ログイン */}
+            {/* Microsoft */}
             <Button 
               onClick={() => handleSocialLogin("microsoft")}
               disabled={!!loadingProvider}
@@ -128,14 +133,17 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* 💡 規約・ポリシーリンク */}
-      <footer className="absolute bottom-10 w-full flex flex-col items-center gap-4 z-10">
-        <div className="flex gap-6">
-          <Link href="/terms" className="text-[14px] font-black text-muted-foreground/60 hover:text-primary tracking-widest uppercase transition-colors">Terms</Link>
-          <Link href="/privacy" className="text-[14px] font-black text-muted-foreground/60 hover:text-primary tracking-widest uppercase transition-colors">Privacy</Link>
-        </div>
-        <p className="text-[12px] font-medium text-muted-foreground/60 tracking-tighter">© 2026 iScoreCloud / iS Baseball Lab</p>
-      </footer>
+      {/* 💡 フッター（下部スペース。absoluteをやめて自然に一番下へ配置） */}
+      <div className="flex-1 flex flex-col justify-end w-full pb-4 pt-12 z-10">
+        <footer className="w-full flex flex-col items-center gap-4">
+          <div className="flex gap-6">
+            <Link href="/terms" className="text-[14px] font-black text-muted-foreground/60 hover:text-primary tracking-widest uppercase transition-colors">Terms</Link>
+            <Link href="/privacy" className="text-[14px] font-black text-muted-foreground/60 hover:text-primary tracking-widest uppercase transition-colors">Privacy</Link>
+          </div>
+          <p className="text-[12px] font-medium text-muted-foreground/60 tracking-tighter">© 2026 iScoreCloud / iS Baseball Lab</p>
+        </footer>
+      </div>
+
     </div>
   );
 }
