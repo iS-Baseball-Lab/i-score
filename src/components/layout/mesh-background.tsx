@@ -53,15 +53,15 @@ export function MeshBackground() {
         {/* アニメーション要素本体 */}
         <div className="absolute inset-[-50%] flex items-center justify-center">
           {/* 1. Primary */}
-          <div className="absolute top-[10%] right-[10%] w-[70vw] h-[70vw] min-w-[500px] min-h-[500px] bg-primary/20 blur-[120px] rounded-full animate-mesh-1" />
+          <div className="absolute top-[10%] right-[10%] w-[70vw] h-[70vw] min-w-[500px] min-h-[500px] bg-primary/15 blur-[120px] rounded-full animate-mesh-1" />
           {/* 2. Blue */}
-          <div className="absolute bottom-[10%] left-[10%] w-[80vw] h-[80vw] min-w-[600px] min-h-[600px] bg-blue-500/20 blur-[120px] rounded-full animate-mesh-2" />
+          <div className="absolute bottom-[10%] left-[10%] w-[80vw] h-[80vw] min-w-[600px] min-h-[600px] bg-blue-500/15 blur-[120px] rounded-full animate-mesh-2" />
           {/* 3. Emerald */}
-          <div className="absolute top-[30%] left-[30%] w-[60vw] h-[60vw] min-w-[400px] min-h-[400px] bg-emerald-500/20 blur-[120px] rounded-full animate-mesh-3" />
+          <div className="absolute top-[30%] left-[30%] w-[60vw] h-[60vw] min-w-[400px] min-h-[400px] bg-emerald-500/15 blur-[120px] rounded-full animate-mesh-3" />
           {/* 4. Amber */}
-          <div className="absolute bottom-[20%] right-[20%] w-[65vw] h-[65vw] min-w-[450px] min-h-[450px] bg-amber-500/20 blur-[120px] rounded-full animate-mesh-4" />
+          <div className="absolute bottom-[20%] right-[20%] w-[65vw] h-[65vw] min-w-[450px] min-h-[450px] bg-amber-500/15 blur-[120px] rounded-full animate-mesh-4" />
           {/* 5. Purple */}
-          <div className="absolute top-[15%] left-[15%] w-[75vw] h-[75vw] min-w-[550px] min-h-[550px] bg-purple-500/20 blur-[120px] rounded-full animate-mesh-5" />
+          <div className="absolute top-[15%] left-[15%] w-[75vw] h-[75vw] min-w-[550px] min-h-[550px] bg-purple-500/15 blur-[120px] rounded-full animate-mesh-5" />
         </div>
       </div>
     </>
