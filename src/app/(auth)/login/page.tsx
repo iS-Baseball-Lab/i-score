@@ -7,9 +7,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { BsMicrosoft } from "react-icons/bs";
 /** 💡 Better-Auth のクライアントをインポート */
 import { authClient } from "@/lib/auth-client"; 
+// 💡 BsMicrosoft のインポートを削除し、完全に画像へ移行しました！
 
 export default function LoginPage() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
@@ -69,7 +69,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🔓 ログインアクション（現場至上主義：圧倒的デカロゴ・文字ブレなし） */}
+        {/* 🔓 ログインアクション（現場至上主義：圧倒的デカロゴ・すべて画像で完全統一 🔥） */}
         <div className="space-y-6">
           <div className="grid gap-5">
             {/* LINE */}
@@ -120,8 +120,10 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
-                  {/* 💡 修正: 他の画像と完全に同じ h-12 w-12 (48px) を指定し、無駄な縮小を撤廃！ */}
-                  <BsMicrosoft className="shrink-0 h-12 w-12 text-[#00a4ef]" />
+                  {/* 💡 修正: react-iconsのSVGを廃止し、すべてImageコンポーネントで統一！絶対的な48px！ */}
+                  <div className="relative h-12 w-12 shrink-0">
+                    <Image src="/microsoft-logo.png" alt="Microsoft" fill className="object-contain" />
+                  </div>
                   <span className="w-full text-center pr-12">Microsoftでログイン</span>
                 </>
               )}
