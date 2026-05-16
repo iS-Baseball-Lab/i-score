@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileText, Shield } from "lucide-react"; // 💡 アイコンを追加インポート
 import { toast } from "sonner";
 import { BsMicrosoft } from "react-icons/bs";
 /** 💡 Better-Auth のクライアントをインポート */
@@ -69,12 +69,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🔓 ログインアクション */}
+        {/* 🔓 ログインアクション（テキストを削除し、よりシャープに） */}
         <div className="space-y-6">
-          <p className="text-center text-[11px] font-black text-muted-foreground/80 uppercase tracking-widest select-none">
-            Welcome to the Stadium
-          </p>
-          
           <div className="grid gap-5">
             {/* LINE */}
             <Button 
@@ -133,12 +129,24 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* 💡 フッター（下部スペース。absoluteをやめて自然に一番下へ配置） */}
+      {/* 💡 フッター（下部スペース。アイコンを追加してUIの質感を向上） */}
       <div className="flex-1 flex flex-col justify-end w-full pb-4 pt-12 z-10">
-        <footer className="w-full flex flex-col items-center gap-4">
-          <div className="flex gap-6">
-            <Link href="/terms" className="text-[14px] font-black text-muted-foreground/60 hover:text-primary tracking-widest uppercase transition-colors">Terms</Link>
-            <Link href="/privacy" className="text-[14px] font-black text-muted-foreground/60 hover:text-primary tracking-widest uppercase transition-colors">Privacy</Link>
+        <footer className="w-full flex flex-col items-center gap-5">
+          <div className="flex gap-8">
+            <Link 
+              href="/terms" 
+              className="flex items-center gap-1.5 text-[13px] font-black text-muted-foreground/60 hover:text-primary tracking-widest uppercase transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              Terms
+            </Link>
+            <Link 
+              href="/privacy" 
+              className="flex items-center gap-1.5 text-[13px] font-black text-muted-foreground/60 hover:text-primary tracking-widest uppercase transition-colors"
+            >
+              <Shield className="w-4 h-4" />
+              Privacy
+            </Link>
           </div>
           <p className="text-[12px] font-medium text-muted-foreground/60 tracking-tighter">© 2026 iScoreCloud / iS Baseball Lab</p>
         </footer>
