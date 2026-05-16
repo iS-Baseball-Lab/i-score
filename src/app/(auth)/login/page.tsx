@@ -9,7 +9,6 @@ import { Loader2, FileText, Shield } from "lucide-react";
 import { toast } from "sonner";
 /** 💡 Better-Auth のクライアントをインポート */
 import { authClient } from "@/lib/auth-client"; 
-// 💡 BsMicrosoft のインポートを削除し、完全に画像へ移行しました！
 
 export default function LoginPage() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
@@ -69,7 +68,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🔓 ログインアクション（現場至上主義：圧倒的デカロゴ・すべて画像で完全統一 🔥） */}
+        {/* 🔓 ログインアクション（オプティカル・アライメントで視覚的な大きさを完璧に統一 🔥） */}
         <div className="space-y-6">
           <div className="grid gap-5">
             {/* LINE */}
@@ -82,6 +81,7 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin mx-auto" />
               ) : (
                 <>
+                  {/* LINEは余白が多いので、枠いっぱい(48px)のサイズで描画 */}
                   <div className="relative h-12 w-12 shrink-0">
                     <Image src="/line-logo.png" alt="LINE" fill className="object-contain" />
                   </div>
@@ -101,8 +101,11 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
-                  <div className="relative h-12 w-12 shrink-0">
-                    <Image src="/google-logo.png" alt="Google" fill className="object-contain" />
+                  {/* 💡 外枠は48px(h-12 w-12)を維持しつつ、内側の画像を40px(h-10 w-10)に縮小して中央配置！ */}
+                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
+                    <div className="relative h-10 w-10">
+                      <Image src="/google-logo.png" alt="Google" fill className="object-contain" />
+                    </div>
                   </div>
                   <span className="w-full text-center pr-12">Googleでログイン</span>
                 </>
@@ -120,9 +123,11 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
-                  {/* 💡 修正: react-iconsのSVGを廃止し、すべてImageコンポーネントで統一！絶対的な48px！ */}
-                  <div className="relative h-12 w-12 shrink-0">
-                    <Image src="/microsoft-logo.png" alt="Microsoft" fill className="object-contain" />
+                  {/* 💡 外枠は48px(h-12 w-12)を維持しつつ、内側の画像を40px(h-10 w-10)に縮小して中央配置！ */}
+                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
+                    <div className="relative h-10 w-10">
+                      <Image src="/microsoft-logo.png" alt="Microsoft" fill className="object-contain" />
+                    </div>
                   </div>
                   <span className="w-full text-center pr-12">Microsoftでログイン</span>
                 </>
