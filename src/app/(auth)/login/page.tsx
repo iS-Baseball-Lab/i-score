@@ -69,7 +69,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🔓 ログインアクション（ロゴをすべて 44px に統一し視認性UP 🔥） */}
+        {/* 🔓 ログインアクション（すべてのロゴを44px枠に統一し、完璧に整列） */}
         <div className="space-y-6">
           <div className="grid gap-5">
             {/* LINE */}
@@ -82,11 +82,10 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin mx-auto" />
               ) : (
                 <>
-                  {/* h-11 w-11 = 44px */}
+                  {/* h-11 w-11 = 44px の絶対枠 */}
                   <div className="relative h-11 w-11 shrink-0">
                     <Image src="/line-logo.png" alt="LINE" fill className="object-contain" />
                   </div>
-                  {/* アイコンサイズに合わせて pr-11 を指定し、テキストを画面中央に保つ */}
                   <span className="w-full text-center pr-11">LINEで入場</span>
                 </>
               )}
@@ -103,7 +102,7 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
-                  {/* h-11 w-11 = 44px */}
+                  {/* h-11 w-11 = 44px の絶対枠 */}
                   <div className="relative h-11 w-11 shrink-0">
                     <Image src="/google-logo.png" alt="Google" fill className="object-contain" />
                   </div>
@@ -123,8 +122,11 @@ export default function LoginPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-zinc-400 mx-auto" />
               ) : (
                 <>
-                  {/* size={44} = 44px */}
-                  <BsMicrosoft size={44} className="shrink-0 text-[#00a4ef]" />
+                  {/* 💡 修正: 他の画像と全く同じ 44px (h-11 w-11) の枠を作り、その中央にSVGを配置 */}
+                  <div className="relative flex h-11 w-11 shrink-0 items-center justify-center">
+                    {/* PNG画像が持つ透明な余白のバランスに合わせて、SVGは h-9 w-9 程度にすると視覚的な重さが揃います */}
+                    <BsMicrosoft className="h-9 w-9 text-[#00a4ef]" />
+                  </div>
                   <span className="w-full text-center pr-11">Microsoftで入場</span>
                 </>
               )}
