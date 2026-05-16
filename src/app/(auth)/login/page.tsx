@@ -40,34 +40,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center p-6 relative overflow-hidden bg-background z-0">
-      
-      {/* 🏟 背景演出（メッシュグラデーション・アニメーション） */}
-      {/* 左右の余白をなくすため、要素を巨大化し、濃淡（Opacity）を強化しました 🔥 */}
-      <style>{`
-        @keyframes mesh-blob {
-          0% { transform: translate(0%, 0%) scale(1); }
-          33% { transform: translate(8%, -8%) scale(1.1); }
-          66% { transform: translate(-8%, 8%) scale(0.95); }
-          100% { transform: translate(0%, 0%) scale(1); }
-        }
-        .animate-mesh-1 { animation: mesh-blob 12s infinite alternate ease-in-out; }
-        .animate-mesh-2 { animation: mesh-blob 15s infinite alternate-reverse ease-in-out; }
-        .animate-mesh-3 { animation: mesh-blob 18s infinite alternate ease-in-out; }
-      `}</style>
-
-      {/* inset-[-50%] を指定することで、画面外まで確実にグラデーションを敷き詰めます */}
-      <div className="absolute inset-[-50%] z-[-1] pointer-events-none flex items-center justify-center">
-        {/* Primary Color Blob - 右上ベース */}
-        <div className="absolute top-[10%] right-[10%] w-[80vw] h-[80vw] min-w-[600px] min-h-[600px] bg-primary/20 dark:bg-primary/30 blur-[120px] rounded-full animate-mesh-1" />
-        
-        {/* Secondary Blue Blob - 左下ベース */}
-        <div className="absolute bottom-[10%] left-[10%] w-[90vw] h-[90vw] min-w-[700px] min-h-[700px] bg-blue-500/20 dark:bg-blue-600/25 blur-[120px] rounded-full animate-mesh-2" />
-        
-        {/* Emerald Blob - 中央付近でアクセント */}
-        <div className="absolute top-[30%] left-[30%] w-[70vw] h-[70vw] min-w-[500px] min-h-[500px] bg-emerald-500/20 dark:bg-emerald-500/25 blur-[120px] rounded-full animate-mesh-3" />
-      </div>
-
+    <div className="w-full flex flex-col items-center justify-center p-6 relative">
       <div className="w-full max-w-[360px] space-y-16 z-10 animate-in fade-in zoom-in-95 duration-1000">
         
         {/* ⚾️ センターロゴ */}
