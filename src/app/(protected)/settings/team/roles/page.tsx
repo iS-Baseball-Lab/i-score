@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Loader2, RefreshCw, Clock, Users } from "lucide-react";
 import { ROLES } from "@/lib/roles";
 
-// 新しいサマリーカードの名称でインポート
+// 洗練された共有コンポーネントをインポート
 import { TeamMemberSummaryCards } from "@/components/features/teams/team-member-summary-cards";
 import { TeamInviteCard } from "@/components/features/teams/team-invite-card";
 import { TeamMemberCard, type TeamMember } from "@/components/features/teams/team-member-card";
@@ -129,41 +129,41 @@ export default function TeamMembersPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-sm font-bold text-muted-foreground">メンバー情報を取得中...</p>
+      <div className="flex h-[65vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-3.5">
+          <Loader2 className="h-9 w-9 animate-spin text-primary" />
+          <p className="text-xs font-black text-muted-foreground uppercase tracking-widest animate-pulse">Loading Members...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500 pb-24">
+    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-300 pb-24 px-1 sm:px-0">
       {/* ヘッダー */}
       <div className="flex items-start gap-4">
         <Button
           variant="ghost" size="icon"
           onClick={() => router.back()}
-          className="h-10 w-10 rounded-full bg-card/60 border border-border/40 hover:bg-muted shrink-0 mt-1"
+          className="h-10 w-10 rounded-full bg-card/60 dark:bg-card/20 border border-border/50 hover:bg-muted shrink-0 mt-1 active:scale-95 transition-all shadow-sm"
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 rounded-full px-3 py-0.5 text-[9px] font-black tracking-widest uppercase">
+            <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 rounded-full px-3 py-0.5 text-[9px] font-black tracking-widest uppercase shadow-sm">
               Team Settings
             </Badge>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black italic tracking-tighter uppercase text-foreground leading-none">
             Members
           </h1>
-          <p className="text-sm font-bold text-muted-foreground mt-1 truncate">{teamName}</p>
+          <p className="text-xs font-bold text-muted-foreground mt-1.5 truncate tracking-wide">{teamName}</p>
         </div>
         <Button
           variant="ghost" size="icon"
           onClick={() => fetchMembers(teamId)}
-          className="h-10 w-10 rounded-full bg-card/60 border border-border/40 hover:bg-muted shrink-0 mt-1"
+          className="h-10 w-10 rounded-full bg-card/60 dark:bg-card/20 border border-border/50 hover:bg-muted shrink-0 mt-1 active:scale-95 transition-all shadow-sm"
           title="更新"
         >
           <RefreshCw className="h-4 w-4" />
@@ -182,14 +182,14 @@ export default function TeamMembersPage() {
 
       {/* 承認待ちメンバー */}
       {pendingMembers.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
+        <div className="space-y-3.5">
+          <div className="flex items-center gap-2 px-0.5">
             <Clock className="h-4 w-4 text-orange-500" />
-            <h2 className="text-sm font-black uppercase tracking-widest text-orange-500">
-              承認待ち ({pendingMembers.length})
+            <h2 className="text-xs font-black uppercase tracking-widest text-orange-500">
+              Pending Approvals ({pendingMembers.length})
             </h2>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {pendingMembers.map(m => (
               <TeamMemberCard
                 key={m.memberId}
@@ -205,7 +205,7 @@ export default function TeamMembersPage() {
             <Button
               variant="outline"
               onClick={() => router.push("/teams/requests")}
-              className="w-full rounded-2xl h-11 border-orange-500/30 text-orange-500 hover:bg-orange-500/10 font-bold text-sm"
+              className="w-full rounded-2xl h-11 border-orange-500/30 text-orange-500 hover:bg-orange-500/10 font-bold text-sm transition-all active:scale-99 shadow-sm"
             >
               参加申請を管理する →
             </Button>
@@ -214,14 +214,14 @@ export default function TeamMembersPage() {
       )}
 
       {/* アクティブメンバー */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
+      <div className="space-y-3.5">
+        <div className="flex items-center gap-2 px-0.5">
           <Users className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-black uppercase tracking-widest text-primary">
+          <h2 className="text-xs font-black uppercase tracking-widest text-primary">
             Active Members ({activeMembers.length})
           </h2>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {activeMembers.map(m => (
             <TeamMemberCard
               key={m.memberId}
@@ -230,7 +230,7 @@ export default function TeamMembersPage() {
               myRole={myRole}
               onRoleChange={handleRoleChange}
               onRemove={setRemoveTarget}
-            />
+          />
           ))}
         </div>
       </div>
