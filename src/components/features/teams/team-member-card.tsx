@@ -44,7 +44,7 @@ function getRoleConfig(role: string) {
 function RoleBadge({ role }: { role: string }) {
   const cfg = getRoleConfig(role);
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border uppercase tracking-wider", cfg.bg, cfg.color)}>
+    <span className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border uppercase tracking-wider shadow-sm", cfg.bg, cfg.color)}>
       {cfg.icon}
       {cfg.label}
     </span>
@@ -73,31 +73,34 @@ function RoleSelector({ currentRole, memberId, myRole, onRoleChange, disabled }:
         onClick={() => canChange && setIsOpen(!isOpen)}
         disabled={isChanging || !canChange}
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black border uppercase tracking-wider transition-all",
-          cfg.bg, cfg.color, canChange && "hover:opacity-80 cursor-pointer", !canChange && "cursor-default opacity-80"
+          "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border uppercase tracking-wider transition-all shadow-sm",
+          cfg.bg, cfg.color, canChange && "hover:opacity-80 active:scale-95 cursor-pointer", !canChange && "cursor-default opacity-90"
         )}
       >
         {isChanging ? <Loader2 className="h-3 w-3 animate-spin" /> : cfg.icon}
         {cfg.label}
-        {canChange && <ChevronDown className={cn("h-3 w-3 transition-transform", isOpen && "rotate-180")} />}
+        {canChange && <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", isOpen && "rotate-180")} />}
       </button>
 
       {isOpen && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-8 z-40 w-52 rounded-2xl border border-border/50 bg-card shadow-xl p-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="absolute right-0 top-8 z-40 w-56 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-md shadow-2xl p-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
             {SELECTABLE_ROLES.map((r) => {
               const rc = getRoleConfig(r);
               return (
                 <button
                   key={r}
                   onClick={() => handleSelect(r)}
-                  className={cn("w-full flex items-start gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors hover:bg-muted/60", r === currentRole && "bg-primary/10")}
+                  className={cn(
+                    "w-full flex items-start gap-2.5 px-3 py-2 rounded-xl text-left transition-all hover:bg-muted/80 active:bg-muted",
+                    r === currentRole && "bg-primary/10 border border-primary/20"
+                  )}
                 >
-                  <span className={cn("mt-0.5", rc.color)}>{rc.icon}</span>
-                  <div className="flex flex-col">
-                    <span className={cn("text-xs font-black", rc.color)}>{rc.label}</span>
-                    <span className="text-[9px] text-muted-foreground leading-tight">{rc.desc}</span>
+                  <span className={cn("mt-0.5 shrink-0", rc.color)}>{rc.icon}</span>
+                  <div className="flex flex-col min-w-0">
+                    <span className={cn("text-xs font-black tracking-wide", rc.color)}>{rc.label}</span>
+                    <span className="text-[9px] text-muted-foreground leading-tight mt-0.5 truncate">{rc.desc}</span>
                   </div>
                 </button>
               );
@@ -128,23 +131,25 @@ export function TeamMemberCard({ member, myUserId, myRole, onRoleChange, onRemov
 
   return (
     <div className={cn(
-      "group flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl border transition-all",
-      isPending ? "bg-orange-500/5 border-orange-500/20" : "bg-card/60 border-border/40 hover:border-primary/30 hover:bg-primary/5"
+      "group flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl border transition-all duration-200",
+      isPending 
+        ? "bg-orange-500/5 dark:bg-orange-500/2 border-orange-500/30 shadow-sm" 
+        : "bg-card/40 dark:bg-card/10 backdrop-blur-sm border-border/50 hover:border-primary/40 hover:bg-primary/[0.02] hover:shadow-sm"
     )}>
       <div className="relative shrink-0">
-        <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-border/40">
+        <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-border/60 shadow-sm">
           <AvatarImage src={member.avatarUrl ?? ""} alt={member.name} className="object-cover" />
           <AvatarFallback className="bg-primary/10 text-primary font-black text-sm">
             {(member.name || "?").slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
         {isPending && (
-          <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-orange-500 border-2 border-background flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-orange-500 border-2 border-background flex items-center justify-center shadow-sm">
             <Clock className="h-2.5 w-2.5 text-white" />
           </span>
         )}
         {isMe && (
-          <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+          <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary border-2 border-background flex items-center justify-center shadow-sm">
             <ShieldCheck className="h-2.5 w-2.5 text-primary-foreground" />
           </span>
         )}
@@ -152,20 +157,20 @@ export function TeamMemberCard({ member, myUserId, myRole, onRoleChange, onRemov
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-black truncate text-foreground">
+          <p className="text-sm font-black truncate text-foreground tracking-tight">
             {member.name}
-            {isMe && <span className="ml-1.5 text-[9px] font-black text-primary uppercase tracking-wider">（あなた）</span>}
+            {isMe && <span className="ml-1.5 text-[9px] font-black text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-md uppercase tracking-wider">YOU</span>}
           </p>
         </div>
-        <p className="text-[11px] text-muted-foreground truncate">{member.email}</p>
+        <p className="text-[11px] text-muted-foreground truncate mt-0.5 font-medium">{member.email}</p>
         {joinedDate && (
-          <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-            {isPending ? "申請日: " : "参加: "}{joinedDate}
+          <p className="text-[10px] text-muted-foreground/60 mt-1 font-medium tracking-wide">
+            {isPending ? "Requested: " : "Joined: "}{joinedDate}
           </p>
         )}
       </div>
 
-      <div className="shrink-0">
+      <div className="shrink-0 ml-1">
         {isPending ? (
           <RoleBadge role={ROLES.PENDING} />
         ) : (
@@ -182,7 +187,7 @@ export function TeamMemberCard({ member, myUserId, myRole, onRoleChange, onRemov
       {canManage && !isMe && (
         <button
           onClick={() => onRemove(member)}
-          className="shrink-0 h-8 w-8 rounded-xl border border-border/40 flex items-center justify-center text-muted-foreground hover:bg-red-500 hover:text-white hover:border-red-500 transition-all opacity-0 group-hover:opacity-100"
+          className="shrink-0 h-8 w-8 rounded-xl border border-border/50 flex items-center justify-center text-muted-foreground hover:bg-red-500 hover:text-white hover:border-red-500 transition-all opacity-0 group-hover:opacity-100 shadow-sm sm:ml-1 active:scale-95"
           title="チームから除名"
         >
           <Trash2 className="h-3.5 w-3.5" />
