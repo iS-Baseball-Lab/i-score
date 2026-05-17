@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Loader2, RefreshCw, Clock, Users } from "lucide-react";
 import { ROLES } from "@/lib/roles";
 
-// 新しいコンポーネント名とファイルパスでインポート
-import { TeamSummaryCards } from "@/components/features/teams/team-summary-cards";
+// 新しいサマリーカードの名称でインポート
+import { TeamMemberSummaryCards } from "@/components/features/teams/team-member-summary-cards";
 import { TeamInviteCard } from "@/components/features/teams/team-invite-card";
 import { TeamMemberCard, type TeamMember } from "@/components/features/teams/team-member-card";
 import { TeamMemberRemoveModal } from "@/components/features/teams/team-member-remove-modal";
@@ -170,8 +170,8 @@ export default function TeamMembersPage() {
         </Button>
       </div>
 
-      {/* サマリーバー */}
-      <TeamSummaryCards
+      {/* チームメンバーサマリーバー */}
+      <TeamMemberSummaryCards
         totalCount={activeMembers.length}
         pendingCount={pendingMembers.length}
         managerCount={managerCount}
