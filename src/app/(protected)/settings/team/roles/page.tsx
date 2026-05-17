@@ -20,6 +20,9 @@ import {
   ChevronDown,
   AlertCircle,
   RefreshCw,
+  Copy,
+  Check,
+  UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROLES } from "@/lib/roles";
@@ -363,6 +366,8 @@ export default function TeamMembersPage() {
   const [myRole, setMyRole] = useState("");
   const [teamId, setTeamId] = useState("");
   const [teamName, setTeamName] = useState("");
+  const [inviteCode, setInviteCode] = useState(""); // 招待コードの状態管理
+  const [isCopied, setIsCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [removeTarget, setRemoveTarget] = useState<TeamMember | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -371,9 +376,13 @@ export default function TeamMembersPage() {
   const fetchMembers = useCallback(async (tid: string) => {
     try {
       const res = await fetch(`/api/teams/${tid}/members`);
-      const json = await res.json() as { success: boolean; members?: TeamMember[] };
+      const json = await res.json() as { success: boolean; members?: TeamMember[], inviteCode?: string };
       if (json.success && json.members) {
         setMembers(json.members);
+        // Cloudflare Workers のレスポンスに招待コードを含める想定
+        if (json.inviteCode) {
+          setInviteCode(json.inviteCode);
+        }
       }
     } catch {
       toast.error("メンバー情報の取得に失敗しました");
@@ -420,6 +429,19 @@ export default function TeamMembersPage() {
     };
     init();
   }, [router, fetchMembers]);
+
+  // ─── 招待コードコピー機能 ──────────────
+  const handleCopyCode = async () => {
+    if (!inviteCode) return;
+    try {
+      await navigator.clipboard.writeText(inviteCode);
+      setIsCopied(true);
+      toast.success("招待コードをコピーしました！");
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      toast.error("クリップボードへのコピーに失敗しました");
+    }
+  };
 
   // ─── ロール変更 ───────────────────────
   const handleRoleChange = async (memberId: string, newRole: string) => {
@@ -529,109 +551,18 @@ export default function TeamMembersPage() {
         ))}
       </div>
 
-      {/* 承認待ちメンバー */}
-      {pendingMembers.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-orange-500" />
-            <h2 className="text-sm font-black uppercase tracking-widest text-orange-500">
-              承認待ち ({pendingMembers.length})
-            </h2>
-          </div>
-          <div className="space-y-2">
-            {pendingMembers.map(m => (
-              <MemberCard
-                key={m.memberId}
-                member={m}
-                myUserId={myUserId}
-                myRole={myRole}
-                onRoleChange={handleRoleChange}
-                onRemove={setRemoveTarget}
-              />
-            ))}
-          </div>
-          {canManage && (
-            <Button
-              variant="outline"
-              onClick={() => router.push("/teams/requests")}
-              className="w-full rounded-2xl h-11 border-orange-500/30 text-orange-500 hover:bg-orange-500/10 font-bold text-sm"
-            >
-              参加申請を管理する →
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* アクティブメンバー */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-black uppercase tracking-widest text-primary">
-            Active Members ({activeMembers.length})
-          </h2>
-        </div>
-
-        {activeMembers.length === 0 ? (
-          <Card className="bg-card/30 border-border/40 rounded-3xl shadow-none">
-            <CardContent className="p-12 flex flex-col items-center gap-3 text-center">
-              <Users className="h-12 w-12 text-muted-foreground/30" />
-              <p className="font-black text-muted-foreground">メンバーがいません</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {activeMembers.map(m => (
-              <MemberCard
-                key={m.memberId}
-                member={m}
-                myUserId={myUserId}
-                myRole={myRole}
-                onRoleChange={handleRoleChange}
-                onRemove={setRemoveTarget}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ロール凡例 */}
-      <Card className="bg-card/30 border-border/30 rounded-3xl shadow-none">
-        <CardContent className="p-5 space-y-3">
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Role Guide</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {SELECTABLE_ROLES.map((r) => {
-              const rc = getRoleConfig(r);
-              return (
-                <div key={r} className={cn("flex items-center gap-2.5 p-2.5 rounded-xl border", rc.bg)}>
-                  <span className={rc.color}>{rc.icon}</span>
-                  <div>
-                    <p className={cn("text-[10px] font-black uppercase tracking-wider", rc.color)}>{rc.label}</p>
-                    <p className="text-[9px] text-muted-foreground leading-tight">{rc.desc}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* フッター */}
-      <footer className="py-4 opacity-20 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <ShieldCheck className="h-4 w-4" />
-          <span className="text-[10px] font-black uppercase tracking-[0.4em]">Tactical Authority Protocol</span>
-        </div>
-      </footer>
-
-      {/* 除名確認モーダル */}
-      {removeTarget && (
-        <RemoveConfirmModal
-          member={removeTarget}
-          isRemoving={isRemoving}
-          onConfirm={handleRemoveConfirm}
-          onCancel={() => setRemoveTarget(null)}
-        />
-      )}
-    </div>
-  );
-}
+      {/* 招待コード (マネージャー権限のみ表示) */}
+      {canManage && inviteCode && (
+        <Card className="bg-primary/5 border-primary/20 rounded-2xl overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+          <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-black flex items-center gap-1.5 text-primary">
+                <UserPlus className="h-4 w-4" />
+                チーム招待コード
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1 font-medium">
+                このコードを共有して、新しいメンバーをチームに招待しましょう。
+              </p>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto
