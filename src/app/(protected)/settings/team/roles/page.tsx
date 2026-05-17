@@ -565,4 +565,97 @@ export default function TeamMembersPage() {
                 このコードを共有して、新しいメンバーをチームに招待しましょう。
               </p>
             </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="bg-background border border-border/50 rounded-xl px-4 py-2 flex-1 sm:flex-none text-center sm:text-left min-w-[140px]">
+                <code className="text-lg font-black tracking-widest text-foreground select-all">
+                  {inviteCode}
+                </code>
+              </div>
+              <Button
+                onClick={handleCopyCode}
+                variant={isCopied ? "default" : "outline"}
+                className={cn(
+                  "h-11 px-4 rounded-xl transition-all font-bold shrink-0",
+                  isCopied 
+                    ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
+                    : "border-border/50 hover:bg-muted"
+                )}
+              >
+                {isCopied ? (
+                  <><Check className="h-4 w-4 mr-1.5" /> コピー完了</>
+                ) : (
+                  <><Copy className="h-4 w-4 mr-1.5" /> コピー</>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 承認待ちメンバー */}
+      {pendingMembers.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-orange-500" />
+            <h2 className="text-sm font-black uppercase tracking-widest text-orange-500">
+              承認待ち ({pendingMembers.length})
+            </h2>
+          </div>
+          <div className="space-y-2">
+            {pendingMembers.map(m => (
+              <MemberCard
+                key={m.memberId}
+                member={m}
+                myUserId={myUserId}
+                myRole={myRole}
+                onRoleChange={handleRoleChange}
+                onRemove={setRemoveTarget}
+              />
+            ))}
+          </div>
+          {canManage && (
+            <Button
+              variant="outline"
+              onClick={() => router.push("/teams/requests")}
+              className="w-full rounded-2xl h-11 border-orange-500/30 text-orange-500 hover:bg-orange-500/10 font-bold text-sm"
+            >
+              参加申請を管理する →
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* アクティブメンバー */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-black uppercase tracking-widest text-primary">
+            Active Members ({activeMembers.length})
+          </h2>
+        </div>
+        <div className="space-y-2">
+          {activeMembers.map(m => (
+            <MemberCard
+              key={m.memberId}
+              member={m}
+              myUserId={myUserId}
+              myRole={myRole}
+              onRoleChange={handleRoleChange}
+              onRemove={setRemoveTarget}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* 除名確認モーダル */}
+      {removeTarget && (
+        <RemoveConfirmModal
+          member={removeTarget}
+          isRemoving={isRemoving}
+          onConfirm={handleRemoveConfirm}
+          onCancel={() => setRemoveTarget(null)}
+        />
+      )}
+    </div>
+  );
+}
